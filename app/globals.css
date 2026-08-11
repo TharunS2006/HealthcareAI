@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════════════
+   NalamMesh DPI — Modern Medcare Aesthetic
+   Design System Tokens
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* Primary Brand — Emerald & Teal */
+  --emerald-deep: #0E4D45;
+  /* Sidebar / Headers */
+  --emerald-dark: #093630;
+  --teal-accent: #2AA198;
+  /* Primary Actions */
+  --teal-glow: rgba(42, 161, 152, 0.15);
+
+  /* Status Colors — Softer, Professional */
+  --status-red: #E53E3E;
+  --status-red-bg: #FFF5F5;
+  --status-yellow: #D69E2E;
+  --status-yellow-bg: #FFFFF0;
+  --status-green: #38A169;
+  --status-green-bg: #F0FFF4;
+
+  /* Surfaces */
+  --bg-page: #F7F9FB;
+  /* Clean Blue-Grey */
+  --bg-surface: rgba(255, 255, 255, 0.9);
+  /* Glassmorphic Surface */
+  --bg-sider: #0E4D45;
+  /* Deep Green Sidebar */
+  --border-subtle: #E2E8F0;
+  --border-active: #CBD5E0;
+
+  /* Text */
+  --text-primary: #1A202C;
+  --text-secondary: #718096;
+  --text-muted: #A0AEC0;
+  --text-on-dark: #FFFFFF;
+  --text-on-dark-muted: rgba(255, 255, 255, 0.7);
+
+  /* Fonts */
+  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+}
+
+/* ═══════════════════════════════════════
+   Base Styles
+   ═══════════════════════════════════════ */
+
+body {
+  color: var(--text-primary);
+  background: var(--bg-page);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Subtle Background Gradient */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(42, 161, 152, 0.03) 0%, transparent 50%, rgba(14, 77, 69, 0.02) 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   Utility Classes
+   ═══════════════════════════════════════ */
+
+@layer utilities {
+
+  /* Modern Card Surface */
+  .surface-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* Glass-like border */
+    border-radius: 1rem;
+    /* rounded-2xl */
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+    /* shadow-soft */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .surface-card:hover {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    /* shadow-lift */
+    transform: translateY(-2px);
+    border-color: var(--teal-accent);
+  }
+
+  /* Sidebar Gradient */
+  .sidebar-gradient {
+    background: linear-gradient(180deg, var(--emerald-deep) 0%, var(--emerald-dark) 100%);
+  }
+
+  /* Status Badges */
+  .badge-red {
+    background: var(--status-red-bg);
+    color: var(--status-red);
+    border: 1px solid rgba(229, 62, 62, 0.1);
+  }
+
+  .badge-yellow {
+    background: var(--status-yellow-bg);
+    color: var(--status-yellow);
+    border: 1px solid rgba(214, 158, 46, 0.1);
+  }
+
+  .badge-green {
+    background: var(--status-green-bg);
+    color: var(--status-green);
+    border: 1px solid rgba(56, 161, 105, 0.1);
+  }
+
+  /* Smooth Text Balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #CBD5E0;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #A0AEC0;
+  }
+}

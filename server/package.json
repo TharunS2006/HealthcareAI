@@ -1,0 +1,18 @@
+{
+    "name": "mesh-server",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "start": "tsx server/mesh-server.ts",
+        "dev": "tsx watch server/mesh-server.ts"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "socket.io": "^4.7.0"
+    },
+    "devDependencies": {
+        "@types/express": "^4.17.21",
+        "@types/node": "^20.10.0",
+        "tsx": "^4.7.0"
+    }
+}
