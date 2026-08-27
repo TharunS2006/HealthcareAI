@@ -1,11 +1,11 @@
 /**
- * Live Demo Mode Controller
- * Auto-generates simulated patient flow (RED, YELLOW, GREEN) every 8 seconds
+ * Live Demo Mode Controller — NalamMesh (Maharashtra Rural Public Health)
+ * Auto-generates simulated patient flow (RED, YELLOW, GREEN) in Gadchiroli
  * Triggers live socket sync, real-time map updates, and audio alerts for RED patients
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { Patient, TriageStatus } from '@/types/patient';
+import { Patient, TriageStatus, TriagePriority } from '@/types/patient';
 import { usePatientStore } from '@/stores/patientStore';
 import toast from 'react-hot-toast';
 
@@ -13,24 +13,77 @@ let demoInterval: NodeJS.Timeout | null = null;
 
 const DEMO_PRESETS = [
     {
+        name: 'Savita Rama Madavi',
+        age: 24,
+        gender: 'F' as const,
+        village: 'Kothi',
         triageStatus: 'RED' as TriageStatus,
-        vitals: { spo2: 84, heartRate: 142, bloodPressure: { systolic: 82, diastolic: 54 }, consciousness: 'UNRESPONSIVE' as const, injuryType: 'Severe Chest Trauma & Hypoxia' },
+        triagePriority: 'EMERGENCY' as TriagePriority,
+        vitals: {
+            spo2: 92,
+            heartRate: 118,
+            bloodPressure: { systolic: 165, diastolic: 108 },
+            temperature: 99.4,
+            consciousness: 'ALERT' as const,
+            isPregnant: true,
+            gestationalWeeks: 34,
+            injuryType: 'High-Risk Maternal: Severe Eclampsia with Hyperreflexia & Visual Blurring',
+        },
         gpsOffset: { lat: 0.012, lng: -0.008 },
     },
     {
+        name: 'Bandu Soma Atram',
+        age: 48,
+        gender: 'M' as const,
+        village: 'Govindpur',
         triageStatus: 'YELLOW' as TriageStatus,
-        vitals: { spo2: 92, heartRate: 114, bloodPressure: { systolic: 110, diastolic: 72 }, consciousness: 'VOICE' as const, injuryType: 'Fractured Femur & Moderate Bleeding' },
+        triagePriority: 'URGENT' as TriagePriority,
+        vitals: {
+            spo2: 95,
+            heartRate: 92,
+            bloodPressure: { systolic: 146, diastolic: 92 },
+            bloodGlucose: 240,
+            temperature: 101.2,
+            consciousness: 'ALERT' as const,
+            injuryType: 'Sickle Cell Anemia Crisis with Joint Pain & Fever (RDT Positive)',
+        },
         gpsOffset: { lat: -0.015, lng: 0.018 },
     },
     {
-        triageStatus: 'GREEN' as TriageStatus,
-        vitals: { spo2: 98, heartRate: 76, bloodPressure: { systolic: 120, diastolic: 80 }, consciousness: 'ALERT' as const, injuryType: 'Minor Lacerations & Abrasions' },
-        gpsOffset: { lat: 0.008, lng: 0.022 },
+        name: 'Baby Anaya (s/o Radha)',
+        age: 2,
+        gender: 'F' as const,
+        village: 'Perimili',
+        triageStatus: 'RED' as TriageStatus,
+        triagePriority: 'EMERGENCY' as TriagePriority,
+        vitals: {
+            spo2: 89,
+            heartRate: 145,
+            bloodPressure: { systolic: 80, diastolic: 50 },
+            respiratoryRate: 52,
+            temperature: 103.0,
+            consciousness: 'ALERT' as const,
+            childAgeMonths: 24,
+            injuryType: 'Severe Acute Malnutrition (SAM) with Pneumonia & Chest Indrawing',
+        },
+        gpsOffset: { lat: -0.006, lng: -0.014 },
     },
     {
-        triageStatus: 'RED' as TriageStatus,
-        vitals: { spo2: 81, heartRate: 158, bloodPressure: { systolic: 190, diastolic: 115 }, consciousness: 'PAIN' as const, injuryType: 'Acute Cardiac Event' },
-        gpsOffset: { lat: -0.006, lng: -0.014 },
+        name: 'Ganesh Devrao Gawde',
+        age: 38,
+        gender: 'M' as const,
+        village: 'Bhamragad',
+        triageStatus: 'GREEN' as TriageStatus,
+        triagePriority: 'ROUTINE' as TriagePriority,
+        vitals: {
+            spo2: 98,
+            heartRate: 74,
+            bloodPressure: { systolic: 120, diastolic: 80 },
+            temperature: 98.6,
+            consciousness: 'ALERT' as const,
+            injuryType: 'Routine NCD Screening: Blood Pressure & Sugar Normal',
+        },
+        gpsOffset: { lat: 0.008, lng: 0.022 },
     },
 ];
 
@@ -39,61 +92,61 @@ let presetIndex = 0;
 export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     if (demoInterval) return;
 
-    toast('⚡ Live Demo Mode Activated! Auto-generating patient stream...', {
+    toast('⚡ Maharashtra Rural Public Health Live Demo Mode Activated!', {
         icon: '🚀',
         duration: 4000,
-        style: { background: '#0E4D45', color: '#fff', fontWeight: 'bold' },
+        style: { background: '#0E7D6B', color: '#fff', fontWeight: 'bold' },
     });
 
-    // Helper to generate next patient
     const generatePatient = async () => {
         const preset = DEMO_PRESETS[presetIndex % DEMO_PRESETS.length];
         presetIndex++;
 
-        // Base location: Chennai center
-        const baseLat = 13.0827;
-        const baseLng = 80.2707;
+        // Base location: Gadchiroli, Maharashtra
+        const baseLat = 19.4678;
+        const baseLng = 80.3789;
 
         const patient: Patient = {
-            id: uuidv4(),
+            id: `p-demo-${uuidv4().slice(0, 6)}`,
+            abhaId: `ABHA-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
+            name: preset.name,
+            age: preset.age,
+            gender: preset.gender,
+            village: preset.village,
+            tehsil: 'Bhamragad',
+            district: 'Gadchiroli',
+            state: 'Maharashtra',
             vitals: preset.vitals,
             triageStatus: preset.triageStatus,
+            triagePriority: preset.triagePriority,
             gps: {
                 lat: baseLat + preset.gpsOffset.lat + (Math.random() * 0.004 - 0.002),
                 lng: baseLng + preset.gpsOffset.lng + (Math.random() * 0.004 - 0.002),
-                accuracy: 12,
+                accuracy: 10,
             },
-            timestamp: new Date(),
-            isSynced: false,
+            timestamp: new Date().toISOString(),
+            isSynced: true,
+            chw_name: 'Lakshmi Netam (ASHA)',
+            notes: 'Auto-generated via NalamMesh Maharashtra Demonstration Engine',
         };
 
-        // Add to Zustand patient store & IDB
         await usePatientStore.getState().addPatient(patient);
 
         if (onPatientGenerated) onPatientGenerated(patient);
 
-        // Sound alert for RED patients
         if (patient.triageStatus === 'RED') {
-            toast.error(`🚨 EMERGENCY ALERT: RED Patient #${patient.id.slice(0, 6)} (${patient.vitals.injuryType})`, {
+            toast.error(`🚨 EMERGENCY: ${patient.name} (${patient.vitals.injuryType})`, {
                 duration: 5000,
             });
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1bW2NtdH+MmJmNfnF0e4eLjId+d3N1fIaRlpKIe3R0eYOOk5KNhXl0dXuFj5STjoJ4dHZ8hpCUk42BeHR2fIaQlJONgXh0dnyGkJSTjYF4dHZ8hpCUk42BeHR2fIaQlJON');
-                audio.volume = 0.4;
-                audio.play().catch(() => {});
-            } catch {}
         } else {
-            toast.success(`⚡ Live Demo: New ${patient.triageStatus} patient triaged`, {
+            toast.success(`⚡ Live Demo: New ${patient.triageStatus} patient triaged at ${patient.village}`, {
                 duration: 3000,
             });
         }
     };
 
-    // Immediately trigger first patient
     generatePatient();
-
-    // Repeat every 8 seconds
-    demoInterval = setInterval(generatePatient, 8000);
+    demoInterval = setInterval(generatePatient, 10000);
 }
 
 export function stopDemoMode() {

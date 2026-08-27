@@ -1,11 +1,11 @@
 /**
- * Language Store — Multi-Language Support (English, Tamil, Hindi)
+ * Language Store — Multi-Language Support (English, Marathi मराठी, Hindi हिन्दी)
  */
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Language = 'en' | 'ta' | 'hi';
+export type Language = 'en' | 'mr' | 'hi';
 
 interface LanguageState {
     language: Language;
@@ -15,11 +15,11 @@ interface LanguageState {
 export const useLanguageStore = create<LanguageState>()(
     persist(
         (set) => ({
-            language: 'en',
+            language: 'mr', // Default to Marathi for Maharashtra SIH PS
             setLanguage: (language: Language) => set({ language }),
         }),
         {
-            name: 'nalammesh-language',
+            name: 'nalammesh-language-v2',
         }
     )
 );

@@ -1,17 +1,13 @@
 /**
- * Modern Sidebar Navigation
- * Deep Emerald background with Teal accents
+ * Sidebar Navigation Component — NalamMesh Rural Public Healthcare
  */
 
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import MobileMenu from './MobileMenu';
-import Logo from './Logo';
-
-import LanguageSelector from './LanguageSelector';
+import Logo from '@/components/shared/Logo';
+import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useLanguageStore } from '@/stores/languageStore';
 import { t } from '@/lib/i18n';
 
@@ -21,108 +17,133 @@ export default function Sidebar() {
 
     const navItems = [
         {
-            name: t('navCommand', language), path: '/dashboard', icon: (
+            href: '/',
+            label: t('navHome', language),
+            icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-            )
+            ),
         },
         {
-            name: t('navTriage', language), path: '/triage', icon: (
+            href: '/opd',
+            label: t('navOpd', language),
+            badge: 'Intake',
+            icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-            )
+            ),
         },
         {
-            name: t('navTopology', language), path: '/mesh-demo', icon: (
+            href: '/dashboard',
+            label: t('navDashboard', language),
+            icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
-            )
+            ),
         },
         {
-            name: t('navAmbulance', language), path: '/ambulance', icon: (
+            href: '/referrals',
+            label: t('navReferrals', language),
+            badge: 'Pipeline',
+            icon: (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h6l2-2zm0 0l2 2h2a1 1 0 001-1v-5a1 1 0 00-.29-.71l-3-3A1 1 0 0014 9h-1m-6 8h.01M17 16h.01" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
-            )
+            ),
+        },
+        {
+            href: '/queue',
+            label: t('navQueue', language),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/teleconsult',
+            label: t('navTeleconsult', language),
+            badge: 'Live',
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/medicine',
+            label: t('navMedicine', language),
+            icon: (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            ),
         },
     ];
 
     return (
-        <>
-            <MobileMenu />
-            <aside className="fixed top-0 left-0 w-64 h-screen bg-emerald-deep text-white shadow-2xl z-50 hidden md:flex flex-col">
-                {/* Logo Area */}
-                <div className="p-6 pl-5 pb-4">
-                    <Logo variant="light" size="sm" />
+        <aside className="w-64 bg-white border-r border-border-subtle h-screen flex flex-col fixed left-0 top-0 z-30 hidden md:flex">
+            {/* Header / Logo */}
+            <div className="p-5 border-b border-border-subtle">
+                <Logo size="md" />
+                <div className="mt-3">
+                    <LanguageSelector />
                 </div>
+            </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 px-4 space-y-2 mt-8">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.path;
-                        return (
-                            <Link key={item.path} href={item.path}>
-                                <div className="relative group">
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="sidebar-active"
-                                            className="absolute inset-0 bg-white/10 rounded-xl"
-                                            initial={false}
-                                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                                        />
-                                    )}
-                                    <div className={`relative px-4 py-3.5 flex items-center gap-3 rounded-xl transition-colors duration-200 ${isActive ? 'text-white' : 'text-teal-100/70 hover:text-white hover:bg-white/5'
-                                        }`}>
-                                        {item.icon}
-                                        <span className="font-medium text-sm">{item.name}</span>
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                {/* Bottom Status & Language Selector */}
-                <div className="p-6 space-y-3">
-                    <div className="mb-2">
-                        <LanguageSelector />
-                    </div>
-
-                    <Link href="/" className="flex items-center gap-3 px-4 py-2.5 text-emerald-100 hover:text-white hover:bg-white/10 rounded-xl transition-all border border-transparent hover:border-white/10 group">
-                        <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
-                        </svg>
-                        <span className="font-bold text-sm">Switch Role</span>
-                    </Link>
-
-                    <button
-                        onClick={async () => {
-                            if (window.confirm('Are you sure you want to delete ALL patient data?')) {
-                                const { usePatientStore } = await import('@/stores/patientStore');
-                                await usePatientStore.getState().resetData();
-                                window.location.reload();
-                            }
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-red-300 hover:text-red-100 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20 group text-left"
-                    >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span className="font-bold text-sm">Reset Data</span>
-                    </button>
-
-                    <div className="p-3 bg-emerald-dark rounded-xl border border-white/5">
-                        <div className="flex items-center gap-3 mb-1">
-                            <div className="w-2 h-2 rounded-full bg-status-green" />
-                            <span className="text-xs font-semibold text-teal-accent">{t('systemOnline', language)}</span>
-                        </div>
-                        <p className="text-[10px] text-teal-100/50">Mesh Network Active</p>
-                    </div>
+            {/* Navigation List */}
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <div className="px-3 pb-2 text-[10px] font-bold text-txt-muted uppercase tracking-wider">
+                    Rural Public Health Modules
                 </div>
-            </aside>
-        </>
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all ${
+                                isActive
+                                    ? 'bg-emerald-deep text-white shadow-md shadow-emerald-deep/20 font-semibold'
+                                    : 'text-txt-secondary hover:text-emerald-deep hover:bg-teal-50/50'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className={isActive ? 'text-teal-accent' : 'text-txt-muted'}>
+                                    {item.icon}
+                                </span>
+                                <span>{item.label}</span>
+                            </div>
+                            {item.badge && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                    isActive ? 'bg-white/20 text-white' : 'bg-teal-50 text-teal-700'
+                                }`}>
+                                    {item.badge}
+                                </span>
+                            )}
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Bottom Status / District Badge */}
+            <div className="p-4 border-t border-border-subtle bg-gray-50/60">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-xs font-bold text-emerald-deep">PHC Bhamragad</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
+                        MH-GAD
+                    </span>
+                </div>
+                <p className="text-[11px] text-txt-muted truncate">
+                    Dist. Gadchiroli • Aheri Division
+                </p>
+            </div>
+        </aside>
     );
 }

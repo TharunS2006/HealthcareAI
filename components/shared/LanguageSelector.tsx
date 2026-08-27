@@ -1,49 +1,34 @@
 /**
- * Language Selector Dropdown (English, Tamil, Hindi)
- * Styled for dark sidebar & glassmorphism interfaces
+ * Language Selector component — Marathi, Hindi, English
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useLanguageStore, Language } from '@/stores/languageStore';
 
 export default function LanguageSelector() {
     const { language, setLanguage } = useLanguageStore();
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const languages: Array<{ code: Language; label: string; flag: string }> = [
-        { code: 'en', label: 'English', flag: '🇬🇧' },
-        { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
+    const languages: { code: Language; label: string; flag: string }[] = [
+        { code: 'mr', label: 'मराठी', flag: '🚩' },
         { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
+        { code: 'en', label: 'English', flag: '🌐' },
     ];
 
-    if (!mounted) {
-        return (
-            <div className="flex items-center justify-between gap-1 bg-white/10 p-1 rounded-xl border border-white/10 text-xs h-9">
-                <div className="w-full text-center text-teal-100/50 text-[10px]">Loading languages...</div>
-            </div>
-        );
-    }
-
     return (
-        <div className="flex items-center justify-between gap-1 bg-white/10 p-1 rounded-xl border border-white/10 text-xs">
-            {languages.map((lang) => (
+        <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm border border-border-subtle p-1 rounded-xl shadow-sm">
+            {languages.map((l) => (
                 <button
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`flex-1 py-1 px-1.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-1 text-[11px] ${
-                        language === lang.code
-                            ? 'bg-teal-accent text-white shadow-md font-bold'
-                            : 'text-teal-100/70 hover:text-white hover:bg-white/10'
+                    key={l.code}
+                    onClick={() => setLanguage(l.code)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                        language === l.code
+                            ? 'bg-emerald-deep text-white shadow-sm'
+                            : 'text-txt-secondary hover:text-emerald-deep hover:bg-gray-100/60'
                     }`}
                 >
-                    <span>{lang.flag}</span>
-                    <span>{lang.label}</span>
+                    <span className="mr-1">{l.flag}</span>
+                    {l.label}
                 </button>
             ))}
         </div>

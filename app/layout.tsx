@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
-import { ToastProvider } from "@/components/shared/Toast";
 import SocketInit from "@/components/shared/SocketInit";
 import PWAInstall from "@/components/shared/PWAInstall";
 import { Toaster } from 'react-hot-toast';
@@ -26,19 +25,19 @@ export const viewport: Viewport = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    themeColor: "#0E4D45", // Deep Emerald
+    themeColor: "#0E7D6B",
 };
 
 export const metadata: Metadata = {
-    title: "NalamMesh DPI - Hospital Operations",
-    description: "Enterprise Digital Public Infrastructure for healthcare logic",
+    title: "NalamMesh — Rural Public Healthcare Access Platform (Maharashtra)",
+    description: "Integrated care-access and quality support platform for rural and underserved areas. SIH Problem Statement #26133.",
     manifest: "/manifest.json",
     appleWebApp: {
         capable: true,
         statusBarStyle: "black-translucent",
         title: "NalamMesh",
     },
-    keywords: ["healthcare", "hospital software", "triage", "mesh network", "ABDM"],
+    keywords: ["healthcare", "rural healthcare", "ABDM", "FHIR", "triage", "teleconsultation", "queue management", "referral tracking", "Maharashtra", "SIH 2025"],
 };
 
 export default function RootLayout({
@@ -58,7 +57,7 @@ export default function RootLayout({
                 <ErrorBoundary>
                     <SocketInit />
                     {children}
-                    <Toaster position="top-right" />
+                    <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
                     <PWAInstall />
                 </ErrorBoundary>
             </body>

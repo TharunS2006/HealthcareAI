@@ -249,12 +249,14 @@ export default function PatientDetailClient() {
                                     <p className="text-xs text-txt-muted">{hospital.location.address}</p>
                                     <div className="flex gap-3 mt-2">
                                         <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">{hospital.capacity.icu.total - hospital.capacity.icu.occupied}</span>
-                                            <span className="text-[10px] uppercase font-bold">ICU</span>
+                                            <span className="block text-lg font-bold">
+                                                {hospital.beds.icu ? hospital.beds.icu.total - hospital.beds.icu.occupied : hospital.beds.total - hospital.beds.occupied}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold">Avail Beds</span>
                                         </div>
                                         <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">{hospital.capacity.emergency.total - hospital.capacity.emergency.occupied}</span>
-                                            <span className="text-[10px] uppercase font-bold">ER</span>
+                                            <span className="block text-lg font-bold">{hospital.ambulanceAvailable}</span>
+                                            <span className="text-[10px] uppercase font-bold">Ambulance</span>
                                         </div>
                                     </div>
                                 </div>
