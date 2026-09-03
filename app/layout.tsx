@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import TricolorStripe from "@/components/gov/TricolorStripe";
 import GovPortalHeader from "@/components/gov/GovPortalHeader";
 import GovPortalFooter from "@/components/gov/GovPortalFooter";
 import OfflineBanner from "@/components/gov/OfflineBanner";
@@ -17,11 +16,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-    title: "नलममेश (NalamMesh) — राष्ट्रीय ग्रामीण आरोग्य डिजिटल प्रणाली | महाराष्ट्र शासन",
+    title: "NalamMesh — National Rural Public Healthcare Platform | Government of Maharashtra",
     description: "National Rural Public Healthcare Access, Continuity & Quality Platform. Department of Public Health, Government of Maharashtra & National Health Mission (NHM).",
     manifest: "/manifest.json",
     keywords: [
-        "NalamMesh", "नलममेश", "National Health Mission", "Government of Maharashtra",
+        "NalamMesh", "National Health Mission", "Government of Maharashtra",
         "सार्वजनिक आरोग्य विभाग", "ABDM", "FHIR R4", "OPD Triage",
         "Gadchiroli", "eSanjeevani", "108 Ambulance", "Public Healthcare",
     ],
@@ -29,11 +28,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <html lang="mr">
+        <html lang="en" className="h-full">
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -51,9 +50,6 @@ export default function RootLayout({
                 <a href="#main-content" className="skip-to-content">
                     मुख्य मजकुराकडे जा (Skip to main content)
                 </a>
-
-                {/* National 3-Color GIGW Ribbon */}
-                <TricolorStripe />
 
                 {/* Official Indian Government Portal Header (NIC / GIGW 3.0 Standard) */}
                 <GovPortalHeader />

@@ -2,6 +2,7 @@
  * NalamMesh — National Rural Public Healthcare Infrastructure (DPI)
  * Government of Maharashtra • Department of Public Health
  * Official NIC / GIGW 3.0 Portal Gateway
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
  */
 
 'use client';
@@ -18,6 +19,9 @@ export default function Home() {
     const { patients, loadPatients } = usePatientStore();
     const { referrals, loadReferrals } = useReferralStore();
 
+    const isEn = language === 'en';
+    const isHi = language === 'hi';
+
     useEffect(() => {
         loadPatients();
         loadReferrals();
@@ -29,131 +33,200 @@ export default function Home() {
     const modules = [
         {
             code: 'M-01',
-            titleMr: 'ओपीडी नोंदणी व डिजिटल ट्राइएज',
-            titleEn: 'OPD Intake & AI Triage',
-            deptMr: 'प्राथमिक आरोग्य सेवा',
-            deptEn: 'Primary Clinical Care',
-            descMr: 'लक्षणे व महत्त्वाच्या नोंदी (SpO2, रक्तदाब, साखर) द्वारे रुग्णांचे तात्काळ आपत्कालीन वर्गीकरण व डिजिटल टोकन.',
-            descEn: 'On-device symptom triage, voice vitals capture (SpO2, BP, Glucose), and emergency risk prioritization.',
+            title: isEn ? 'OPD Intake & AI Triage' : isHi ? 'ओपीडी पंजीकरण व डिजिटल ट्राइएज' : 'ओपीडी नोंदणी व डिजिटल ट्राइएज',
+            dept: isEn ? 'Primary Clinical Care' : isHi ? 'प्राथमिक स्वास्थ्य सेवा' : 'प्राथमिक आरोग्य सेवा',
+            desc: isEn
+                ? 'On-device symptom triage, voice vitals capture (SpO2, BP, Glucose), automated emergency risk prioritization, and instant OPD token queue.'
+                : isHi
+                ? 'लक्षणों व महत्वपूर्ण संकेतों (SpO2, रक्तचाप, शुगर) द्वारा मरीजों का तत्काल आपातकालीन वर्गीकरण एवं डिजिटल टोकन।'
+                : 'लक्षणे व महत्त्वाच्या नोंदी (SpO2, रक्तदाब, साखर) द्वारे रुग्णांचे तात्काळ आपत्कालीन वर्गीकरण व डिजिटल टोकन.',
             href: '/opd',
-            btnMr: 'ओपीडी सुरू करा →',
-            btnEn: 'Launch OPD Intake →',
-            tag: 'Point of Care',
+            btn: isEn ? 'Launch OPD Intake →' : isHi ? 'ओपीडी शुरू करें →' : 'ओपीडी सुरू करा →',
+            tag: isEn ? 'Point of Care' : 'आरोग्य केंद्र',
             accent: 'border-l-[#1F3A6E]',
         },
         {
             code: 'M-02',
-            titleMr: 'जिल्हा आरोग्य आदेश कक्ष (DHO)',
-            titleEn: 'District Health Command',
-            deptMr: 'आरोग्य संनियंत्रण',
-            deptEn: 'Public Health Command',
-            descMr: 'जिल्ह्यातील सर्व उपकेंद्र, प्राथमिक आरोग्य केंद्र व ग्रामीण रुग्णालयांचे थेट संख्याशास्त्रीय व गुणवत्ता मूल्यमापन.',
-            descEn: 'Real-time census, facility scorecards, travel time savings, referral audits, and mortality prevention telemetry.',
+            title: isEn ? 'District Health Command (DHO)' : isHi ? 'जिला स्वास्थ्य आदेश कक्ष (DHO)' : 'जिल्हा आरोग्य आदेश कक्ष (DHO)',
+            dept: isEn ? 'Public Health Command' : isHi ? 'स्वास्थ्य निगरानी' : 'आरोग्य संनियंत्रण',
+            desc: isEn
+                ? 'Real-time census, facility scorecards, travel time savings, referral audits, and mortality prevention telemetry across all 10 talukas.'
+                : isHi
+                ? 'जिले के सभी उपकेंद्र, प्राथमिक स्वास्थ्य केंद्र व ग्रामीण अस्पतालों का सीधा सांख्यिकी एवं गुणवत्ता मूल्यांकन।'
+                : 'जिल्ह्यातील सर्व उपकेंद्र, प्राथमिक आरोग्य केंद्र व ग्रामीण रुग्णालयांचे थेट संख्याशास्त्रीय व गुणवत्ता मूल्यमापन.',
             href: '/dashboard',
-            btnMr: 'डॅशबोर्ड उघडा →',
-            btnEn: 'Open Command Center →',
-            tag: 'Executive Hub',
+            btn: isEn ? 'Open Command Center →' : isHi ? 'डैशबोर्ड खोलें →' : 'डॅशबोर्ड उघडा →',
+            tag: isEn ? 'Executive Hub' : 'प्रशासन',
             accent: 'border-l-[#B45309]',
         },
         {
             code: 'M-03',
-            titleMr: 'उच्च जोखीम पाठपुरावा (ANC/SAM)',
-            titleEn: 'High-Risk Recall Engine',
-            deptMr: 'माता व बाल आरोग्य',
-            deptEn: 'Maternal & Child Health',
-            descMr: 'गरोदर मातांमधील अतिरक्तदाब, बालकांमधील तीव्र कुपोषण (SAM) व असंसर्गजन्य आजारांचा (NCD) प्राधान्य पाठपुरावा.',
-            descEn: 'Surveillance pathways for high-risk maternal preeclampsia, severe acute malnutrition (SAM), and chronic NCD recalls.',
+            title: isEn ? 'High-Risk Recall Engine (ANC/SAM)' : isHi ? 'उच्च जोखिम निगरानी (ANC/SAM)' : 'उच्च जोखीम पाठपुरावा (ANC/SAM)',
+            dept: isEn ? 'Maternal & Child Health' : isHi ? 'मातृ एवं शिशु स्वास्थ्य' : 'माता व बाल आरोग्य',
+            desc: isEn
+                ? 'Active surveillance pathways for maternal preeclampsia, severe acute malnutrition (SAM) in under-5s, and non-communicable diseases (NCD).'
+                : isHi
+                ? 'गर्भवती महिलाओं में उच्च रक्तचाप, बच्चों में गंभीर कुपोषण (SAM) और गैर-संचारी रोगों (NCD) की प्राथमिकता ट्रैकिंग।'
+                : 'गरोदर मातांमधील अतिरक्तदाब, बालकांमधील तीव्र कुपोषण (SAM) व असंसर्गजन्य आजारांचा (NCD) प्राधान्य पाठपुरावा.',
             href: '/followup',
-            btnMr: 'पाठपुरावा यादी पहा →',
-            btnEn: 'View Recall Cohorts →',
-            tag: 'Surveillance',
+            btn: isEn ? 'View Recall Cohorts →' : isHi ? 'फॉलो-अप सूची देखें →' : 'पाठपुरावा यादी पहा →',
+            tag: isEn ? 'Surveillance' : 'निगरानी',
             accent: 'border-l-[#C53030]',
         },
         {
             code: 'M-04',
-            titleMr: 'निदान व प्रयोगशाळा समन्वय',
-            titleEn: 'Diagnostic Lab Coordination',
-            deptMr: 'पॅथॉलॉजी व लॅब नेटवर्क',
-            deptEn: 'Diagnostic Network',
-            descMr: 'रक्त व मूत्र नमुने संकलन, तपासणी स्थिती व प्राथमिक केंद्रावर अनुपलब्ध चाचण्यांसाठी जवळच्या लॅबचे स्वयंचलित मॅपिंग.',
-            descEn: 'Sample collection tracking, nearest-lab routing for unavailable tests, and instant ABHA diagnostic reports.',
+            title: isEn ? 'Diagnostic Lab Coordination' : isHi ? 'निदान एवं प्रयोगशाला समन्वय' : 'निदान व प्रयोगशाळा समन्वय',
+            dept: isEn ? 'Diagnostic Network' : isHi ? 'पैथोलॉजी व लैब नेटवर्क' : 'पॅथॉलॉजी व लॅब नेटवर्क',
+            desc: isEn
+                ? 'Sample collection tracking, nearest-lab routing for unavailable tests, instant ABHA diagnostic reports, and pathology result entry.'
+                : isHi
+                ? 'रक्त व मूत्र नमूना संग्रह, जांच स्थिति और प्राथमिक केंद्र पर अनुपलब्ध जांचों के लिए निकटतम लैब की स्वचालित मैपिंग।'
+                : 'रक्त व मूत्र नमुने संकलन, तपासणी स्थिती व प्राथमिक केंद्रावर अनुपलब्ध चाचण्यांसाठी जवळच्या लॅबचे स्वयंचलित मॅपिंग.',
             href: '/diagnostics',
-            btnMr: 'लॅब नेटवर्क उघडा →',
-            btnEn: 'Access Lab Network →',
-            tag: 'Lab Network',
+            btn: isEn ? 'Access Lab Network →' : isHi ? 'लैब नेटवर्क खोलें →' : 'लॅब नेटवर्क उघडा →',
+            tag: isEn ? 'Lab Network' : 'प्रयोगशाळा',
             accent: 'border-l-[#0284C7]',
         },
         {
             code: 'M-05',
-            titleMr: 'आवश्यक औषध साठा व उपलब्धता',
-            titleEn: 'Essential Medicine Inventory',
-            deptMr: 'औषध पुरवठा विभाग',
-            deptEn: 'Supply Chain (IPHS)',
-            descMr: 'IPHS मानकांनुसार मोफत व अनुदानित औषध साठा, तात्काळ पुनर्भरती मागणी व नजीकच्या मुदतबाह्य औषधांचे अलर्ट.',
-            descEn: 'IPHS Essential Drug List tracking, emergency warehouse requisitions, and transparent ₹0 patient medicines.',
+            title: isEn ? 'Essential Medicine Stock (IPHS)' : isHi ? 'आवश्यक दवा उपलब्धता एवं स्टॉक' : 'आवश्यक औषध साठा व उपलब्धता',
+            dept: isEn ? 'Supply Chain (IPHS)' : isHi ? 'दवा आपूर्ति विभाग' : 'औषध पुरवठा विभाग',
+            desc: isEn
+                ? 'IPHS Essential Drug List tracking, emergency warehouse requisitions, near-expiry alerts, and transparent ₹0 medicines for citizens.'
+                : isHi
+                ? 'IPHS मानकों के अनुसार मुफ्त दवा स्टॉक, तत्काल पुनःपूर्ति मांग और निकटतम एक्सपायरी दवाओं के अलर्ट।'
+                : 'IPHS मानकांनुसार मोफत व अनुदानित औषध साठा, तात्काळ पुनर्भरती मागणी व नजीकच्या मुदतबाह्य औषधांचे अलर्ट.',
             href: '/medicine',
-            btnMr: 'औषध साठा तपासा →',
-            btnEn: 'Check Medicine Stock →',
-            tag: 'Free Pharmacy',
+            btn: isEn ? 'Check Medicine Stock →' : isHi ? 'दवा स्टॉक देखें →' : 'औषध साठा तपासा →',
+            tag: isEn ? 'Free Pharmacy' : 'औषधालय',
             accent: 'border-l-[#15803D]',
         },
         {
             code: 'M-06',
-            titleMr: '१०८ / १०२ रुग्ण रेफरल ट्रॅकर',
-            titleEn: 'Emergency Referral Pipeline',
-            deptMr: 'आपत्कालीन संदर्भ सेवा',
-            deptEn: 'Emergency Medical Services',
-            descMr: 'उपकेंद्र ते जिल्हा रुग्णालय थेट रुग्ण रेफरल, रुग्णवाहिका समन्वय व उच्च केंद्राकडे डिजिटल आरोग्य नोंद (LHR) पाठवणे.',
-            descEn: 'Multi-tier continuum tracker from Sub-Centre to District Hospital with live 108 ambulance dispatch.',
+            title: isEn ? '108 / 102 Emergency Referral Pipeline' : isHi ? '१०८ / १०२ रोगी रेफरल ट्रैकर' : '१०८ / १०२ रुग्ण रेफरल ट्रॅकर',
+            dept: isEn ? 'Emergency Medical Services' : isHi ? 'आपातकालीन संदर्भ सेवा' : 'आपत्कालीन संदर्भ सेवा',
+            desc: isEn
+                ? 'Multi-tier continuum tracker from Sub-Centre to District Hospital with live 108 ambulance dispatch and electronic longitudinal health records.'
+                : isHi
+                ? 'उपकेंद्र से जिला अस्पताल सीधा रेफरल, एम्बुलेंस समन्वय और उच्च केंद्र को डिजिटल स्वास्थ्य रिकॉर्ड (LHR) प्रेषण।'
+                : 'उपकेंद्र ते जिल्हा रुग्णालय थेट रुग्ण रेफरल, रुग्णवाहिका समन्वय व उच्च केंद्राकडे डिजिटल आरोग्य नोंद (LHR) पाठवणे.',
             href: '/referrals',
-            btnMr: 'रेफरल पाइपलाइन →',
-            btnEn: 'Track Referrals →',
-            tag: 'Emergency Transit',
+            btn: isEn ? 'Track Referrals →' : isHi ? 'रेफरल पाइपलाइन देखें →' : 'रेफरल पाइपलाइन →',
+            tag: isEn ? 'Emergency Transit' : 'रुग्णवाहिका',
             accent: 'border-l-[#DC2626]',
         },
         {
             code: 'M-07',
-            titleMr: 'ओपीडी रांग व टोकन व्यवस्थापन',
-            titleEn: 'OPD Queue & Token Board',
-            deptMr: 'रुग्णालय व्यवस्थापन',
-            deptEn: 'Patient Services',
-            descMr: 'डिजिटल टोकन क्रमांक, अंदाजित प्रतीक्षा वेळ व विभागांनुसार तात्काळ प्राधान्य रांग नियंत्रण प्रणाली.',
-            descEn: 'Live token display, wait time estimators, department triage routing, and low-bandwidth SMS token alerts.',
+            title: isEn ? 'OPD Queue & Token Board' : isHi ? 'ओपीडी कतार एवं टोकन प्रबंधन' : 'ओपीडी रांग व टोकन व्यवस्थापन',
+            dept: isEn ? 'Patient Services' : isHi ? 'अस्पताल प्रबंधन' : 'रुग्णालय व्यवस्थापन',
+            desc: isEn
+                ? 'Live token display, wait time estimators, department triage routing, and dedicated Full-Screen TV Waiting Room display mode.'
+                : isHi
+                ? 'डिजिटल टोकन नंबर, अनुमानित प्रतीक्षा समय और विभागों के अनुसार तत्काल प्राथमिकता कतार नियंत्रण प्रणाली।'
+                : 'डिजिटल टोकन क्रमांक, अंदाजित प्रतीक्षा वेळ व विभागांनुसार तात्काळ प्राधान्य रांग नियंत्रण प्रणाली.',
             href: '/queue',
-            btnMr: 'रांग फलक पहा →',
-            btnEn: 'View Queue Board →',
-            tag: 'Live Queue',
+            btn: isEn ? 'View Queue Board →' : isHi ? 'कतार बोर्ड देखें →' : 'रांग फलक पहा →',
+            tag: isEn ? 'Live Queue' : 'रांग फलक',
             accent: 'border-l-[#4F46E5]',
         },
         {
             code: 'M-08',
-            titleMr: 'ई-संजीवनी टेलिकन्सल्टेशन',
-            titleEn: 'Assisted Teleconsultation',
-            deptMr: 'टेलिमेडिसिन विभाग',
-            deptEn: 'Specialist Hub',
-            descMr: 'आरोग्य सेविका सहाय्यित ऑडिओ/व्हिडिओ कॉलद्वारे तज्ज्ञ डॉक्टरांशी थेट सल्लामसलत व डिजिटल ई-प्रिस्क्रिप्शन.',
-            descEn: 'Frontline-assisted video/audio consult connecting rural Sub-Centres directly to District Hospital specialists.',
+            title: isEn ? 'Assisted Teleconsultation (eSanjeevani)' : isHi ? 'ई-संजीवनी टेलीकंसल्टेशन' : 'ई-संजीवनी टेलिकन्सल्टेशन',
+            dept: isEn ? 'Specialist Telemedicine Hub' : isHi ? 'टेलीमेडिसिन विभाग' : 'टेलिमेडिसिन विभाग',
+            desc: isEn
+                ? 'Frontline-assisted video/audio consult connecting rural Sub-Centres directly to District Hospital specialists with 2G low-bandwidth mode.'
+                : isHi
+                ? 'स्वास्थ्य कार्यकर्ता समर्थित ऑडियो/वीडियो कॉल द्वारा विशेषज्ञ डॉक्टरों से सीधा परामर्श एवं डिजिटल ई-प्रिस्क्रिप्शन।'
+                : 'आरोग्य सेविका सहाय्यित ऑडिओ/व्हिडिओ कॉलद्वारे तज्ज्ञ डॉक्टरांशी थेट सल्लामसलत व डिजिटल ई-प्रिस्क्रिप्शन.',
             href: '/teleconsult',
-            btnMr: 'कॉल सुरू करा →',
-            btnEn: 'Start Teleconsult →',
-            tag: 'Specialist Hub',
+            btn: isEn ? 'Start Teleconsult →' : isHi ? 'कॉल शुरू करें →' : 'कॉल सुरू करा →',
+            tag: isEn ? 'Specialist Hub' : 'तज्ज्ञ डॉक्टर',
             accent: 'border-l-[#0D9488]',
         },
         {
             code: 'M-09',
-            titleMr: '४-स्तरीय आरोग्य संस्था निर्देशिका',
-            titleEn: '4-Tier Facility Directory',
-            deptMr: 'पायाभूत सुविधा व मनुष्यबळ',
-            deptEn: 'Health Infrastructure',
-            descMr: 'उपकेंद्र (आरोग्य मंदिर) $\to$ प्राथमिक आरोग्य केंद्र $\to$ ग्रामीण रुग्णालय $\to$ जिल्हा रुग्णालय नकाशा व खाटांची माहिती.',
-            descEn: 'Interactive hierarchy with real-time bed occupancy, medical officer availability, and distance matrix.',
+            title: isEn ? '4-Tier Health Facility Directory' : isHi ? '४-स्तरीय स्वास्थ्य संस्था निर्देशिका' : '४-स्तरीय आरोग्य संस्था निर्देशिका',
+            dept: isEn ? 'Health Infrastructure' : isHi ? 'बुनियादी ढांचा व मानव संसाधन' : 'पायाभूत सुविधा व मनुष्यबळ',
+            desc: isEn
+                ? 'Sub-Centre (Health Temple) → Primary Health Centre (PHC) → Community Health Centre (CHC) → District Hospital (DH) hierarchy with live bed status.'
+                : isHi
+                ? 'उपकेंद्र (आरोग्य मंदिर) → प्राथमिक स्वास्थ्य केंद्र → सामुदायिक स्वास्थ्य केंद्र → जिला अस्पताल का नक्शा व बिस्तरों की जानकारी।'
+                : 'उपकेंद्र (आरोग्य मंदिर) → प्राथमिक आरोग्य केंद्र → ग्रामीण रुग्णालय → जिल्हा रुग्णालय नकाशा व खाटांची माहिती.',
             href: '/facilities',
-            btnMr: 'संस्था निर्देशिका →',
-            btnEn: 'Explore Facilities →',
-            tag: 'Directory',
+            btn: isEn ? 'Explore Facilities →' : isHi ? 'संस्था निर्देशिका देखें →' : 'संस्था निर्देशिका →',
+            tag: isEn ? 'Directory' : 'मार्गदर्शक',
             accent: 'border-l-[#7C3AED]',
         },
     ];
+
+    const pageTexts = {
+        deptTag: isEn
+            ? 'Department of Public Health, Government of Maharashtra • National Health Mission'
+            : isHi
+            ? 'सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार • राष्ट्रीय स्वास्थ्य मिशन'
+            : 'सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन • राष्ट्रीय आरोग्य अभियान',
+        heroTitle: isEn
+            ? 'NalamMesh — Integrated Rural Public Healthcare Platform'
+            : isHi
+            ? 'नलममेश — ग्रामीण सार्वजनिक स्वास्थ्य सेवा एवं गुणवत्ता एकीकृत मंच'
+            : 'नलममेश — एकात्मिक ग्रामीण सार्वजनिक आरोग्य सेवा व गुणवत्ता मंच',
+        heroSub: isEn
+            ? 'Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs, and District Hospital in Gadchiroli.'
+            : isHi
+            ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
+            : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
+        abdmBadge: isEn ? '✓ ABDM / FHIR R4 Certified' : isHi ? '✓ ABDM / FHIR R4 प्रमाणित' : '✓ ABDM / FHIR R4 प्रमाणित',
+        offlineBadge: isEn ? '✓ 100% Offline Mesh Ready' : isHi ? '✓ १००% ऑफलाइन मेश सक्षम' : '✓ १००% ऑफलाइन मेश सक्षम',
+        censusTitle: isEn
+            ? 'Live District Health Census — Gadchiroli Division'
+            : isHi
+            ? 'थेट स्वास्थ्य सांख्यिकी फलक — गढ़चिरौली मंडल'
+            : 'थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census — Gadchiroli Division)',
+        censusDate: isEn
+            ? 'Updated: Live Real-time • Synchronized across all 10 Talukas'
+            : isHi
+            ? 'अद्यतन: लाइव रीयल-टाइम | सभी १० तहसीलों का सीधा एकत्रीकरण'
+            : 'अद्ययावत: ०३-सप्टेंबर-२०२६ | सर्व १० तालुक्यांचे थेट एकत्रीकरण',
+        stat1Label: isEn ? 'Patients Examined Today (OPD)' : isHi ? 'आज देखे गए मरीज (OPD)' : 'आज तपासलेले रुग्ण (OPD)',
+        stat1Sub: isEn ? '↑ 100% Digital Registration' : isHi ? '↑ १००% डिजिटल पंजीकरण' : '↑ १००% डिजिटल नोंदणी',
+        stat2Label: isEn ? '108 / 102 Ambulances in Transit' : isHi ? '१०८ / १०२ एम्बुलेंस ट्रांजिट' : '१०८/१०२ रुग्णवाहिका प्रवास',
+        stat2Sub: isEn ? 'Avg Response Time: 28 min' : isHi ? 'औसत प्रतिक्रिया समय: २८ मिनट' : 'सरासरी प्रतिसाद वेळ: २८ मिनिटे',
+        stat3Label: isEn ? 'High-Risk Maternal Cohort (ANC)' : isHi ? 'उच्च जोखिम गर्भवती माताएं (ANC)' : 'उच्च जोखीम गरोदर माता (ANC)',
+        stat3Sub: isEn ? 'Urgent follow-ups required' : isHi ? 'तत्काल गृह भेंट आवश्यक' : 'तातडीने भेटी आवश्यक',
+        stat4Label: isEn ? 'Bed Occupancy (District)' : isHi ? 'बिस्तरों की उपलब्धता (Bed Status)' : 'खाटांची उपलब्धता (Bed Status)',
+        stat4Sub: isEn ? 'ICU: 4 Vacant | Maternity: 6 Vacant' : isHi ? 'ICU: ४ रिक्त | प्रसूति: ६ रिक्त' : 'ICU: ४ रिक्त | प्रसूती: ६ रिक्त',
+        modulesHeading: isEn ? 'Operational Healthcare Modules' : isHi ? 'सार्वजनिक स्वास्थ्य प्रणाली विभाग' : 'सार्वजनिक आरोग्य प्रणाली विभाग',
+        modulesSub: isEn
+            ? 'Select a clinical workstation or administrative healthcare department.'
+            : isHi
+            ? 'कृपया संबंधित अस्पताल सेवा अथवा चिकित्सकीय कार्यकक्ष चुनें।'
+            : 'कृपया संबंधित रुग्णालय सेवा किंवा वैद्यकीय कार्यकक्ष निवडा.',
+        modulesCount: isEn ? 'Total Modules: 9' : isHi ? 'कुल विभाग: ९' : 'एकूण विभाग: ९',
+        portalTag: isEn ? 'Govt. Health Portal' : isHi ? 'सरकारी स्वास्थ्य पोर्टल' : 'शासकीय आरोग्य पोर्टल',
+        citizenTitle: isEn ? 'Citizen Health Services Portal' : isHi ? 'नागरिक स्वास्थ्य सेवा कक्ष' : 'नागरिक आरोग्य सेवा दालन',
+        citizenDesc: isEn
+            ? 'Citizens can locate the nearest public health center, check ₹0 essential drug stock, generate an OPD token, and access longitudinal Ayushman Bharat (ABHA) digital records.'
+            : isHi
+            ? 'नागरिकों के लिए निकटतम स्वास्थ्य केंद्र खोजना, आवश्यक मुफ्त दवा स्टॉक जांचना, ओपीडी टोकन प्राप्त करना व अपनी आभा (ABHA) डिजिटल स्वास्थ्य रिकॉर्ड देखने की सुविधा।'
+            : 'नागरिकांना जवळचे आरोग्य केंद्र शोधणे, आवश्यक मोफत औषध साठा तपासणे, ओपीडी टोकन घेणे व स्वतःचे आयुष्मान भारत (ABHA) डिजिटल आरोग्य रेकॉर्ड पाहण्याची सुविधा.',
+        findCenter: isEn ? 'Find Health Center' : isHi ? 'स्वास्थ्य केंद्र खोजें' : 'आरोग्य केंद्र शोधा',
+        checkMeds: isEn ? 'Check Medicine Stock' : isHi ? 'दवा स्टॉक देखें' : 'औषध साठा पहा',
+        citizenLoginBtn: isEn ? 'ABHA Login →' : 'ABHA लॉगिन →',
+        staffTitle: isEn ? 'Staff & Clinical Workstation' : isHi ? 'स्वास्थ्य कार्यकर्ता एवं डॉक्टर कक्ष' : 'आरोग्य कर्मचारी व वैद्यकीय अधिकारी कक्ष',
+        staffDesc: isEn
+            ? 'Authorized clinical workstation for ASHA workers, ANM/CHO, PHC Medical Officers (MO), and Civil Surgeons (CS) for electronic consultations and referrals.'
+            : isHi
+            ? 'आशा सेविका, ANM/CHO, प्राथमिक स्वास्थ्य केंद्र चिकित्सा अधिकारी (MO) और जिला सर्जन (CS) के लिए अधिकृत चिकित्सकीय पंजीकरण कक्ष।'
+            : 'आशा सेविका, ANM/CHO, प्राथमिक आरोग्य केंद्र वैद्यकीय अधिकारी (MO) व जिल्हा शल्यचिकित्सक (CS) यांच्यासाठी अधिकृत वैद्यकीय नोंदणी व संदर्भ सेवा दालन.',
+        opdTriageBtn: isEn ? 'OPD Triage' : isHi ? 'ओपीडी ट्राइएज' : 'ओपीडी ट्राइएज',
+        refServicesBtn: isEn ? '108 Referral Pipeline' : isHi ? '१०८ रेफरल सेवा' : '१०८ रेफरल सेवा',
+        staffLoginBtn: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
+        disclaimer: isEn
+            ? 'All information on this portal is compliant with National Health Policy (NHP) and Govt. of Maharashtra guidelines. Consultations and essential drugs are 100% FREE at all government facilities.'
+            : isHi
+            ? 'इस पोर्टल की समस्त जानकारी राष्ट्रीय स्वास्थ्य नीति (NHP) एवं महाराष्ट्र सरकार के दिशा-निर्देशों के अनुरूप है। सभी सरकारी स्वास्थ्य केंद्रों पर उपचार व दवाएं पूर्णतः निःशुल्क हैं।'
+            : 'या पोर्टलवरील सर्व माहिती महाराष्ट्र शासनाच्या सार्वजनिक आरोग्य विभागाच्या अधिकृत मार्गदर्शक तत्त्वांवर आधारित आहे. सर्व सरकारी आरोग्य केंद्रांवर उपचार व औषधे मोफत आहेत.',
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 font-sans text-slate-800">
@@ -161,27 +234,23 @@ export default function Home() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-300">
                 <div>
                     <div className="flex items-center gap-2 text-xs font-bold text-[#1F3A6E] mb-1">
-                        <span>🏛️</span>
-                        <span>सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन</span>
-                        <span className="text-slate-400">•</span>
-                        <span>राष्ट्रीय आरोग्य अभियान (National Health Mission)</span>
+                        <StateEmblem size={18} />
+                        <span>{pageTexts.deptTag}</span>
                     </div>
                     <h1 className="text-2xl sm:text-3xl font-black text-[#1F3A6E] tracking-tight">
-                        {language === 'en'
-                            ? 'NalamMesh — Integrated Rural Public Healthcare Platform'
-                            : 'नलममेश — एकात्मिक ग्रामीण सार्वजनिक आरोग्य सेवा व गुणवत्ता मंच'}
+                        {pageTexts.heroTitle}
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-4xl leading-relaxed">
-                        गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.
+                        {pageTexts.heroSub}
                     </p>
                 </div>
 
                 <div className="flex items-center gap-2 text-xs flex-shrink-0">
                     <span className="px-3 py-1.5 bg-[#E8F5E9] text-[#138808] border border-[#A5D6A7] rounded font-bold">
-                        ✓ ABDM / FHIR R4 प्रमाणित
+                        {pageTexts.abdmBadge}
                     </span>
                     <span className="px-3 py-1.5 bg-[#EFF6FF] text-[#1D4ED8] border border-[#93C5FD] rounded font-bold">
-                        ✓ १००% ऑफलाइन मेश सक्षम
+                        {pageTexts.offlineBadge}
                     </span>
                 </div>
             </div>
@@ -191,52 +260,52 @@ export default function Home() {
                 <div className="bg-[#1F3A6E] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census — Gadchiroli Division)</span>
+                        <span>{pageTexts.censusTitle}</span>
                     </div>
                     <span className="text-[11px] text-slate-300 font-normal">
-                        अद्ययावत: ०३-सप्टेंबर-२०२६ | सर्व १० तालुक्यांचे थेट एकत्रीकरण
+                        {pageTexts.censusDate}
                     </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-200 text-center">
                     <div className="p-3.5">
                         <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            आज तपासलेले रुग्ण (OPD)
+                            {pageTexts.stat1Label}
                         </span>
                         <strong className="text-2xl font-black text-[#1F3A6E]">
                             {patients.length + 152}
                         </strong>
-                        <span className="text-[10px] text-emerald-700 block font-semibold">↑ १००% डिजिटल नोंदणी</span>
+                        <span className="text-[10px] text-emerald-700 block font-semibold">{pageTexts.stat1Sub}</span>
                     </div>
 
                     <div className="p-3.5">
                         <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            १०८/१०२ रुग्णवाहिका प्रवास
+                            {pageTexts.stat2Label}
                         </span>
                         <strong className="text-2xl font-black text-amber-700">
-                            {activeReferralsCount > 0 ? activeReferralsCount : '४'} सक्रिय
+                            {activeReferralsCount > 0 ? activeReferralsCount : '4'} {isEn ? 'Active' : 'सक्रिय'}
                         </strong>
-                        <span className="text-[10px] text-slate-500 block">सरासरी प्रतिसाद वेळ: २८ मिनिटे</span>
+                        <span className="text-[10px] text-slate-500 block">{pageTexts.stat2Sub}</span>
                     </div>
 
                     <div className="p-3.5">
                         <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            उच्च जोखीम गरोदर माता (ANC)
+                            {pageTexts.stat3Label}
                         </span>
                         <strong className="text-2xl font-black text-red-700">
-                            {criticalPatientsCount > 0 ? criticalPatientsCount : '७'} पाठपुरावा
+                            {criticalPatientsCount > 0 ? criticalPatientsCount : '7'} {isEn ? 'Recalls' : 'पाठपुरावा'}
                         </strong>
-                        <span className="text-[10px] text-red-600 block font-semibold">तातडीने भेटी आवश्यक</span>
+                        <span className="text-[10px] text-red-600 block font-semibold">{pageTexts.stat3Sub}</span>
                     </div>
 
                     <div className="p-3.5">
                         <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            खाटांची उपलब्धता (Bed Status)
+                            {pageTexts.stat4Label}
                         </span>
                         <strong className="text-2xl font-black text-slate-800">
-                            ७८% पूर्ण
+                            78% {isEn ? 'Occupied' : 'पूर्ण'}
                         </strong>
-                        <span className="text-[10px] text-emerald-700 block font-semibold">ICU: ४ रिक्त | प्रसूती: ६ रिक्त</span>
+                        <span className="text-[10px] text-emerald-700 block font-semibold">{pageTexts.stat4Sub}</span>
                     </div>
                 </div>
             </div>
@@ -246,14 +315,14 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-3 border-b border-slate-300 pb-2">
                     <div>
                         <h2 className="text-base sm:text-lg font-bold text-[#1F3A6E]">
-                            सार्वजनिक आरोग्य प्रणाली विभाग (Operational Health Modules)
+                            {pageTexts.modulesHeading}
                         </h2>
                         <p className="text-xs text-slate-500">
-                            कृपया संबंधित रुग्णालय सेवा किंवा वैद्यकीय कार्यकक्ष निवडा.
+                            {pageTexts.modulesSub}
                         </p>
                     </div>
                     <span className="text-xs font-bold text-slate-600">
-                        एकूण विभाग: ९
+                        {pageTexts.modulesCount}
                     </span>
                 </div>
 
@@ -266,29 +335,29 @@ export default function Home() {
                             <div className="p-4">
                                 <div className="flex items-center justify-between gap-2 mb-1.5">
                                     <span className="text-[10px] font-mono font-bold text-slate-400">
-                                        {m.code} • {language === 'en' ? m.deptEn : m.deptMr}
+                                        {m.code} • {m.dept}
                                     </span>
                                     <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 border border-slate-300 text-slate-700 rounded">
                                         {m.tag}
                                     </span>
                                 </div>
                                 <h3 className="text-sm font-bold text-[#1F3A6E] mb-1 leading-snug">
-                                    {language === 'en' ? m.titleEn : m.titleMr}
+                                    {m.title}
                                 </h3>
                                 <p className="text-xs text-slate-600 leading-relaxed">
-                                    {language === 'en' ? m.descEn : m.descMr}
+                                    {m.desc}
                                 </p>
                             </div>
 
                             <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
                                 <span className="text-[11px] text-slate-500 font-medium">
-                                    शासकीय आरोग्य पोर्टल
+                                    {pageTexts.portalTag}
                                 </span>
                                 <Link
                                     href={m.href}
                                     className="font-bold text-[#1F3A6E] hover:text-[#16294E] hover:underline"
                                 >
-                                    {language === 'en' ? m.btnEn : m.btnMr}
+                                    {m.btn}
                                 </Link>
                             </div>
                         </div>
@@ -302,24 +371,23 @@ export default function Home() {
                 <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-emerald-600 shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">👥</span>
                             <h3 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wide">
-                                नागरिक आरोग्य सेवा दालन (Citizen Health Services)
+                                {pageTexts.citizenTitle}
                             </h3>
                         </div>
                         <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                            नागरिकांना जवळचे आरोग्य केंद्र शोधणे, आवश्यक मोफत औषध साठा तपासणे, ओपीडी टोकन घेणे व स्वतःचे आयुष्मान भारत (ABHA) डिजिटल आरोग्य रेकॉर्ड पाहण्याची सुविधा.
+                            {pageTexts.citizenDesc}
                         </p>
                     </div>
                     <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
                         <Link href="/facilities" className="gov-btn gov-btn-secondary text-xs">
-                            🏥 आरोग्य केंद्र शोधा
+                            {pageTexts.findCenter}
                         </Link>
                         <Link href="/medicine" className="gov-btn gov-btn-secondary text-xs">
-                            💊 औषध साठा पहा
+                            {pageTexts.checkMeds}
                         </Link>
                         <Link href="/login" className="gov-btn gov-btn-primary text-xs">
-                            ABHA लॉगिन →
+                            {pageTexts.citizenLoginBtn}
                         </Link>
                     </div>
                 </div>
@@ -328,24 +396,23 @@ export default function Home() {
                 <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-[#1F3A6E] shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xl">👨‍⚕️</span>
                             <h3 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wide">
-                                आरोग्य कर्मचारी व वैद्यकीय अधिकारी कक्ष (Staff Workspace)
+                                {pageTexts.staffTitle}
                             </h3>
                         </div>
                         <p className="text-xs text-slate-600 leading-relaxed mb-4">
-                            आशा सेविका, ANM/CHO, प्राथमिक आरोग्य केंद्र वैद्यकीय अधिकारी (MO) व जिल्हा शल्यचिकित्सक (CS) यांच्यासाठी अधिकृत वैद्यकीय नोंदणी व संदर्भ सेवा दालन.
+                            {pageTexts.staffDesc}
                         </p>
                     </div>
                     <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
                         <Link href="/opd" className="gov-btn gov-btn-secondary text-xs">
-                            🩺 ओपीडी ट्राइएज
+                            {pageTexts.opdTriageBtn}
                         </Link>
                         <Link href="/referrals" className="gov-btn gov-btn-secondary text-xs">
-                            🚑 १०८ रेफरल सेवा
+                            {pageTexts.refServicesBtn}
                         </Link>
                         <Link href="/staff/login" className="gov-btn gov-btn-primary text-xs">
-                            कर्मचारी लॉगिन →
+                            {pageTexts.staffLoginBtn}
                         </Link>
                     </div>
                 </div>
@@ -354,13 +421,13 @@ export default function Home() {
             {/* National Standards & Institutional Badges */}
             <div className="p-4 bg-slate-100 border border-slate-300 rounded text-center text-xs text-slate-600 space-y-2">
                 <div className="flex items-center justify-center gap-4 flex-wrap font-bold text-[11px] text-slate-700">
-                    <span>• भारत सरकार राष्ट्रीय आरोग्य धोरण (NHP 2017)</span>
-                    <span>• आयुष्मान भारत डिजिटल मिशन (ABDM)</span>
+                    <span>• {isEn ? 'National Health Policy (NHP)' : 'भारत सरकार राष्ट्रीय आरोग्य धोरण (NHP 2017)'}</span>
+                    <span>• {isEn ? 'Ayushman Bharat Digital Mission (ABDM)' : 'आयुष्मान भारत डिजिटल मिशन (ABDM)'}</span>
                     <span>• Guidelines for Indian Government Websites (GIGW 3.0)</span>
-                    <span>• माहिती तंत्रज्ञान कायदा (IT Act 2000 व DPDP Act 2023)</span>
+                    <span>• {isEn ? 'Digital Personal Data Protection Act (DPDP)' : 'माहिती तंत्रज्ञान कायदा व DPDP Act 2023'}</span>
                 </div>
                 <p className="text-[11px] text-slate-500">
-                    या पोर्टलवरील सर्व माहिती महाराष्ट्र शासनाच्या सार्वजनिक आरोग्य विभागाच्या अधिकृत मार्गदर्शक तत्त्वांवर आधारित आहे. सर्व सरकारी आरोग्य केंद्रांवर उपचार व औषधे मोफत आहेत.
+                    {pageTexts.disclaimer}
                 </p>
             </div>
         </div>

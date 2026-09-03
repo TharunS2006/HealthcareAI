@@ -2,6 +2,7 @@
  * OPD Registration & Edge AI Digital Triage — NalamMesh
  * Government of Maharashtra • Department of Public Health
  * Primary Health Centre Clinical Workstation (NIC / GIGW Standard)
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
  */
 
 'use client';
@@ -16,15 +17,20 @@ import { classifyTriage, TriageResult } from '@/lib/triage/model';
 import { usePatientStore } from '@/stores/patientStore';
 import { useQueueStore } from '@/stores/queueStore';
 import { useReferralStore } from '@/stores/referralStore';
+import { useLanguageStore } from '@/stores/languageStore';
 import { useVoiceInput } from '@/lib/hooks/useVoiceInput';
 import { downloadFHIRRecord } from '@/lib/fhir';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
 export default function OPDPage() {
+    const { language } = useLanguageStore();
     const { patients, addPatient } = usePatientStore();
     const { queue, addQueueEntry } = useQueueStore();
     const { addReferral } = useReferralStore();
+
+    const isEn = language === 'en';
+    const isHi = language === 'hi';
 
     // Patient Demographics State
     const [searchQuery, setSearchQuery] = useState('');
@@ -39,54 +45,121 @@ export default function OPDPage() {
 
     // Clinical Vitals State
     const [vitals, setVitals] = useState<Vitals>({
-        spo2: 94,
-        heartRate: 104,
-        bloodPressure: { systolic: 160, diastolic: 102 },
-        temperature: 99.2,
-        respiratoryRate: 22,
-        bloodGlucose: 110,
-        weight: 54,
+        spo2: 91,
+        heartRate: 118,
+        bloodPressure: { systolic: 154, diastolic: 98 },
+        temperature: 99.4,
+        bloodGlucose: 126,
+        respiratoryRate: 24,
         consciousness: 'ALERT',
+        injuryType: 'Severe headache, blurred vision, bilateral pedal edema at 32 weeks gestation',
         isPregnant: true,
         gestationalWeeks: 32,
-        injuryType: 'Severe frontal headache, pedal edema ++, visual blurring at 32 weeks pregnancy',
     });
 
+    // Voice Input Integration
+    const { isListening, isSupported, transcript, startListening, stopListening } = useVoiceInput();
+
+    useEffect(() => {
+        if (transcript) {
+            setVitals((prev) => ({
+                ...prev,
+                injuryType: prev.injuryType ? `${prev.injuryType}; ${transcript}` : transcript,
+            }));
+        }
+    }, [transcript]);
+
+    // Triage & Output State
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [triageResult, setTriageResult] = useState<TriageResult | null>(null);
     const [generatedToken, setGeneratedToken] = useState<string | null>(null);
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [showQR, setShowQR] = useState(false);
     const [createdPatient, setCreatedPatient] = useState<Patient | null>(null);
+    const [showQR, setShowQR] = useState(false);
 
-    const voice = useVoiceInput();
+    // Dynamic Translations Dictionary
+    const L = {
+        deptTag: isEn
+            ? 'Department of Public Health • Primary Health Centre, Bhamragad'
+            : isHi
+            ? 'सार्वजनिक स्वास्थ्य विभाग • प्राथमिक स्वास्थ्य केंद्र, भामरागढ़'
+            : 'सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, भामरागड',
+        standardsTag: isEn ? 'IPHS 2022 Standards' : isHi ? 'IPHS 2022 मानक' : 'IPHS 2022 मानके',
+        pageTitle: isEn
+            ? 'OPD Patient Registration & Digital Triage'
+            : isHi
+            ? 'ओपीडी मरीज पंजीकरण एवं डिजिटल ट्राइएज कक्ष'
+            : 'ओपीडी रुग्ण नोंदणी व डिजिटल ट्राइएज कक्ष',
+        pageSub: isEn
+            ? 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated'
+            : isHi
+            ? 'ओपीडी पंजीयन व नैदानिक जांच • महाराष्ट्र शासन • ABDM प्रमाणित'
+            : 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated',
+        searchPlaceholder: isEn ? 'Search ABHA ID / Aadhaar / Name...' : isHi ? 'ABHA ID / आधार क्रमांक / नाम खोजें...' : 'ABHA ID / आधार क्रमांक / नाव शोधा...',
+        searchBtn: isEn ? 'Search' : isHi ? 'खोजें' : 'शोधा',
+        sec1Title: isEn ? '1. Patient Demographics & ABHA' : isHi ? '१. मरीज की प्राथमिक जानकारी (ABHA)' : '१. रुग्णाची प्राथमिक माहिती (Demographics & ABHA)',
+        fullName: isEn ? 'Patient Full Name' : isHi ? 'मरीज का पूरा नाम' : 'रुग्णाचे पूर्ण नाव',
+        ageLabel: isEn ? 'Age (Years)' : isHi ? 'आयु (वर्ष)' : 'वय (वर्षे)',
+        genderLabel: isEn ? 'Gender' : isHi ? 'लिंग' : 'लिंग',
+        male: isEn ? 'M' : isHi ? 'पु' : 'पु',
+        female: isEn ? 'F' : isHi ? 'स्त्री' : 'स्त्री',
+        other: isEn ? 'O' : isHi ? 'अन्य' : 'इतर',
+        abhaLabel: isEn ? 'Ayushman Bharat (ABHA ID)' : isHi ? 'आयुष्मान भारत (ABHA ID)' : 'आयुष्मान भारत (ABHA ID)',
+        villageLabel: isEn ? 'Village / Hamlet' : isHi ? 'गांव / टोला' : 'गाव / पाडा',
+        ancCohort: isEn
+            ? `High-Risk Maternal / ANC (${vitals.gestationalWeeks || 32} Weeks)`
+            : isHi
+            ? `गर्भवती माता / ANC (${vitals.gestationalWeeks || 32} सप्ताह)`
+            : `गरोदर माता / ANC (${vitals.gestationalWeeks || 32} आठवडे)`,
+        childCohort: isEn ? 'Child (< 5 Years Malnutrition Screening)' : isHi ? 'बालक (< ५ वर्ष कुपोषण जांच)' : 'बालक (< ५ वर्षे कुपोषण तपासणी)',
+        sec2Title: isEn ? '2. Physiological Vitals & Clinical Examination' : isHi ? '२. शारीरिक जांच एवं महत्वपूर्ण संकेत (Vitals)' : '२. वैद्यकीय तपासणी व महत्त्वपूर्ण नोंदी (Physiological Vitals)',
+        manualSensor: isEn ? 'Live Sensor / Manual Entry' : isHi ? 'लाइव सेंसर / मैन्युअल प्रविष्टि' : 'थेट सेन्सर / मॅन्युअल नोंदणी',
+        spo2Label: isEn ? 'SpO2 (Oxygen Saturation)' : isHi ? 'SpO2 (ऑक्सीजन स्तर)' : 'SpO2 (ऑक्सिजन प्रमाण)',
+        pulseLabel: isEn ? 'Pulse Rate (BPM)' : isHi ? 'नाड़ी दर (Pulse / BPM)' : 'नाडीचे ठोके (Pulse / BPM)',
+        bpLabel: isEn ? 'Blood Pressure (mmHg)' : isHi ? 'रक्तचाप / Blood Pressure (mmHg)' : 'रक्तदाब / Blood Pressure (mmHg)',
+        glucoseLabel: isEn ? 'Blood Glucose' : isHi ? 'रक्त शर्करा (Glucose)' : 'रक्तातील साखर (Glucose)',
+        complaintLabel: isEn ? 'Chief Complaint & Clinical Symptoms' : isHi ? 'मुख्य शिकायत व लक्षण (Chief Complaint)' : 'मुख्य तक्रार व आजाराची लक्षणे (Chief Complaint)',
+        analyzingBtn: isEn ? 'Evaluating Triage Risk...' : isHi ? 'विश्लेषण जारी है...' : 'विश्लेषण चालू आहे...',
+        runTriageBtn: isEn ? '✓ Run AI Triage & Generate OPD Token' : isHi ? '✓ एआई ट्राइएज विश्लेषण करें व टोकन दें' : '✓ एआई ट्राइएज विश्लेषण करा व ओपीडी टोकन द्या',
+        receiptGovt: isEn
+            ? 'Government of Maharashtra • Department of Public Health'
+            : isHi
+            ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य विभाग'
+            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग',
+        receiptTitle: isEn ? 'Official OPD Registration & Triage Slip' : isHi ? 'अधिकृत ओपीडी पंजीयन व ट्राइएज पर्ची' : 'अधिकृत ओपीडी नोंदणी व ट्राइएज पावती',
+        tokenLabel: isEn ? 'Token Number' : isHi ? 'टोकन नंबर' : 'टोकन क्रमांक',
+        priorityLabel: isEn ? 'Triage Priority' : isHi ? 'ट्राइएज प्राथमिकता' : 'ट्राइएज प्राधान्य',
+        patNameLabel: isEn ? 'Patient Name:' : isHi ? 'मरीज का नाम:' : 'रुग्णाचे नाव:',
+        patVillageLabel: isEn ? 'Village:' : isHi ? 'गांव:' : 'गाव:',
+        patAbhaLabel: isEn ? 'ABHA ID:' : isHi ? 'ABHA नंबर:' : 'ABHA क्रमांक:',
+        patRoomLabel: isEn ? 'Consultation Room:' : isHi ? 'जांच कक्ष:' : 'तपासणी कक्ष:',
+        roomMO: isEn ? 'Room No. 2 (Medical Officer)' : isHi ? 'कक्ष क्र. २ (चिकित्सा अधिकारी)' : 'कक्ष क्र. २ (MO OPD)',
+        actionLabel: isEn ? 'Recommended Clinical Action:' : isHi ? 'अनुशंसित चिकित्सकीय कार्रवाई:' : 'वैद्यकीय कृती शिफारस:',
+        wristbandBtn: isEn ? 'QR Wristband' : isHi ? 'QR रिस्टबैंड' : 'QR रिस्टबँड',
+        downloadFHIR: isEn ? 'FHIR R4 JSON' : isHi ? 'FHIR R4 JSON' : 'FHIR R4 JSON',
+        waitingAnalysisTitle: isEn ? 'Awaiting Triage Analysis' : isHi ? 'ट्राइएज विश्लेषण की प्रतीक्षा' : 'ट्राइएज विश्लेषण प्रतिक्षा',
+        waitingAnalysisDesc: isEn
+            ? 'Fill in the patient symptoms and vital signs on the left, then click "Run AI Triage". The system will instantly prioritize emergency risk and issue a government OPD token.'
+            : isHi
+            ? 'बाईं ओर मरीज के लक्षण व संकेत दर्ज करें और "एआई ट्राइएज विश्लेषण" बटन पर क्लिक करें। प्रणाली तत्काल जोखिम वर्गीकरण और सरकारी ओपीडी टोकन जारी करेगी।'
+            : 'डाव्या बाजूला रुग्णाची लक्षणे व नोंदी भरून "एआई ट्राइएज विश्लेषण" बटणावर क्लिक करा. सिस्टीम तात्काळ धोक्याचे वर्गीकरण व अधिकृत ओपीडी टोकन जारी करेल.',
+        queueHeader: isEn ? 'Live OPD Queue Board' : isHi ? 'दैनिक ओपीडी कतार बोर्ड' : 'दैनिक ओपीडी रांग फलक (Live OPD Queue Board)',
+        queueLive: isEn ? 'Live Real-time' : isHi ? 'लाइव अपडेट' : 'थेट अद्ययावत',
+        colToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
+        colPatient: isEn ? 'Patient' : isHi ? 'मरीज' : 'रुग्ण',
+        colPriority: isEn ? 'Priority' : isHi ? 'प्राथमिकता' : 'प्राधान्य',
+        colWait: isEn ? 'Est. Wait' : isHi ? 'समय' : 'वेळ',
+        minUnit: isEn ? 'min' : isHi ? 'मि.' : 'मि.',
+        voiceListening: isEn ? 'Listening... Speak symptoms' : isHi ? 'सुन रहा है... लक्षण बोलें' : 'ऐकत आहे... लक्षणे बोला',
+        voicePrompt: isEn ? '🎙️ Voice Intake (EN/HI/MR)' : isHi ? '🎙️ आवाज इनपुट (हिन्दी/मराठी/Eng)' : '🎙️ आवाज इनपुट (मराठी/हिन्दी/Eng)',
+    };
 
-    // Sync voice vitals if spoken
-    useEffect(() => {
-        if (voice.parsedVitals) {
-            const p = voice.parsedVitals;
-            setVitals(prev => ({
-                ...prev,
-                ...(p.spo2 !== undefined && { spo2: p.spo2 }),
-                ...(p.heartRate !== undefined && { heartRate: p.heartRate }),
-                ...(p.systolic !== undefined && p.diastolic !== undefined && {
-                    bloodPressure: { systolic: p.systolic, diastolic: p.diastolic }
-                }),
-                ...(p.consciousness && { consciousness: p.consciousness }),
-                ...(p.injuryType && { injuryType: p.injuryType }),
-            }));
-            toast.success('ध्वनी नोंदी यशस्वीपणे भरल्या (Voice vitals captured)');
-        }
-    }, [voice.parsedVitals]);
-
-    // Handle Search
+    // Handle Quick Search
     const handleSearch = () => {
-        if (!searchQuery.trim()) return;
-        const q = searchQuery.toLowerCase();
-        const found = patients.find(p =>
-            p.name.toLowerCase().includes(q) ||
-            p.abhaId?.toLowerCase().includes(q) ||
-            p.aadhaarLast4?.includes(q) ||
-            p.phone?.includes(q)
+        const found = patients.find(
+            (p) =>
+                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (p.abhaId && p.abhaId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                p.id.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         if (found) {
@@ -95,109 +168,116 @@ export default function OPDPage() {
             setAge(found.age);
             setGender(found.gender);
             setPhone(found.phone || '');
-            setVillage(found.village);
+            setVillage(found.village || 'Bhamragad');
             setAbhaId(found.abhaId || '');
-            setAadhaarLast4(found.aadhaarLast4 || '');
-            setVitals(found.vitals);
-            toast.success(`अस्तित्वात असलेले रेकॉर्ड सापडले: ${found.name}`);
+            if (found.vitals) setVitals(found.vitals);
+            toast.success(isEn ? `Found record: ${found.name}` : `रेकॉर्ड सापडला: ${found.name}`);
         } else {
-            toast.error('माहिती सापडली नाही. नवीन नोंदणी तयार करत आहे.');
+            toast.error(isEn ? 'Patient record not found locally' : 'स्थानिक डेटाबेसमध्ये रुग्ण सापडला नाही');
         }
     };
 
-    // Run AI Triage Analysis & Issue Token
-    const handleRunTriage = async (e: React.FormEvent) => {
+    // Run On-Device Triage Classification
+    const handleRunTriage = (e: React.FormEvent) => {
         e.preventDefault();
         setIsAnalyzing(true);
 
-        try {
+        setTimeout(async () => {
             const result = await classifyTriage(vitals);
             setTriageResult(result);
 
-            // Generate token number
-            const seq = queue.length + 41;
-            const token = `T-0${seq}`;
-            setGeneratedToken(token);
+            // Generate OPD Token
+            const tokenPrefix = result.status === 'RED' ? 'EMG' : result.status === 'YELLOW' ? 'URG' : 'GEN';
+            const tokenNum = `${tokenPrefix}-${Math.floor(100 + Math.random() * 900)}`;
+            setGeneratedToken(tokenNum);
 
-            const pId = patientId || `p-${uuidv4().slice(0, 8)}`;
+            // Save Patient Record into Zustand & IndexedDB
+            const newPatId = patientId || `PAT-${uuidv4().substring(0, 8).toUpperCase()}`;
             const newPatient: Patient = {
-                id: pId,
-                abhaId: abhaId || `ABHA-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
-                aadhaarLast4,
-                name: name.trim() || 'अनामिक रुग्ण (Anonymous)',
-                age: Number(age) || 30,
+                id: newPatId,
+                name,
+                age,
                 gender,
                 phone,
                 village,
                 tehsil: 'Bhamragad',
                 district: 'Gadchiroli',
                 state: 'Maharashtra',
+                languagePreference: language === 'hi' ? 'hi' : language === 'en' ? 'en' : 'mr',
+                abhaId,
+                aadhaarLast4,
                 vitals,
                 triageStatus: result.status,
                 triagePriority: result.priority,
-                transportStatus: result.status === 'RED' ? 'IN_TRANSIT' : 'PENDING',
-                gps: { lat: 19.4678, lng: 80.3789 },
-                isSynced: true,
+                gps: { lat: 19.0432, lng: 80.3621 },
                 timestamp: new Date().toISOString(),
-                chw_name: 'Lakshmi Netam (ASHA)',
-                notes: result.recommendedAction,
+                isSynced: false,
+                highRiskFlags: vitals.isPregnant
+                    ? [
+                          {
+                              type: 'MATERNAL',
+                              severity: 'HIGH',
+                              identifiedDate: new Date().toISOString(),
+                              nextFollowUpDate: new Date(Date.now() + 7 * 86400000).toISOString(),
+                              notes: 'High-risk maternal ANC follow-up',
+                          },
+                      ]
+                    : [],
             };
 
-            await addPatient(newPatient);
+            addPatient(newPatient);
             setCreatedPatient(newPatient);
 
-            // Add to live queue
-            const newQueueEntry: QueueEntry = {
-                id: `q-${uuidv4().slice(0, 6)}`,
-                tokenNumber: token,
-                sequence: seq,
-                patientId: pId,
-                patientName: newPatient.name,
-                patientAge: newPatient.age,
-                patientGender: newPatient.gender,
+            // Add into Facility Queue
+            const queueItem: QueueEntry = {
+                id: `Q-${uuidv4().substring(0, 6)}`,
+                tokenNumber: tokenNum,
+                sequence: queue.length + 1,
+                patientId: newPatId,
+                patientName: name,
+                patientAge: age,
+                patientGender: gender,
                 facilityId: 'phc-bhamragad',
                 facilityName: 'PHC Bhamragad',
                 registeredAt: new Date().toISOString(),
                 priority: result.priority,
-                chiefComplaint: vitals.injuryType || 'सर्वसाधारण तपासणी (General OPD)',
+                chiefComplaint: vitals.injuryType || 'General Consultation',
                 status: 'WAITING',
-                estimatedWaitMinutes: result.priority === 'EMERGENCY' ? 2 : result.priority === 'URGENT' ? 10 : 25,
+                roomNo: result.status === 'RED' ? 'Emergency Stabilisation' : 'Room 2 (MO)',
+                consultingDoctor: 'Dr. Suresh Atram',
+                estimatedWaitMinutes: result.status === 'RED' ? 0 : result.status === 'YELLOW' ? 8 : 25,
             };
-            await addQueueEntry(newQueueEntry);
+            addQueueEntry(queueItem);
 
-            // If RED, auto-create a referral recommendation in pipeline
+            // If Critical RED, automatically trigger 108 Emergency Referral Pipeline draft
             if (result.status === 'RED') {
-                const newRef = {
-                    id: `ref-${Math.floor(1000 + Math.random() * 9000)}`,
-                    patientId: pId,
-                    patientName: newPatient.name,
-                    patientAge: newPatient.age,
-                    patientGender: newPatient.gender,
+                addReferral({
+                    id: `REF-${uuidv4().substring(0, 6).toUpperCase()}`,
+                    patientId: newPatId,
+                    patientName: name,
+                    patientAge: age,
+                    patientGender: gender,
                     fromFacilityId: 'phc-bhamragad',
-                    fromFacilityName: 'PHC Bhamragad',
-                    fromFacilityType: 'PHC' as const,
-                    toFacilityId: result.recommendedFacilityTier === 'DH' ? 'dh-gadchiroli' : 'chc-etapalli',
-                    toFacilityName: result.recommendedFacilityTier === 'DH' ? 'District Hospital Gadchiroli' : 'CHC Etapalli',
-                    toFacilityType: result.recommendedFacilityTier,
-                    reason: `${vitals.injuryType} — AI Flagged ${result.priority}`,
-                    priority: result.priority,
-                    status: 'INITIATED' as const,
+                    fromFacilityName: 'PHC Bhamragad (भामरागड)',
+                    fromFacilityType: 'PHC',
+                    toFacilityId: 'dh-gadchiroli',
+                    toFacilityName: 'District Hospital Gadchiroli (जिल्हा रुग्णालय)',
+                    toFacilityType: 'DH',
+                    status: 'INITIATED',
+                    priority: 'EMERGENCY',
+                    reason: `${result.recommendedAction} — Severe clinical vitals (SpO2: ${vitals.spo2}%, BP: ${vitals.bloodPressure?.systolic}/${vitals.bloodPressure?.diastolic})`,
                     referredBy: 'Dr. Suresh Atram (MO)',
                     referredAt: new Date().toISOString(),
-                    transportMode: vitals.isPregnant ? 'AMBULANCE_102' as const : 'AMBULANCE_108' as const,
-                    clinicalSummary: result.reasoning,
-                };
-                await addReferral(newRef);
-                toast.error(`तातडीचा संदर्भ (EMERGENCY REFERRAL): ${newRef.toFacilityName} येथे पाठवले`, { duration: 6000 });
+                    transportMode: 'AMBULANCE_108',
+                    ambulanceVehicleNo: 'MH-33-E-1081',
+                });
+                toast.error(isEn ? 'CRITICAL: 108 Emergency Ambulance Pipeline Triggered' : 'अति तातडीचे: १०८ रुग्णवाहिका रेफरल तात्काळ सक्रिय केले!');
             } else {
-                toast.success(`ट्राइएज पूर्ण: ${result.status} | ओपीडी टोकन ${token} जारी केले`);
+                toast.success(isEn ? `Token Generated: ${tokenNum}` : `टोकन तयार केले: ${tokenNum}`);
             }
-        } catch (err) {
-            console.error('Triage failed:', err);
-            toast.error('ट्राइएज वर्गीकरण अयशस्वी झाले');
-        } finally {
+
             setIsAnalyzing(false);
-        }
+        }, 350);
     };
 
     return (
@@ -213,15 +293,15 @@ export default function OPDPage() {
                         <div>
                             <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                <span>सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, भामरागड</span>
+                                <span>{L.deptTag}</span>
                                 <span className="text-slate-400">|</span>
-                                <span className="text-emerald-700 font-extrabold">IPHS 2022 मानके</span>
+                                <span className="text-emerald-700 font-extrabold">{L.standardsTag}</span>
                             </div>
                             <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">
-                                ओपीडी रुग्ण नोंदणी व डिजिटल ट्राइएज कक्ष
+                                {L.pageTitle}
                             </h1>
                             <p className="text-xs text-slate-600">
-                                OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated
+                                {L.pageSub}
                             </p>
                         </div>
 
@@ -230,7 +310,7 @@ export default function OPDPage() {
                             <div className="relative flex-1 sm:w-72">
                                 <input
                                     type="text"
-                                    placeholder="ABHA ID / आधार क्रमांक / नाव शोधा..."
+                                    placeholder={L.searchPlaceholder}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -242,7 +322,7 @@ export default function OPDPage() {
                                 onClick={handleSearch}
                                 className="px-3 py-1.5 bg-[#1F3A6E] text-white text-xs font-bold rounded hover:bg-[#16294E] transition-colors"
                             >
-                                शोधा (Search)
+                                {L.searchBtn}
                             </button>
                         </div>
                     </div>
@@ -253,7 +333,7 @@ export default function OPDPage() {
                             {/* Section 1: Demographics Fieldset */}
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
-                                    <span>१. रुग्णाची प्राथमिक माहिती (Patient Demographics & ABHA)</span>
+                                    <span>{L.sec1Title}</span>
                                     <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-300 px-2 py-0.5 rounded">
                                         ABDM M1 Ready
                                     </span>
@@ -263,7 +343,7 @@ export default function OPDPage() {
                                     <div className="grid sm:grid-cols-2 gap-3 text-xs">
                                         <div>
                                             <label className="block font-bold text-slate-700 mb-1">
-                                                रुग्णाचे पूर्ण नाव (Full Name) <span className="text-red-600">*</span>
+                                                {L.fullName} <span className="text-red-600">*</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -277,7 +357,7 @@ export default function OPDPage() {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label className="block font-bold text-slate-700 mb-1">
-                                                    वय (Age) <span className="text-red-600">*</span>
+                                                    {L.ageLabel} <span className="text-red-600">*</span>
                                                 </label>
                                                 <input
                                                     type="number"
@@ -289,7 +369,7 @@ export default function OPDPage() {
                                             </div>
                                             <div>
                                                 <label className="block font-bold text-slate-700 mb-1">
-                                                    लिंग (Gender) <span className="text-red-600">*</span>
+                                                    {L.genderLabel} <span className="text-red-600">*</span>
                                                 </label>
                                                 <div className="flex border border-slate-300 rounded overflow-hidden">
                                                     {(['M', 'F', 'O'] as const).map((g) => (
@@ -303,7 +383,7 @@ export default function OPDPage() {
                                                                     : 'bg-white text-slate-700 hover:bg-slate-100'
                                                             }`}
                                                         >
-                                                            {g === 'M' ? 'पु' : g === 'F' ? 'स्त्री' : 'इतर'}
+                                                            {g === 'M' ? L.male : g === 'F' ? L.female : L.other}
                                                         </button>
                                                     ))}
                                                 </div>
@@ -312,7 +392,7 @@ export default function OPDPage() {
 
                                         <div>
                                             <label className="block font-bold text-slate-700 mb-1">
-                                                आयुष्मान भारत (ABHA ID)
+                                                {L.abhaLabel}
                                             </label>
                                             <input
                                                 type="text"
@@ -324,7 +404,7 @@ export default function OPDPage() {
 
                                         <div>
                                             <label className="block font-bold text-slate-700 mb-1">
-                                                गाव / पाडा (Village / Hamlet) <span className="text-red-600">*</span>
+                                                {L.villageLabel} <span className="text-red-600">*</span>
                                             </label>
                                             <input
                                                 type="text"
@@ -345,7 +425,7 @@ export default function OPDPage() {
                                                 onChange={(e) => setVitals({ ...vitals, isPregnant: e.target.checked })}
                                                 className="w-4 h-4 accent-red-700"
                                             />
-                                            <span>🤰 गरोदर माता / ANC ({vitals.gestationalWeeks || 32} आठवडे)</span>
+                                            <span>{L.ancCohort}</span>
                                         </label>
 
                                         <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900 bg-amber-50 px-3 py-1.5 rounded border border-amber-200">
@@ -355,7 +435,7 @@ export default function OPDPage() {
                                                 onChange={(e) => setVitals({ ...vitals, childAgeMonths: e.target.checked ? 18 : undefined })}
                                                 className="w-4 h-4 accent-amber-700"
                                             />
-                                            <span>👶 बालक (&lt; ५ वर्षे कुपोषण तपासणी)</span>
+                                            <span>{L.childCohort}</span>
                                         </label>
                                     </div>
                                 </div>
@@ -364,9 +444,9 @@ export default function OPDPage() {
                             {/* Section 2: Clinical Vitals */}
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
-                                    <span>२. वैद्यकीय तपासणी व महत्त्वपूर्ण नोंदी (Physiological Vitals)</span>
+                                    <span>{L.sec2Title}</span>
                                     <span className="text-[10px] text-slate-500 font-bold">
-                                        थेट सेन्सर / मॅन्युअल नोंदणी
+                                        {L.manualSensor}
                                     </span>
                                 </div>
 
@@ -376,7 +456,7 @@ export default function OPDPage() {
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded">
                                             <div className="flex justify-between items-center mb-1">
                                                 <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    SpO2 (ऑक्सिजन प्रमाण)
+                                                    {L.spo2Label}
                                                 </span>
                                                 <strong className={`text-xl font-mono ${vitals.spo2 < 92 ? 'text-red-700 font-black' : 'text-[#1F3A6E]'}`}>
                                                     {vitals.spo2}%
@@ -396,7 +476,7 @@ export default function OPDPage() {
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded">
                                             <div className="flex justify-between items-center mb-1">
                                                 <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    नाडीचे ठोके (Pulse / BPM)
+                                                    {L.pulseLabel}
                                                 </span>
                                                 <strong className="text-xl font-mono text-[#1F3A6E]">
                                                     {vitals.heartRate}
@@ -415,7 +495,7 @@ export default function OPDPage() {
                                         {/* Blood Pressure */}
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded">
                                             <span className="font-bold text-slate-700 uppercase text-[11px] block mb-1">
-                                                रक्तदाब / Blood Pressure (mmHg)
+                                                {L.bpLabel}
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <input
@@ -452,7 +532,7 @@ export default function OPDPage() {
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded">
                                             <div className="flex justify-between items-center mb-1">
                                                 <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    रक्तातील साखर (Glucose)
+                                                    {L.glucoseLabel}
                                                 </span>
                                                 <span className="text-slate-500 text-[10px]">mg/dL</span>
                                             </div>
@@ -467,9 +547,22 @@ export default function OPDPage() {
 
                                     {/* Chief Complaint / Symptoms */}
                                     <div>
-                                        <label className="block font-bold text-slate-700 mb-1">
-                                            मुख्य तक्रार व आजाराची लक्षणे (Chief Complaint & Clinical Presentation)
-                                        </label>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="block font-bold text-slate-700">
+                                                {L.complaintLabel}
+                                            </label>
+                                            {isSupported && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => (isListening ? stopListening() : startListening(language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN'))}
+                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
+                                                        isListening ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                                                    }`}
+                                                >
+                                                    {isListening ? L.voiceListening : L.voicePrompt}
+                                                </button>
+                                            )}
+                                        </div>
                                         <textarea
                                             rows={2}
                                             value={vitals.injuryType}
@@ -485,9 +578,9 @@ export default function OPDPage() {
                                         className="w-full py-3 bg-[#1F3A6E] hover:bg-[#16294E] text-white text-sm font-bold rounded shadow transition-colors flex items-center justify-center gap-2"
                                     >
                                         {isAnalyzing ? (
-                                            <span>विश्लेषण चालू आहे (Evaluating Triage)...</span>
+                                            <span>{L.analyzingBtn}</span>
                                         ) : (
-                                            <span>✓ एआय ट्राइएज विश्लेषण करा व ओपीडी टोकन द्या</span>
+                                            <span>{L.runTriageBtn}</span>
                                         )}
                                     </button>
                                 </div>
@@ -501,10 +594,10 @@ export default function OPDPage() {
                                 <div className="gov-card border-2 border-[#1F3A6E] shadow-sm animate-fade-in">
                                     <div className="bg-[#1F3A6E] text-white p-3 text-center border-b border-slate-300">
                                         <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">
-                                            महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग
+                                            {L.receiptGovt}
                                         </span>
                                         <h3 className="text-sm font-black">
-                                            अधिकृत ओपीडी नोंदणी व ट्राइएज पावती
+                                            {L.receiptTitle}
                                         </h3>
                                         <span className="text-[10px] text-slate-300">
                                             Government OPD Token Slip • PHC Bhamragad
@@ -514,11 +607,11 @@ export default function OPDPage() {
                                     <div className="p-4 space-y-3 text-xs bg-[#FAFBFD]">
                                         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                                             <div>
-                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">टोकन क्रमांक / Token</span>
+                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">{L.tokenLabel}</span>
                                                 <strong className="text-2xl font-mono font-black text-[#1F3A6E]">{generatedToken}</strong>
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">ट्राइएज प्राधान्य</span>
+                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">{L.priorityLabel}</span>
                                                 <span className={`px-2.5 py-1 rounded text-xs font-black uppercase ${
                                                     triageResult.status === 'RED'
                                                         ? 'bg-red-600 text-white'
@@ -533,25 +626,25 @@ export default function OPDPage() {
 
                                         <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded border border-slate-200">
                                             <div>
-                                                <span className="text-slate-500 block">रुग्णाचे नाव:</span>
-                                                <strong className="text-slate-800">{name} ({age} वर्षे / {gender})</strong>
+                                                <span className="text-slate-500 block">{L.patNameLabel}</span>
+                                                <strong className="text-slate-800">{name} ({age} {isEn ? 'Yrs' : 'वर्षे'} / {gender})</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">गाव:</span>
+                                                <span className="text-slate-500 block">{L.patVillageLabel}</span>
                                                 <strong className="text-slate-800">{village}</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">ABHA क्रमांक:</span>
+                                                <span className="text-slate-500 block">{L.patAbhaLabel}</span>
                                                 <strong className="text-slate-800 font-mono text-[10px]">{abhaId}</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">तपासणी कक्ष:</span>
-                                                <strong className="text-[#1F3A6E]">कक्ष क्र. २ (MO OPD)</strong>
+                                                <span className="text-slate-500 block">{L.patRoomLabel}</span>
+                                                <strong className="text-[#1F3A6E]">{L.roomMO}</strong>
                                             </div>
                                         </div>
 
                                         <div className="p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900 leading-snug">
-                                            <strong>वैद्यकीय कृती शिफारस:</strong> {triageResult.recommendedAction}
+                                            <strong>{L.actionLabel}</strong> {triageResult.recommendedAction}
                                         </div>
 
                                         <div className="flex gap-2 pt-1">
@@ -560,14 +653,14 @@ export default function OPDPage() {
                                                 onClick={() => setShowQR(true)}
                                                 className="gov-btn gov-btn-secondary text-xs flex-1"
                                             >
-                                                🖨️ QR रिस्टबँड
+                                                🖨️ {L.wristbandBtn}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => createdPatient && downloadFHIRRecord(createdPatient)}
                                                 className="gov-btn gov-btn-primary text-xs flex-1"
                                             >
-                                                📥 FHIR R4 JSON
+                                                📥 {L.downloadFHIR}
                                             </button>
                                         </div>
                                     </div>
@@ -576,10 +669,10 @@ export default function OPDPage() {
                                 <div className="gov-card p-4 text-center text-xs text-slate-500 space-y-2">
                                     <span className="text-2xl block">📋</span>
                                     <strong className="text-slate-700 block text-xs">
-                                        ट्राइएज विश्लेषण प्रतिक्षा
+                                        {L.waitingAnalysisTitle}
                                     </strong>
                                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                                        डाव्या बाजूला रुग्णाची लक्षणे व नोंदी भरून &quot;एआय ट्राइएज विश्लेषण&quot; बटणावर क्लिक करा. सिस्टीम तात्काळ धोक्याचे वर्गीकरण व अधिकृत ओपीडी टोकन जारी करेल.
+                                        {L.waitingAnalysisDesc}
                                     </p>
                                 </div>
                             )}
@@ -587,9 +680,9 @@ export default function OPDPage() {
                             {/* Official Live Queue Table (NIC Style) */}
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
-                                    <span>दैनिक ओपीडी रांग फलक (Live OPD Queue Board)</span>
+                                    <span>{L.queueHeader}</span>
                                     <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
-                                        थेट अद्ययावत
+                                        {L.queueLive}
                                     </span>
                                 </div>
 
@@ -597,10 +690,10 @@ export default function OPDPage() {
                                     <table className="gov-table">
                                         <thead>
                                             <tr>
-                                                <th>टोकन</th>
-                                                <th>रुग्ण</th>
-                                                <th>प्राधान्य</th>
-                                                <th>वेळ</th>
+                                                <th>{L.colToken}</th>
+                                                <th>{L.colPatient}</th>
+                                                <th>{L.colPriority}</th>
+                                                <th>{L.colWait}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -619,7 +712,7 @@ export default function OPDPage() {
                                                             {q.priority}
                                                         </span>
                                                     </td>
-                                                    <td className="text-slate-500">{q.estimatedWaitMinutes} मि.</td>
+                                                    <td className="text-slate-500">{q.estimatedWaitMinutes} {L.minUnit}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -634,15 +727,15 @@ export default function OPDPage() {
                         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
                             <div className="bg-white rounded border border-slate-400 p-4 max-w-sm w-full space-y-3">
                                 <div className="flex items-center justify-between border-b pb-2">
-                                    <strong className="text-xs font-bold text-[#1F3A6E]">रुग्ण ओळख QR रिस्टबँड</strong>
-                                    <button onClick={() => setShowQR(false)} className="text-xs font-bold text-slate-500">✕ बंद करा</button>
+                                    <strong className="text-xs font-bold text-[#1F3A6E]">{isEn ? 'Patient ID QR Wristband' : 'रुग्ण ओळख QR रिस्टबँड'}</strong>
+                                    <button onClick={() => setShowQR(false)} className="text-xs font-bold text-slate-500">✕ {isEn ? 'Close' : 'बंद करा'}</button>
                                 </div>
                                 <QRWristband patient={createdPatient} />
                                 <button
                                     onClick={() => window.print()}
                                     className="gov-btn gov-btn-primary w-full text-xs"
                                 >
-                                    🖨️ प्रिंट काढा (Print)
+                                    🖨️ {isEn ? 'Print Wristband' : 'प्रिंट काढा (Print)'}
                                 </button>
                             </div>
                         </div>

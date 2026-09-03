@@ -1,13 +1,15 @@
 /**
  * GovHeader — GIGW-compliant Government of India header
- * Supports both Citizen (public) and Staff (authenticated) modes.
+ * Department of Public Health • Government of Maharashtra
+ * Synchronized with master useLanguageStore
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AccessibilityToolbar from './AccessibilityToolbar';
+import StateEmblem from './StateEmblem';
+import { useLanguageStore, Language } from '@/stores/languageStore';
 
 interface GovHeaderProps {
     mode: 'citizen' | 'staff';
@@ -18,61 +20,54 @@ interface GovHeaderProps {
 }
 
 export default function GovHeader({ mode, roleBadge, facilityName }: GovHeaderProps) {
-    const [locale, setLocale] = useState<'en' | 'hi' | 'ta'>('en');
+    const { language, setLanguage } = useLanguageStore();
 
-    useEffect(() => {
-        const saved = localStorage.getItem('gs-locale') as 'en' | 'hi' | 'ta' | null;
-        if (saved) setLocale(saved);
-    }, []);
-
-    const handleLocaleChange = (newLocale: 'en' | 'hi' | 'ta') => {
-        setLocale(newLocale);
-        localStorage.setItem('gs-locale', newLocale);
-        document.documentElement.lang = newLocale;
-    };
+    const currentLang: Language = language || 'en';
 
     const titles: Record<string, { primary: string; sub: string }> = {
-        en: { primary: 'NalamMesh', sub: 'Integrated Rural Public Healthcare Access & Quality Platform' },
-        hi: { primary: 'नलममेश (NalamMesh)', sub: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — महाराष्ट्र शासन' },
-        ta: { primary: 'நலம்மெஷ் (NalamMesh)', sub: 'கிராமப்புற பொது சுகாதார ஒருங்கிணைந்த தளம் — அரசு தளம்' },
+        en: { primary: 'NalamMesh', sub: 'National Rural Public Healthcare Infrastructure • Government of Maharashtra' },
+        mr: { primary: 'नलममेश', sub: 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — महाराष्ट्र शासन' },
+        hi: { primary: 'नलममेश', sub: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — महाराष्ट्र सरकार' },
+        ta: { primary: 'நலம்மெஷ்', sub: 'கிராமப்புற பொது சுகாதார ஒருங்கிணைந்த தளம் — அரசு தளம்' },
     };
 
     const govLabel: Record<string, string> = {
         en: 'Government of Maharashtra • Public Health Department | National Health Mission (NHM)',
-        hi: 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन | राष्ट्रीय आरोग्य अभियान (NHM)',
+        mr: 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन | राष्ट्रीय आरोग्य अभियान (NHM)',
+        hi: 'सार्वजनिक स्वास्थ्य विभाग • महाराष्ट्र सरकार | राष्ट्रीय स्वास्थ्य मिशन (NHM)',
         ta: 'பொது சுகாதாரத் துறை • தேசிய சுகாதார இயக்கம் (NHM)',
     };
 
+    const titleObj = titles[currentLang] || titles.en;
+    const labelStr = govLabel[currentLang] || govLabel.en;
+
     return (
-        <header className="bg-white border-b border-border-subtle sticky top-0 z-40">
+        <header className="bg-white border-b border-slate-300 sticky top-0 z-40">
             {/* Government identification bar */}
-            <div className="bg-gov-navy-dark text-white">
+            <div className="bg-[#1F3A6E] text-white">
                 <div className="max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-3">
-                        {/* Ashoka Chakra / Emblem placeholder */}
-                        <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold" aria-label="Government Emblem">
-                            🏛️
-                        </div>
-                        <span className="font-medium tracking-wide">
-                            {govLabel[locale]}
+                        <StateEmblem size={20} light />
+                        <span className="font-bold tracking-wide text-[11px] sm:text-xs">
+                            {labelStr}
                         </span>
                     </div>
 
                     <div className="hidden sm:flex items-center gap-1">
                         {/* Language Switcher */}
-                        {(['en', 'hi', 'ta'] as const).map((lang) => (
+                        {(['mr', 'hi', 'en'] as const).map((lang) => (
                             <button
                                 key={lang}
-                                onClick={() => handleLocaleChange(lang)}
+                                onClick={() => setLanguage(lang)}
                                 className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
-                                    locale === lang
-                                        ? 'bg-white text-gov-navy-dark'
+                                    currentLang === lang
+                                        ? 'bg-amber-400 text-slate-950 font-black'
                                         : 'text-white/80 hover:text-white hover:bg-white/10'
                                 }`}
-                                aria-label={`Switch to ${lang === 'en' ? 'English' : lang === 'hi' ? 'Hindi' : 'Tamil'}`}
-                                aria-pressed={locale === lang}
+                                aria-label={`Switch to ${lang === 'en' ? 'English' : lang === 'hi' ? 'Hindi' : 'Marathi'}`}
+                                aria-pressed={currentLang === lang}
                             >
-                                {lang === 'en' ? 'English' : lang === 'hi' ? 'हिन्दी' : 'தமிழ்'}
+                                {lang === 'en' ? 'English' : lang === 'hi' ? 'हिन्दी' : 'मराठी'}
                             </button>
                         ))}
                     </div>
@@ -80,18 +75,20 @@ export default function GovHeader({ mode, roleBadge, facilityName }: GovHeaderPr
             </div>
 
             {/* Main header bar */}
-            <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-                <Link href={mode === 'staff' ? '/staff' : '/'} className="flex items-center gap-3 min-w-0">
-                    {/* Portal icon */}
-                    <div className="w-10 h-10 bg-gov-navy rounded-lg flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-lg font-bold">GS</span>
-                    </div>
-                    <div className="min-w-0">
-                        <h1 className="text-lg font-bold text-gov-navy leading-tight truncate">
-                            {titles[locale].primary}
-                        </h1>
-                        <p className="text-xs text-txt-secondary truncate">
-                            {titles[locale].sub}
+            <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-4">
+                <Link href={mode === 'staff' ? '/staff' : '/'} className="flex items-center gap-3.5 min-w-0">
+                    <StateEmblem size={38} />
+                    <div className="min-w-0 border-l border-slate-300 pl-3">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-lg sm:text-xl font-black text-[#1F3A6E] leading-tight truncate">
+                                {titleObj.primary}
+                            </h1>
+                            <span className="px-1.5 py-0.5 text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 rounded">
+                                NHM
+                            </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 truncate font-medium">
+                            {titleObj.sub}
                         </p>
                     </div>
                 </Link>
@@ -101,11 +98,11 @@ export default function GovHeader({ mode, roleBadge, facilityName }: GovHeaderPr
 
                     {mode === 'staff' && roleBadge && (
                         <div className="hidden md:flex items-center gap-2">
-                            <span className="text-xs font-bold text-gov-navy bg-gov-blue-bg px-2.5 py-1 rounded-full">
+                            <span className="text-xs font-bold text-[#1F3A6E] bg-blue-50 border border-blue-200 px-2.5 py-1 rounded">
                                 {roleBadge}
                             </span>
                             {facilityName && (
-                                <span className="text-xs text-txt-secondary">
+                                <span className="text-xs text-slate-600 font-medium">
                                     @ {facilityName}
                                 </span>
                             )}
@@ -115,16 +112,16 @@ export default function GovHeader({ mode, roleBadge, facilityName }: GovHeaderPr
                     {mode === 'citizen' ? (
                         <Link
                             href="/login"
-                            className="gov-btn gov-btn-primary text-sm"
+                            className="px-3.5 py-1.5 bg-[#1F3A6E] text-white text-xs font-bold rounded hover:bg-[#162A50] shadow-sm transition-colors"
                         >
-                            Login / ABHA
+                            {currentLang === 'en' ? 'Login / ABHA ID' : 'लॉगिन / ABHA ID'}
                         </Link>
                     ) : (
                         <Link
                             href="/staff/login"
-                            className="gov-btn gov-btn-ghost text-sm"
+                            className="px-3.5 py-1.5 border border-slate-300 text-slate-700 text-xs font-bold rounded hover:bg-slate-100 transition-colors"
                         >
-                            Logout
+                            {currentLang === 'en' ? 'Logout' : 'लॉगआउट'}
                         </Link>
                     )}
                 </div>

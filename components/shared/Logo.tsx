@@ -1,6 +1,13 @@
+/**
+ * Official Seal / Logo — Department of Public Health, Government of Maharashtra
+ * National Health Mission (NHM) • Ayushman Bharat Digital Mission
+ * Trilingual Localization: English, Marathi, Hindi
+ */
+
 'use client';
 
 import React from 'react';
+import { useLanguageStore } from '@/stores/languageStore';
 
 interface LogoProps {
     size?: 'sm' | 'md' | 'lg';
@@ -10,97 +17,75 @@ interface LogoProps {
 }
 
 export default function Logo({ size = 'md', showText = true, variant = 'dark', className = '' }: LogoProps) {
-    const dimensions = {
-        sm: { icon: 40, text: 'text-lg', tagline: 'text-[9px]' },
-        md: { icon: 56, text: 'text-2xl', tagline: 'text-[10px]' },
-        lg: { icon: 140, text: 'text-6xl', tagline: 'text-lg' }
+    const { language } = useLanguageStore();
+    const isEn = language === 'en';
+    const isHi = language === 'hi';
+
+    const isDark = variant === 'dark';
+    const primaryText = isDark ? 'text-[#1F3A6E]' : 'text-white';
+    const subText = isDark ? 'text-slate-600' : 'text-slate-200';
+    const sealFill = isDark ? '#1F3A6E' : '#FFFFFF';
+    const sealInner = isDark ? '#FFFFFF' : '#1F3A6E';
+    const goldColor = isDark ? '#B45309' : '#FDE047';
+
+    const iconSizes = {
+        sm: 32,
+        md: 44,
+        lg: 64,
     };
 
-    const colors = {
-        dark: {
-            text: 'text-slate-900',
-            tagline: 'text-slate-600',
-            primary: '#1E40AF',
-            secondary: '#0D9488'
-        },
-        light: {
-            text: 'text-white',
-            tagline: 'text-teal-50/70',
-            primary: '#60A5FA',
-            secondary: '#2DD4BF'
-        }
-    };
-
-    const config = colors[variant];
+    const s = iconSizes[size];
 
     return (
-        <div className={`flex items-center gap-4 ${className} ${size === 'lg' ? 'flex-col text-center' : 'flex-row'}`}>
+        <div className={`flex items-center gap-3 select-none ${className}`}>
+            {/* Official Government Health Cadre Seal */}
             <svg
-                width={dimensions[size].icon}
-                height={dimensions[size].icon}
-                viewBox="0 0 140 120"
+                width={s}
+                height={s}
+                viewBox="0 0 100 100"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="drop-shadow-md overflow-visible"
+                className="flex-shrink-0"
+                aria-label="Government of Maharashtra Health Seal"
             >
-                <defs>
-                    <linearGradient id="logo-gradient" x1="0" y1="0" x2="140" y2="120">
-                        <stop offset="0%" stopColor="#2563EB" />
-                        <stop offset="60%" stopColor="#0D9488" />
-                        <stop offset="100%" stopColor="#14B8A6" />
-                    </linearGradient>
-                </defs>
+                {/* Outer Circular Border (Official Seal Ring) */}
+                <circle cx="50" cy="50" r="47" stroke={sealFill} strokeWidth="3" fill="none" />
+                <circle cx="50" cy="50" r="43" stroke={goldColor} strokeWidth="1.5" fill="none" />
 
-                {/* Mesh Waves (Left side) */}
+                {/* Inner Shield / Cross */}
+                <circle cx="50" cy="50" r="39" fill={isDark ? '#F8FAFC' : '#1F3A6E'} />
+
+                {/* Red Crescent / Medical Emblem Cross */}
                 <path
-                    d="M15 50C15 30 35 15 55 15"
-                    stroke="url(#logo-gradient)"
-                    strokeWidth="10"
-                    strokeLinecap="round"
-                    className="opacity-40"
-                />
-                <path
-                    d="M25 65C25 50 40 38 55 38"
-                    stroke="url(#logo-gradient)"
-                    strokeWidth="12"
-                    strokeLinecap="round"
-                    className="opacity-80"
+                    d="M44 26H56V44H74V56H56V74H44V56H26V44H44V26Z"
+                    fill="#C53030"
                 />
 
-                {/* Stylized N Shape */}
-                <path
-                    d="M55 35V95 M55 35C80 35 100 60 100 95V35"
-                    stroke="url(#logo-gradient)"
-                    strokeWidth="18"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                />
-
-                {/* Medical Cross (Top Right) */}
-                <g transform="translate(100, 5)">
-                    <path
-                        d="M0 15H28"
-                        stroke={variant === 'dark' ? '#0F766E' : '#5EEAD4'}
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                    />
-                    <path
-                        d="M14 1V29"
-                        stroke={variant === 'dark' ? '#0F766E' : '#5EEAD4'}
-                        strokeWidth="10"
-                        strokeLinecap="round"
-                    />
-                </g>
+                {/* Central Dharma Chakra Spokes in Gold */}
+                <circle cx="50" cy="50" r="8" fill={sealInner} stroke={goldColor} strokeWidth="2" />
+                <circle cx="50" cy="50" r="3" fill={goldColor} />
             </svg>
 
             {showText && (
-                <div className="flex flex-col whitespace-nowrap">
-                    <h1 className={`${dimensions[size].text} font-black tracking-tighter leading-[0.85] ${config.text} drop-shadow-sm`}>
-                        NalamMesh
-                    </h1>
-                    <p className={`${dimensions[size].tagline} font-bold tracking-[0.1em] uppercase mt-1.5 ${config.tagline}`}>
-                        Resilient Healthcare Network
-                    </p>
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5">
+                        <span className={`text-base font-black tracking-tight leading-none ${primaryText}`}>
+                            {isEn ? 'NalamMesh' : 'नलममेश'}
+                        </span>
+                        <span className="text-[9px] px-1.5 py-0.2 bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded">
+                            NHM
+                        </span>
+                    </div>
+                    <span className={`text-[10px] font-bold tracking-wide mt-1 uppercase ${subText}`}>
+                        {isEn
+                            ? 'Govt. of Maharashtra • Public Health Dept'
+                            : isHi
+                            ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य विभाग'
+                            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग'}
+                    </span>
+                    <span className="text-[9px] text-slate-500 font-medium hidden sm:block">
+                        {isEn ? 'National Health Mission • ABDM Integrated' : 'राष्ट्रीय आरोग्य अभियान • ABDM प्रमाणित'}
+                    </span>
                 </div>
             )}
         </div>

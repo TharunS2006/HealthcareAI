@@ -69,9 +69,10 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
                         box-shadow: 0 3px 8px rgba(0,0,0,0.3);
                         color: white;
                         font-weight: bold;
-                        font-size: ${isDH ? '16px' : '12px'};
+                        font-size: ${isDH ? '13px' : '11px'};
+                        font-family: sans-serif;
                     ">
-                        ${isDH ? '🏥' : isPHC ? '🩺' : '📍'}
+                        ${fac.type}
                     </div>
                 `;
 

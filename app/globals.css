@@ -100,14 +100,7 @@ body {
    ═══════════════════════════════════════ */
 
 .tricolor-stripe {
-  height: 3.5px;
-  background: linear-gradient(
-    to right,
-    #FF9933 0%, #FF9933 33.33%,
-    #FFFFFF 33.33%, #FFFFFF 66.66%,
-    #138808 66.66%, #138808 100%
-  );
-  width: 100%;
+  display: none;
 }
 
 /* Skip to Content for Screen Readers */

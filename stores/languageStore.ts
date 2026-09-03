@@ -15,7 +15,7 @@ interface LanguageState {
 export const useLanguageStore = create<LanguageState>()(
     persist(
         (set) => ({
-            language: 'mr', // Default to Marathi for Maharashtra SIH PS
+            language: 'en', // Default to English
             setLanguage: (language: Language) => set({ language }),
         }),
         {

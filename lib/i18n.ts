@@ -7,7 +7,7 @@ import { Language } from '@/stores/languageStore';
 
 export const DICTIONARY = {
     mr: {
-        appTitle: 'नलममेश (NalamMesh)',
+        appTitle: 'नलममेश',
         appSubtitle: 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — महाराष्ट्र शासन',
         govtHeader: 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन | राष्ट्रीय आरोग्य अभियान (NHM)',
 
@@ -131,7 +131,7 @@ export const DICTIONARY = {
     },
 
     hi: {
-        appTitle: 'नलममेश (NalamMesh)',
+        appTitle: 'नलममेश',
         appSubtitle: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — महाराष्ट्र सरकार',
         govtHeader: 'सार्वजनिक स्वास्थ्य विभाग • महाराष्ट्र सरकार | राष्ट्रीय स्वास्थ्य मिशन (NHM)',
 
@@ -193,7 +193,7 @@ export const DICTIONARY = {
     },
 
     ta: {
-        appTitle: 'நலம்மெஷ் (NalamMesh)',
+        appTitle: 'நலம்மெஷ்',
         appSubtitle: 'கிராமப்புற பொது சுகாதார ஒருங்கிணைந்த தளம் — அரசு தளம்',
         govtHeader: 'பொது சுகாதாரத் துறை • தேசிய சுகாதார இயக்கம் (NHM)',
 
@@ -250,7 +250,7 @@ export const DICTIONARY = {
     },
 
     te: {
-        appTitle: 'నలమ్‌మెష్ (NalamMesh)',
+        appTitle: 'నలమ్‌మెష్',
         appSubtitle: 'గ్రామీణ ప్రజా ఆరోగ్య సంరక్షణ వేదిక — ప్రభుత్వ పోర్టల్',
         govtHeader: 'ప్రజా ఆరోగ్య శాఖ • జాతీయ ఆరోగ్య మిషన్ (NHM)',
 
@@ -307,7 +307,7 @@ export const DICTIONARY = {
     },
 
     bn: {
-        appTitle: 'নলমমেশ (NalamMesh)',
+        appTitle: 'নলমমেশ',
         appSubtitle: 'গ্রামীণ জনস্বাস্থ্য প্ল্যাটফর্ম — পশ্চিমবঙ্গ ও ভারত',
         govtHeader: 'স্বাস্থ্য ও পরিবার কল্যাণ বিভাগ • জাতীয় স্বাস্থ্য মিশন (NHM)',
 
