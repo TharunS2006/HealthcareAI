@@ -5,6 +5,8 @@
 
 import { FacilityType, GPSLocation, TriagePriority, Vitals } from './patient';
 
+export type { FacilityType };
+
 export interface StaffInfo {
     doctors: number;
     nurses: number;

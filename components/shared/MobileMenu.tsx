@@ -1,5 +1,5 @@
 /**
- * Mobile Navigation Drawer & Bottom Bar — NalamMesh FHW Interface
+ * Mobile Navigation Drawer & Bottom Bar — NalamMesh FHW Interface (SIH PS#26133)
  */
 
 'use client';
@@ -22,10 +22,13 @@ export default function MobileMenu() {
         { href: '/', label: t('navHome', language), icon: '🏠' },
         { href: '/opd', label: t('navOpd', language), icon: '🩺' },
         { href: '/dashboard', label: t('navDashboard', language), icon: '📊' },
-        { href: '/referrals', label: t('navReferrals', language), icon: '🔄' },
+        { href: '/followup', label: t('navFollowup', language), icon: '⚠️' },
+        { href: '/diagnostics', label: t('navDiagnostics', language), icon: '🧪' },
+        { href: '/medicine', label: t('navMedicine', language), icon: '💊' },
+        { href: '/referrals', label: t('navReferrals', language), icon: '🚑' },
         { href: '/queue', label: t('navQueue', language), icon: '📋' },
         { href: '/teleconsult', label: t('navTeleconsult', language), icon: '📹' },
-        { href: '/medicine', label: t('navMedicine', language), icon: '💊' },
+        { href: '/facilities', label: t('navFacilities', language), icon: '🏥' },
     ];
 
     return (
@@ -68,9 +71,9 @@ export default function MobileMenu() {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setIsOpen(false)}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all ${
+                                        className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium text-sm transition-all ${
                                             isActive
-                                                ? 'bg-emerald-deep text-white font-semibold'
+                                                ? 'bg-emerald-deep text-white font-semibold shadow-sm'
                                                 : 'text-txt-secondary hover:bg-gray-50'
                                         }`}
                                     >

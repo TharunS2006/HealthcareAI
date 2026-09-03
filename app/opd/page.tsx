@@ -1,16 +1,16 @@
 /**
  * OPD Registration & Edge AI Digital Triage — NalamMesh
- * Frontline Worker / PHC Intake Flow (SIH PS#26133)
+ * Government of Maharashtra • Department of Public Health
+ * Primary Health Centre Clinical Workstation (NIC / GIGW Standard)
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import QRWristband from '@/components/shared/QRWristband';
-import { Vitals, Patient, TriageStatus, TriagePriority } from '@/types/patient';
+import { Vitals, Patient } from '@/types/patient';
 import { QueueEntry } from '@/types/facility';
 import { classifyTriage, TriageResult } from '@/lib/triage/model';
 import { usePatientStore } from '@/stores/patientStore';
@@ -33,7 +33,7 @@ export default function OPDPage() {
     const [age, setAge] = useState<number>(26);
     const [gender, setGender] = useState<'M' | 'F' | 'O'>('F');
     const [phone, setPhone] = useState('+91-98765-43210');
-    const [village, setVillage] = useState('Kothi');
+    const [village, setVillage] = useState('Kothi (कोठी)');
     const [abhaId, setAbhaId] = useState('ABHA-9128-4421-8890');
     const [aadhaarLast4, setAadhaarLast4] = useState('4821');
 
@@ -74,7 +74,7 @@ export default function OPDPage() {
                 ...(p.consciousness && { consciousness: p.consciousness }),
                 ...(p.injuryType && { injuryType: p.injuryType }),
             }));
-            toast.success('Voice vitals captured and auto-filled');
+            toast.success('ध्वनी नोंदी यशस्वीपणे भरल्या (Voice vitals captured)');
         }
     }, [voice.parsedVitals]);
 
@@ -99,9 +99,9 @@ export default function OPDPage() {
             setAbhaId(found.abhaId || '');
             setAadhaarLast4(found.aadhaarLast4 || '');
             setVitals(found.vitals);
-            toast.success(`Found existing longitudinal record for ${found.name}`);
+            toast.success(`अस्तित्वात असलेले रेकॉर्ड सापडले: ${found.name}`);
         } else {
-            toast.error('No matching record found. Creating new entry.');
+            toast.error('माहिती सापडली नाही. नवीन नोंदणी तयार करत आहे.');
         }
     };
 
@@ -124,7 +124,7 @@ export default function OPDPage() {
                 id: pId,
                 abhaId: abhaId || `ABHA-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`,
                 aadhaarLast4,
-                name: name.trim() || 'Anonymous Patient',
+                name: name.trim() || 'अनामिक रुग्ण (Anonymous)',
                 age: Number(age) || 30,
                 gender,
                 phone,
@@ -159,7 +159,7 @@ export default function OPDPage() {
                 facilityName: 'PHC Bhamragad',
                 registeredAt: new Date().toISOString(),
                 priority: result.priority,
-                chiefComplaint: vitals.injuryType || 'General Consultation',
+                chiefComplaint: vitals.injuryType || 'सर्वसाधारण तपासणी (General OPD)',
                 status: 'WAITING',
                 estimatedWaitMinutes: result.priority === 'EMERGENCY' ? 2 : result.priority === 'URGENT' ? 10 : 25,
             };
@@ -188,479 +188,465 @@ export default function OPDPage() {
                     clinicalSummary: result.reasoning,
                 };
                 await addReferral(newRef);
-                toast.error(`CRITICAL TRIAGE: Auto-initiated Referral to ${newRef.toFacilityName}`, { duration: 6000 });
+                toast.error(`तातडीचा संदर्भ (EMERGENCY REFERRAL): ${newRef.toFacilityName} येथे पाठवले`, { duration: 6000 });
             } else {
-                toast.success(`Triage complete: ${result.status} Priority | Token ${token} generated`);
+                toast.success(`ट्राइएज पूर्ण: ${result.status} | ओपीडी टोकन ${token} जारी केले`);
             }
         } catch (err) {
             console.error('Triage failed:', err);
-            toast.error('AI Triage classification failed');
+            toast.error('ट्राइएज वर्गीकरण अयशस्वी झाले');
         } finally {
             setIsAnalyzing(false);
         }
     };
 
     return (
-        <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+        <div className="flex bg-[#F4F6FA] min-h-screen font-sans text-slate-800">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto">
                 <MobileMenu />
 
-                <div className="max-w-6xl mx-auto">
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div className="max-w-6xl mx-auto space-y-4">
+                    {/* Official Workstation Header Bar */}
+                    <div className="bg-white border border-slate-300 rounded p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                         <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                                <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-                                    Primary Health Centre • Bhamragad
-                                </span>
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span>सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, भामरागड</span>
+                                <span className="text-slate-400">|</span>
+                                <span className="text-emerald-700 font-extrabold">IPHS 2022 मानके</span>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
-                                OPD Registration & Digital Triage
+                            <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">
+                                ओपीडी रुग्ण नोंदणी व डिजिटल ट्राइएज कक्ष
                             </h1>
+                            <p className="text-xs text-slate-600">
+                                OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated
+                            </p>
                         </div>
 
-                        {/* Search Bar */}
+                        {/* Search Patient Bar */}
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                            <div className="relative flex-1 sm:w-80">
+                            <div className="relative flex-1 sm:w-72">
                                 <input
                                     type="text"
-                                    placeholder="Search ABHA ID / Aadhaar / Name..."
+                                    placeholder="ABHA ID / आधार क्रमांक / नाव शोधा..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                    className="w-full px-4 py-2 pl-9 bg-white border border-border-subtle rounded-xl text-sm focus:outline-none focus:border-teal-accent shadow-sm"
+                                    className="w-full px-3 py-1.5 pl-8 bg-slate-50 border border-slate-300 rounded text-xs focus:bg-white focus:outline-none focus:border-[#1F3A6E]"
                                 />
-                                <svg className="w-4 h-4 text-txt-muted absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                                <span className="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
                             </div>
                             <button
                                 onClick={handleSearch}
-                                className="px-4 py-2 bg-emerald-deep text-white text-sm font-bold rounded-xl hover:bg-emerald-dark transition-all"
+                                className="px-3 py-1.5 bg-[#1F3A6E] text-white text-xs font-bold rounded hover:bg-[#16294E] transition-colors"
                             >
-                                Search
+                                शोधा (Search)
                             </button>
                         </div>
                     </div>
 
-                    <div className="grid lg:grid-cols-12 gap-6">
-
-                        {/* Left Column (7 cols): Patient Details & Vitals Capture */}
-                        <form onSubmit={handleRunTriage} className="lg:col-span-7 space-y-6">
-
-                            {/* Section 1: Demographics Card */}
-                            <div className="surface-card p-6 border-l-4 border-l-teal-accent">
-                                <h2 className="text-base font-bold text-emerald-deep mb-4 flex items-center justify-between">
-                                    <span>1. Patient Demographics (ABDM Linked)</span>
-                                    <span className="text-xs font-normal text-txt-muted bg-gray-100 px-2 py-0.5 rounded">
-                                        Gadchiroli District
+                    <div className="grid lg:grid-cols-12 gap-5">
+                        {/* Left Column (7 cols): Official Medical Intake Form */}
+                        <form onSubmit={handleRunTriage} className="lg:col-span-7 space-y-4">
+                            {/* Section 1: Demographics Fieldset */}
+                            <div className="gov-card">
+                                <div className="gov-card-header flex items-center justify-between">
+                                    <span>१. रुग्णाची प्राथमिक माहिती (Patient Demographics & ABHA)</span>
+                                    <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-300 px-2 py-0.5 rounded">
+                                        ABDM M1 Ready
                                     </span>
-                                </h2>
+                                </div>
 
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-txt-muted uppercase block mb-1">Full Name</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            className="w-full p-2.5 bg-gray-50/70 border border-border-subtle rounded-xl text-sm font-semibold text-emerald-deep outline-none focus:border-teal-accent"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-2">
+                                <div className="p-4 space-y-3">
+                                    <div className="grid sm:grid-cols-2 gap-3 text-xs">
                                         <div>
-                                            <label className="text-xs font-bold text-txt-muted uppercase block mb-1">Age</label>
+                                            <label className="block font-bold text-slate-700 mb-1">
+                                                रुग्णाचे पूर्ण नाव (Full Name) <span className="text-red-600">*</span>
+                                            </label>
                                             <input
-                                                type="number"
+                                                type="text"
                                                 required
-                                                value={age}
-                                                onChange={(e) => setAge(Number(e.target.value))}
-                                                className="w-full p-2.5 bg-gray-50/70 border border-border-subtle rounded-xl text-sm font-semibold outline-none focus:border-teal-accent"
+                                                value={name}
+                                                onChange={(e) => setName(e.target.value)}
+                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs font-bold text-slate-900 focus:outline-none focus:border-[#1F3A6E]"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-txt-muted uppercase block mb-1">Gender</label>
-                                            <div className="flex rounded-xl overflow-hidden border border-border-subtle bg-gray-50/70">
-                                                {(['M', 'F', 'O'] as const).map((g) => (
-                                                    <button
-                                                        key={g}
-                                                        type="button"
-                                                        onClick={() => setGender(g)}
-                                                        className={`flex-1 py-2 text-xs font-bold transition-all ${
-                                                            gender === g ? 'bg-emerald-deep text-white' : 'text-txt-secondary hover:bg-gray-200/50'
-                                                        }`}
-                                                    >
-                                                        {g}
-                                                    </button>
-                                                ))}
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label className="block font-bold text-slate-700 mb-1">
+                                                    वय (Age) <span className="text-red-600">*</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    required
+                                                    value={age}
+                                                    onChange={(e) => setAge(Number(e.target.value))}
+                                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs font-bold focus:outline-none focus:border-[#1F3A6E]"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block font-bold text-slate-700 mb-1">
+                                                    लिंग (Gender) <span className="text-red-600">*</span>
+                                                </label>
+                                                <div className="flex border border-slate-300 rounded overflow-hidden">
+                                                    {(['M', 'F', 'O'] as const).map((g) => (
+                                                        <button
+                                                            key={g}
+                                                            type="button"
+                                                            onClick={() => setGender(g)}
+                                                            className={`flex-1 py-1.5 text-xs font-bold transition-colors ${
+                                                                gender === g
+                                                                    ? 'bg-[#1F3A6E] text-white'
+                                                                    : 'bg-white text-slate-700 hover:bg-slate-100'
+                                                            }`}
+                                                        >
+                                                            {g === 'M' ? 'पु' : g === 'F' ? 'स्त्री' : 'इतर'}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <label className="text-xs font-bold text-txt-muted uppercase block mb-1">ABHA Health ID</label>
-                                        <input
-                                            type="text"
-                                            value={abhaId}
-                                            onChange={(e) => setAbhaId(e.target.value)}
-                                            placeholder="ABHA-XXXX-XXXX-XXXX"
-                                            className="w-full p-2.5 bg-gray-50/70 border border-border-subtle rounded-xl text-sm font-mono outline-none focus:border-teal-accent"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="text-xs font-bold text-txt-muted uppercase block mb-1">Village / Sub-Centre</label>
-                                        <input
-                                            type="text"
-                                            value={village}
-                                            onChange={(e) => setVillage(e.target.value)}
-                                            placeholder="e.g. Kothi / Govindpur"
-                                            className="w-full p-2.5 bg-gray-50/70 border border-border-subtle rounded-xl text-sm font-semibold outline-none focus:border-teal-accent"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* High-Risk Checkboxes */}
-                                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-4 flex-wrap text-xs">
-                                    <label className="flex items-center gap-2 cursor-pointer font-bold text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200">
-                                        <input
-                                            type="checkbox"
-                                            checked={vitals.isPregnant}
-                                            onChange={(e) => setVitals({ ...vitals, isPregnant: e.target.checked })}
-                                            className="w-4 h-4 accent-rose-600 rounded"
-                                        />
-                                        <span>🤰 Pregnant / Maternal ANC ({vitals.gestationalWeeks || 32}w)</span>
-                                    </label>
-
-                                    <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-800 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
-                                        <input
-                                            type="checkbox"
-                                            checked={!!vitals.childAgeMonths}
-                                            onChange={(e) => setVitals({ ...vitals, childAgeMonths: e.target.checked ? 18 : undefined })}
-                                            className="w-4 h-4 accent-amber-600 rounded"
-                                        />
-                                        <span>👶 Child (&lt; 5 Years)</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* Section 2: Physiological Vitals */}
-                            <div className="surface-card p-6 border-l-4 border-l-indigo-500">
-                                <h2 className="text-base font-bold text-emerald-deep mb-4 flex items-center justify-between">
-                                    <span>2. Physiological Vital Signs</span>
-                                    <span className="text-xs text-txt-muted">Real-time edge analysis</span>
-                                </h2>
-
-                                <div className="grid sm:grid-cols-2 gap-6 mb-6">
-                                    {/* SpO2 */}
-                                    <div className="bg-gray-50/80 p-4 rounded-xl border border-border-subtle">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-bold text-txt-muted uppercase">SpO2 (Oxygen Saturation)</span>
-                                            <span className={`text-2xl font-bold font-mono ${vitals.spo2 < 90 ? 'text-status-red' : vitals.spo2 < 95 ? 'text-status-yellow' : 'text-emerald-deep'}`}>
-                                                {vitals.spo2}%
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="60"
-                                            max="100"
-                                            value={vitals.spo2}
-                                            onChange={(e) => setVitals({ ...vitals, spo2: Number(e.target.value) })}
-                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-teal-accent"
-                                        />
-                                    </div>
-
-                                    {/* Heart Rate */}
-                                    <div className="bg-gray-50/80 p-4 rounded-xl border border-border-subtle">
-                                        <div className="flex justify-between items-center mb-2">
-                                            <span className="text-xs font-bold text-txt-muted uppercase">Pulse Rate (BPM)</span>
-                                            <span className={`text-2xl font-bold font-mono ${vitals.heartRate > 110 || vitals.heartRate < 50 ? 'text-status-red' : 'text-emerald-deep'}`}>
-                                                {vitals.heartRate}
-                                            </span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="40"
-                                            max="180"
-                                            value={vitals.heartRate}
-                                            onChange={(e) => setVitals({ ...vitals, heartRate: Number(e.target.value) })}
-                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-status-red"
-                                        />
-                                    </div>
-
-                                    {/* Blood Pressure */}
-                                    <div className="bg-gray-50/80 p-4 rounded-xl border border-border-subtle">
-                                        <span className="text-xs font-bold text-txt-muted uppercase block mb-2">Blood Pressure (mmHg)</span>
-                                        <div className="flex items-center gap-2">
+                                        <div>
+                                            <label className="block font-bold text-slate-700 mb-1">
+                                                आयुष्मान भारत (ABHA ID)
+                                            </label>
                                             <input
-                                                type="number"
-                                                placeholder="Sys"
-                                                value={vitals.bloodPressure?.systolic}
-                                                onChange={(e) => setVitals({
-                                                    ...vitals,
-                                                    bloodPressure: {
-                                                        systolic: Number(e.target.value),
-                                                        diastolic: vitals.bloodPressure?.diastolic || 80
-                                                    }
-                                                })}
-                                                className="w-full p-2 bg-white border border-border-subtle rounded-lg text-center font-mono font-bold text-lg text-emerald-deep"
+                                                type="text"
+                                                value={abhaId}
+                                                onChange={(e) => setAbhaId(e.target.value)}
+                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-[#1F3A6E]"
                                             />
-                                            <span className="text-txt-muted font-bold">/</span>
+                                        </div>
+
+                                        <div>
+                                            <label className="block font-bold text-slate-700 mb-1">
+                                                गाव / पाडा (Village / Hamlet) <span className="text-red-600">*</span>
+                                            </label>
                                             <input
-                                                type="number"
-                                                placeholder="Dia"
-                                                value={vitals.bloodPressure?.diastolic}
-                                                onChange={(e) => setVitals({
-                                                    ...vitals,
-                                                    bloodPressure: {
-                                                        systolic: vitals.bloodPressure?.systolic || 120,
-                                                        diastolic: Number(e.target.value)
-                                                    }
-                                                })}
-                                                className="w-full p-2 bg-white border border-border-subtle rounded-lg text-center font-mono font-bold text-lg text-emerald-deep"
+                                                type="text"
+                                                required
+                                                value={village}
+                                                onChange={(e) => setVillage(e.target.value)}
+                                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs font-bold text-slate-900 focus:outline-none focus:border-[#1F3A6E]"
                                             />
                                         </div>
                                     </div>
 
-                                    {/* Blood Glucose */}
-                                    <div className="bg-gray-50/80 p-4 rounded-xl border border-border-subtle">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-xs font-bold text-txt-muted uppercase">Random Blood Glucose</span>
-                                            <span className="text-xs text-txt-muted">mg/dL</span>
-                                        </div>
-                                        <input
-                                            type="number"
-                                            value={vitals.bloodGlucose || 100}
-                                            onChange={(e) => setVitals({ ...vitals, bloodGlucose: Number(e.target.value) })}
-                                            className="w-full p-2 bg-white border border-border-subtle rounded-lg text-center font-mono font-bold text-lg text-emerald-deep"
-                                        />
-                                    </div>
-                                </div>
+                                    {/* High-Risk Clinical Cohort Selectors */}
+                                    <div className="pt-2 border-t border-slate-200 flex items-center gap-3 flex-wrap text-xs">
+                                        <label className="flex items-center gap-2 cursor-pointer font-bold text-red-900 bg-red-50 px-3 py-1.5 rounded border border-red-200">
+                                            <input
+                                                type="checkbox"
+                                                checked={vitals.isPregnant}
+                                                onChange={(e) => setVitals({ ...vitals, isPregnant: e.target.checked })}
+                                                className="w-4 h-4 accent-red-700"
+                                            />
+                                            <span>🤰 गरोदर माता / ANC ({vitals.gestationalWeeks || 32} आठवडे)</span>
+                                        </label>
 
-                                {/* AVPU Consciousness */}
-                                <div className="mb-4">
-                                    <label className="text-xs font-bold text-txt-muted uppercase block mb-2">Consciousness (AVPU)</label>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {(['ALERT', 'VOICE', 'PAIN', 'UNRESPONSIVE'] as const).map((level) => (
-                                            <button
-                                                key={level}
-                                                type="button"
-                                                onClick={() => setVitals({ ...vitals, consciousness: level })}
-                                                className={`py-2 px-1 text-xs font-bold rounded-lg border transition-all ${
-                                                    vitals.consciousness === level
-                                                        ? 'bg-emerald-deep text-white border-emerald-deep shadow-sm'
-                                                        : 'bg-white text-txt-secondary border-border-subtle hover:border-emerald-200'
-                                                }`}
-                                            >
-                                                {level}
-                                            </button>
-                                        ))}
+                                        <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900 bg-amber-50 px-3 py-1.5 rounded border border-amber-200">
+                                            <input
+                                                type="checkbox"
+                                                checked={!!vitals.childAgeMonths}
+                                                onChange={(e) => setVitals({ ...vitals, childAgeMonths: e.target.checked ? 18 : undefined })}
+                                                className="w-4 h-4 accent-amber-700"
+                                            />
+                                            <span>👶 बालक (&lt; ५ वर्षे कुपोषण तपासणी)</span>
+                                        </label>
                                     </div>
-                                </div>
-
-                                {/* Clinical Symptoms & Voice Input */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-1.5">
-                                        <label className="text-xs font-bold text-txt-muted uppercase">Chief Complaint & Clinical Symptoms</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => voice.isListening ? voice.stopListening() : voice.startListening('mr')}
-                                            className={`text-xs font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 transition-all ${
-                                                voice.isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-teal-50 text-teal-700 border border-teal-200'
-                                            }`}
-                                        >
-                                            <span>🎙️</span>
-                                            <span>{voice.isListening ? 'Listening (मराठी/EN)...' : 'Voice Input'}</span>
-                                        </button>
-                                    </div>
-                                    <textarea
-                                        rows={3}
-                                        value={vitals.injuryType}
-                                        onChange={(e) => setVitals({ ...vitals, injuryType: e.target.value })}
-                                        placeholder="Describe symptoms (e.g. fever, headache, convulsions, chest pain, pregnancy distress)..."
-                                        className="w-full p-3 bg-gray-50/70 border border-border-subtle rounded-xl text-sm font-medium outline-none focus:border-teal-accent"
-                                    />
                                 </div>
                             </div>
 
-                            {/* Submit Button */}
-                            <button
-                                type="submit"
-                                disabled={isAnalyzing}
-                                className="w-full py-4 bg-gradient-to-r from-emerald-deep to-teal-accent text-white text-base font-bold rounded-xl shadow-lg hover:shadow-xl hover:opacity-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                {isAnalyzing ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                        <span>Running Neural Network Triage...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>⚡ Run AI Triage & Generate OPD Token</span>
-                                        <span>→</span>
-                                    </>
-                                )}
-                            </button>
+                            {/* Section 2: Clinical Vitals */}
+                            <div className="gov-card">
+                                <div className="gov-card-header flex items-center justify-between">
+                                    <span>२. वैद्यकीय तपासणी व महत्त्वपूर्ण नोंदी (Physiological Vitals)</span>
+                                    <span className="text-[10px] text-slate-500 font-bold">
+                                        थेट सेन्सर / मॅन्युअल नोंदणी
+                                    </span>
+                                </div>
+
+                                <div className="p-4 space-y-4 text-xs">
+                                    <div className="grid sm:grid-cols-2 gap-3">
+                                        {/* SpO2 */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                                                    SpO2 (ऑक्सिजन प्रमाण)
+                                                </span>
+                                                <strong className={`text-xl font-mono ${vitals.spo2 < 92 ? 'text-red-700 font-black' : 'text-[#1F3A6E]'}`}>
+                                                    {vitals.spo2}%
+                                                </strong>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="60"
+                                                max="100"
+                                                value={vitals.spo2}
+                                                onChange={(e) => setVitals({ ...vitals, spo2: Number(e.target.value) })}
+                                                className="w-full accent-[#1F3A6E] cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* Heart Rate */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                                                    नाडीचे ठोके (Pulse / BPM)
+                                                </span>
+                                                <strong className="text-xl font-mono text-[#1F3A6E]">
+                                                    {vitals.heartRate}
+                                                </strong>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="40"
+                                                max="180"
+                                                value={vitals.heartRate}
+                                                onChange={(e) => setVitals({ ...vitals, heartRate: Number(e.target.value) })}
+                                                className="w-full accent-[#1F3A6E] cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* Blood Pressure */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <span className="font-bold text-slate-700 uppercase text-[11px] block mb-1">
+                                                रक्तदाब / Blood Pressure (mmHg)
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="number"
+                                                    placeholder="Systolic"
+                                                    value={vitals.bloodPressure?.systolic}
+                                                    onChange={(e) => setVitals({
+                                                        ...vitals,
+                                                        bloodPressure: {
+                                                            systolic: Number(e.target.value),
+                                                            diastolic: vitals.bloodPressure?.diastolic || 80
+                                                        }
+                                                    })}
+                                                    className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
+                                                />
+                                                <span className="text-slate-400 font-bold">/</span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="Diastolic"
+                                                    value={vitals.bloodPressure?.diastolic}
+                                                    onChange={(e) => setVitals({
+                                                        ...vitals,
+                                                        bloodPressure: {
+                                                            systolic: vitals.bloodPressure?.systolic || 120,
+                                                            diastolic: Number(e.target.value)
+                                                        }
+                                                    })}
+                                                    className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Blood Glucose */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                                                    रक्तातील साखर (Glucose)
+                                                </span>
+                                                <span className="text-slate-500 text-[10px]">mg/dL</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                value={vitals.bloodGlucose || 110}
+                                                onChange={(e) => setVitals({ ...vitals, bloodGlucose: Number(e.target.value) })}
+                                                className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Chief Complaint / Symptoms */}
+                                    <div>
+                                        <label className="block font-bold text-slate-700 mb-1">
+                                            मुख्य तक्रार व आजाराची लक्षणे (Chief Complaint & Clinical Presentation)
+                                        </label>
+                                        <textarea
+                                            rows={2}
+                                            value={vitals.injuryType}
+                                            onChange={(e) => setVitals({ ...vitals, injuryType: e.target.value })}
+                                            className="w-full p-2 bg-white border border-slate-300 rounded text-xs font-medium focus:outline-none focus:border-[#1F3A6E]"
+                                        />
+                                    </div>
+
+                                    {/* Submit Button */}
+                                    <button
+                                        type="submit"
+                                        disabled={isAnalyzing}
+                                        className="w-full py-3 bg-[#1F3A6E] hover:bg-[#16294E] text-white text-sm font-bold rounded shadow transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        {isAnalyzing ? (
+                                            <span>विश्लेषण चालू आहे (Evaluating Triage)...</span>
+                                        ) : (
+                                            <span>✓ एआय ट्राइएज विश्लेषण करा व ओपीडी टोकन द्या</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </form>
 
-                        {/* Right Column (5 cols): AI Triage Result & Token Display */}
-                        <div className="lg:col-span-5 space-y-6">
-
-                            {/* Triage Decision Banner */}
-                            <AnimatePresence>
-                                {triageResult ? (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className={`surface-card p-6 border-t-4 ${
-                                            triageResult.status === 'RED'
-                                                ? 'border-t-status-red bg-rose-50/30'
-                                                : triageResult.status === 'YELLOW'
-                                                ? 'border-t-status-yellow bg-amber-50/30'
-                                                : 'border-t-status-green bg-emerald-50/30'
-                                        }`}
-                                    >
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-extrabold tracking-wider ${
-                                                triageResult.status === 'RED' ? 'bg-red-100 text-red-800' :
-                                                triageResult.status === 'YELLOW' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-green-100 text-green-800'
-                                            }`}>
-                                                {triageResult.status} — {triageResult.priority}
-                                            </span>
-                                            <span className="text-xs font-mono text-txt-muted">
-                                                Confidence: {(triageResult.confidence * 100).toFixed(0)}%
-                                            </span>
-                                        </div>
-
-                                        <h3 className="text-lg font-bold text-emerald-deep mb-2">
-                                            {triageResult.status === 'RED' ? '🚨 Immediate Emergency Intervention' :
-                                             triageResult.status === 'YELLOW' ? '⚠️ Urgent Doctor Evaluation' :
-                                             '✅ Routine Primary Care'}
+                        {/* Right Column (5 cols): Official Slip & Live Queue Board */}
+                        <div className="lg:col-span-5 space-y-4">
+                            {/* Official Triage Result & Token Receipt Slip */}
+                            {triageResult && generatedToken ? (
+                                <div className="gov-card border-2 border-[#1F3A6E] shadow-sm animate-fade-in">
+                                    <div className="bg-[#1F3A6E] text-white p-3 text-center border-b border-slate-300">
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-amber-300 block">
+                                            महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग
+                                        </span>
+                                        <h3 className="text-sm font-black">
+                                            अधिकृत ओपीडी नोंदणी व ट्राइएज पावती
                                         </h3>
-
-                                        <p className="text-xs text-txt-secondary leading-relaxed mb-4">
-                                            {triageResult.reasoning}
-                                        </p>
-
-                                        {/* Recommended Action */}
-                                        <div className="bg-white p-3.5 rounded-xl border border-gray-200/80 mb-4 shadow-sm">
-                                            <span className="text-[10px] font-bold text-teal-800 uppercase block mb-1">
-                                                Recommended Facility Tier & Action:
-                                            </span>
-                                            <p className="text-xs font-semibold text-emerald-deep">
-                                                🏥 Tier: {triageResult.recommendedFacilityTier} ({
-                                                    triageResult.recommendedFacilityTier === 'DH' ? 'District Hospital Gadchiroli' :
-                                                    triageResult.recommendedFacilityTier === 'CHC' ? 'CHC Etapalli' : 'PHC Bhamragad'
-                                                })
-                                            </p>
-                                            <p className="text-xs text-txt-muted mt-1">
-                                                {triageResult.recommendedAction}
-                                            </p>
-                                        </div>
-
-                                        {/* Token Banner */}
-                                        {generatedToken && (
-                                            <div className="bg-emerald-deep text-white p-4 rounded-xl text-center shadow-md">
-                                                <span className="text-xs font-medium uppercase tracking-widest block text-teal-200">
-                                                    Issued OPD Token
-                                                </span>
-                                                <div className="text-4xl font-extrabold font-mono tracking-tight my-1">
-                                                    {generatedToken}
-                                                </div>
-                                                <span className="text-xs text-teal-100">
-                                                    Room 2 • Est. Wait: {triageResult.priority === 'EMERGENCY' ? 'Direct Override' : '15 min'}
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Action Buttons */}
-                                        <div className="grid grid-cols-2 gap-3 mt-4">
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowQR(!showQR)}
-                                                className="py-2.5 px-3 bg-white border border-border-subtle rounded-xl text-xs font-bold text-emerald-deep hover:bg-gray-50 flex items-center justify-center gap-1.5"
-                                            >
-                                                <span>🏷️</span>
-                                                <span>{showQR ? 'Hide Wristband' : 'QR Wristband'}</span>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (createdPatient) {
-                                                        downloadFHIRRecord(createdPatient);
-                                                        toast.success('ABDM / FHIR R4 Bundle Downloaded');
-                                                    }
-                                                }}
-                                                className="py-2.5 px-3 bg-white border border-indigo-200 text-indigo-700 rounded-xl text-xs font-bold hover:bg-indigo-50 flex items-center justify-center gap-1.5"
-                                            >
-                                                <span>📄</span>
-                                                <span>Export FHIR</span>
-                                            </button>
-                                        </div>
-
-                                        {showQR && createdPatient && (
-                                            <div className="mt-4">
-                                                <QRWristband patient={createdPatient} />
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                ) : (
-                                    <div className="surface-card p-8 text-center text-txt-muted border-dashed border-2">
-                                        <div className="w-12 h-12 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto mb-3">
-                                            🩺
-                                        </div>
-                                        <h3 className="font-bold text-sm text-emerald-deep">AI Decision Support Ready</h3>
-                                        <p className="text-xs text-txt-muted mt-1 max-w-xs mx-auto">
-                                            Complete demographics & vitals on the left, then click 'Run AI Triage' to evaluate risk priority.
-                                        </p>
+                                        <span className="text-[10px] text-slate-300">
+                                            Government OPD Token Slip • PHC Bhamragad
+                                        </span>
                                     </div>
-                                )}
-                            </AnimatePresence>
 
-                            {/* Recent Queue Snippet */}
-                            <div className="surface-card p-5">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h3 className="text-xs font-bold text-emerald-deep uppercase tracking-wider">
-                                        Live Queue • PHC Bhamragad
-                                    </h3>
-                                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                                        {queue.filter(q => q.status === 'WAITING').length} Waiting
+                                    <div className="p-4 space-y-3 text-xs bg-[#FAFBFD]">
+                                        <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                                            <div>
+                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">टोकन क्रमांक / Token</span>
+                                                <strong className="text-2xl font-mono font-black text-[#1F3A6E]">{generatedToken}</strong>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">ट्राइएज प्राधान्य</span>
+                                                <span className={`px-2.5 py-1 rounded text-xs font-black uppercase ${
+                                                    triageResult.status === 'RED'
+                                                        ? 'bg-red-600 text-white'
+                                                        : triageResult.status === 'YELLOW'
+                                                        ? 'bg-amber-500 text-slate-950'
+                                                        : 'bg-emerald-700 text-white'
+                                                }`}>
+                                                    {triageResult.priority} ({triageResult.status})
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded border border-slate-200">
+                                            <div>
+                                                <span className="text-slate-500 block">रुग्णाचे नाव:</span>
+                                                <strong className="text-slate-800">{name} ({age} वर्षे / {gender})</strong>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-500 block">गाव:</span>
+                                                <strong className="text-slate-800">{village}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-500 block">ABHA क्रमांक:</span>
+                                                <strong className="text-slate-800 font-mono text-[10px]">{abhaId}</strong>
+                                            </div>
+                                            <div>
+                                                <span className="text-slate-500 block">तपासणी कक्ष:</span>
+                                                <strong className="text-[#1F3A6E]">कक्ष क्र. २ (MO OPD)</strong>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900 leading-snug">
+                                            <strong>वैद्यकीय कृती शिफारस:</strong> {triageResult.recommendedAction}
+                                        </div>
+
+                                        <div className="flex gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowQR(true)}
+                                                className="gov-btn gov-btn-secondary text-xs flex-1"
+                                            >
+                                                🖨️ QR रिस्टबँड
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => createdPatient && downloadFHIRRecord(createdPatient)}
+                                                className="gov-btn gov-btn-primary text-xs flex-1"
+                                            >
+                                                📥 FHIR R4 JSON
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="gov-card p-4 text-center text-xs text-slate-500 space-y-2">
+                                    <span className="text-2xl block">📋</span>
+                                    <strong className="text-slate-700 block text-xs">
+                                        ट्राइएज विश्लेषण प्रतिक्षा
+                                    </strong>
+                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                        डाव्या बाजूला रुग्णाची लक्षणे व नोंदी भरून &quot;एआय ट्राइएज विश्लेषण&quot; बटणावर क्लिक करा. सिस्टीम तात्काळ धोक्याचे वर्गीकरण व अधिकृत ओपीडी टोकन जारी करेल.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Official Live Queue Table (NIC Style) */}
+                            <div className="gov-card">
+                                <div className="gov-card-header flex items-center justify-between">
+                                    <span>दैनिक ओपीडी रांग फलक (Live OPD Queue Board)</span>
+                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                                        थेट अद्ययावत
                                     </span>
                                 </div>
 
-                                <div className="space-y-2">
-                                    {queue.slice(0, 4).map((entry) => (
-                                        <div key={entry.id} className="flex items-center justify-between p-2.5 bg-gray-50/70 rounded-lg text-xs">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="font-mono font-bold text-emerald-deep bg-white px-2 py-1 rounded border border-gray-200">
-                                                    {entry.tokenNumber}
-                                                </span>
-                                                <div>
-                                                    <p className="font-semibold text-emerald-deep">{entry.patientName}</p>
-                                                    <p className="text-[10px] text-txt-muted truncate max-w-[140px]">{entry.chiefComplaint}</p>
-                                                </div>
-                                            </div>
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                                entry.priority === 'EMERGENCY' ? 'bg-red-100 text-red-700' :
-                                                entry.priority === 'URGENT' ? 'bg-yellow-100 text-yellow-700' :
-                                                'bg-green-100 text-green-700'
-                                            }`}>
-                                                {entry.priority}
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div className="overflow-x-auto">
+                                    <table className="gov-table">
+                                        <thead>
+                                            <tr>
+                                                <th>टोकन</th>
+                                                <th>रुग्ण</th>
+                                                <th>प्राधान्य</th>
+                                                <th>वेळ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {queue.slice(0, 6).map((q) => (
+                                                <tr key={q.id}>
+                                                    <td className="font-mono font-bold text-[#1F3A6E]">{q.tokenNumber}</td>
+                                                    <td className="font-semibold">{q.patientName}</td>
+                                                    <td>
+                                                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded ${
+                                                            q.priority === 'EMERGENCY'
+                                                                ? 'bg-red-100 text-red-800'
+                                                                : q.priority === 'URGENT'
+                                                                ? 'bg-amber-100 text-amber-800'
+                                                                : 'bg-emerald-100 text-emerald-800'
+                                                        }`}>
+                                                            {q.priority}
+                                                        </span>
+                                                    </td>
+                                                    <td className="text-slate-500">{q.estimatedWaitMinutes} मि.</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-
                         </div>
                     </div>
+
+                    {/* QR Wristband Modal */}
+                    {showQR && createdPatient && (
+                        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+                            <div className="bg-white rounded border border-slate-400 p-4 max-w-sm w-full space-y-3">
+                                <div className="flex items-center justify-between border-b pb-2">
+                                    <strong className="text-xs font-bold text-[#1F3A6E]">रुग्ण ओळख QR रिस्टबँड</strong>
+                                    <button onClick={() => setShowQR(false)} className="text-xs font-bold text-slate-500">✕ बंद करा</button>
+                                </div>
+                                <QRWristband patient={createdPatient} />
+                                <button
+                                    onClick={() => window.print()}
+                                    className="gov-btn gov-btn-primary w-full text-xs"
+                                >
+                                    🖨️ प्रिंट काढा (Print)
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>

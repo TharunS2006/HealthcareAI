@@ -1,15 +1,13 @@
 /**
- * Sidebar Navigation Component — NalamMesh Rural Public Healthcare
+ * Sidebar Navigation — NalamMesh Authentic Government Clinical Sidebar
+ * Government of Maharashtra • Department of Public Health
  */
 
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Logo from '@/components/shared/Logo';
-import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useLanguageStore } from '@/stores/languageStore';
-import { t } from '@/lib/i18n';
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -17,109 +15,155 @@ export default function Sidebar() {
 
     const navItems = [
         {
-            href: '/',
-            label: t('navHome', language),
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-            ),
+            section: language === 'en' ? 'Clinical Care' : 'वैद्यकीय सेवा (Clinical)',
         },
         {
             href: '/opd',
-            label: t('navOpd', language),
+            labelMr: 'ओपीडी व ट्राइएज नोंदणी',
+            labelEn: 'OPD Intake & Triage',
             badge: 'Intake',
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            ),
-        },
-        {
-            href: '/dashboard',
-            label: t('navDashboard', language),
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-            ),
-        },
-        {
-            href: '/referrals',
-            label: t('navReferrals', language),
-            badge: 'Pipeline',
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-            ),
-        },
-        {
-            href: '/queue',
-            label: t('navQueue', language),
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            ),
+            icon: '🩺',
         },
         {
             href: '/teleconsult',
-            label: t('navTeleconsult', language),
+            labelMr: 'ई-संजीवनी टेलिकन्सल्ट',
+            labelEn: 'Teleconsultation Link',
             badge: 'Live',
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-            ),
+            icon: '📹',
+        },
+        {
+            href: '/queue',
+            labelMr: 'ओपीडी रांग व टोकन',
+            labelEn: 'OPD Queue Board',
+            icon: '🎟️',
+        },
+        {
+            section: language === 'en' ? 'Continuity of Care' : 'आरोग्य सातत्य (Continuity)',
+        },
+        {
+            href: '/dashboard',
+            labelMr: 'जिल्हा आरोग्य डॅशबोर्ड',
+            labelEn: 'District Command',
+            icon: '📊',
+        },
+        {
+            href: '/referrals',
+            labelMr: '१०८ / १०२ रुग्ण रेफरल',
+            labelEn: 'Emergency Referrals',
+            badge: '108/102',
+            icon: '🚑',
+        },
+        {
+            href: '/followup',
+            labelMr: 'उच्च जोखीम पाठपुरावा',
+            labelEn: 'High-Risk Follow-Up',
+            badge: 'ANC/SAM',
+            icon: '⚠️',
+        },
+        {
+            section: language === 'en' ? 'Diagnostics & Supply' : 'निदान व औषध पुरवठा',
+        },
+        {
+            href: '/diagnostics',
+            labelMr: 'लॅब चाचण्या व नमुने',
+            labelEn: 'Diagnostic Network',
+            icon: '🧪',
         },
         {
             href: '/medicine',
-            label: t('navMedicine', language),
-            icon: (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-            ),
+            labelMr: 'आवश्यक औषध साठा',
+            labelEn: 'Essential Medicines',
+            icon: '💊',
+        },
+        {
+            section: language === 'en' ? 'Network & Operations' : 'नेटवर्क व सुविधा',
+        },
+        {
+            href: '/facilities',
+            labelMr: '४-स्तरीय आरोग्य केंद्रे',
+            labelEn: '4-Tier Health Centers',
+            badge: '4-Tier',
+            icon: '🏥',
+        },
+        {
+            href: '/emergency',
+            labelMr: 'आपत्कालीन एस्केलेशन',
+            labelEn: 'Emergency Dispatch',
+            badge: 'SOS',
+            icon: '🚨',
+            isAlert: true,
         },
     ];
 
     return (
-        <aside className="w-64 bg-white border-r border-border-subtle h-screen flex flex-col fixed left-0 top-0 z-30 hidden md:flex">
-            {/* Header / Logo */}
-            <div className="p-5 border-b border-border-subtle">
-                <Logo size="md" />
-                <div className="mt-3">
-                    <LanguageSelector />
+        <aside
+            className="w-64 bg-white border-r border-slate-300 flex flex-col flex-shrink-0 min-h-[calc(100vh-160px)] hidden md:flex font-sans"
+            role="navigation"
+            aria-label="Clinical Workstation Navigation"
+        >
+            {/* Cadre Station Header */}
+            <div className="p-3.5 bg-slate-50 border-b border-slate-200">
+                <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        कार्यरत केंद्र / Station
+                    </span>
+                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 rounded">
+                        MH-GAD-04
+                    </span>
+                </div>
+                <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
+                    प्रा. आ. केंद्र, भामरागड
+                </strong>
+                <p className="text-[10px] text-slate-500 mt-0.5">
+                    PHC Bhamragad • अहेरी उपविभाग, गडचिरोली
+                </p>
+                <div className="mt-2 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-600 font-medium">वैद्यकीय अधिकारी:</span>
+                    <strong className="text-slate-800">डॉ. सुरेश आत्राम</strong>
                 </div>
             </div>
 
-            {/* Navigation List */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                <div className="px-3 pb-2 text-[10px] font-bold text-txt-muted uppercase tracking-wider">
-                    Rural Public Health Modules
-                </div>
-                {navItems.map((item) => {
+            {/* Navigation Links */}
+            <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
+                {navItems.map((item, idx) => {
+                    if ('section' in item) {
+                        return (
+                            <div
+                                key={`section-${idx}`}
+                                className="px-2 pt-3 pb-1 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider border-b border-slate-100"
+                            >
+                                {item.section}
+                            </div>
+                        );
+                    }
+
                     const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl font-medium text-sm transition-all ${
-                                isActive
-                                    ? 'bg-emerald-deep text-white shadow-md shadow-emerald-deep/20 font-semibold'
-                                    : 'text-txt-secondary hover:text-emerald-deep hover:bg-teal-50/50'
+                            className={`flex items-center justify-between px-2.5 py-2 rounded text-xs font-semibold transition-colors ${
+                                item.isAlert
+                                    ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                                    : isActive
+                                    ? 'bg-[#1F3A6E] text-white font-bold shadow-sm'
+                                    : 'text-slate-700 hover:bg-slate-100 hover:text-[#1F3A6E]'
                             }`}
+                            aria-current={isActive ? 'page' : undefined}
                         >
-                            <div className="flex items-center gap-3">
-                                <span className={isActive ? 'text-teal-accent' : 'text-txt-muted'}>
-                                    {item.icon}
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm" aria-hidden="true">{item.icon}</span>
+                                <span className="truncate max-w-[145px]">
+                                    {language === 'en' ? item.labelEn : item.labelMr}
                                 </span>
-                                <span>{item.label}</span>
                             </div>
                             {item.badge && (
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                    isActive ? 'bg-white/20 text-white' : 'bg-teal-50 text-teal-700'
+                                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                                    isActive
+                                        ? 'bg-white/20 text-white'
+                                        : item.isAlert
+                                        ? 'bg-red-600 text-white'
+                                        : 'bg-slate-200 text-slate-800'
                                 }`}>
                                     {item.badge}
                                 </span>
@@ -129,20 +173,19 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Bottom Status / District Badge */}
-            <div className="p-4 border-t border-border-subtle bg-gray-50/60">
-                <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-xs font-bold text-emerald-deep">PHC Bhamragad</span>
-                    </div>
-                    <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">
-                        MH-GAD
+            {/* System Telemetry Bar */}
+            <div className="p-3 bg-slate-50 border-t border-slate-200 text-[10px] text-slate-500 space-y-1">
+                <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 font-medium">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        ABDM मेश रिले
                     </span>
+                    <strong className="text-emerald-700 font-bold">सक्रिय (ONLINE)</strong>
                 </div>
-                <p className="text-[11px] text-txt-muted truncate">
-                    Dist. Gadchiroli • Aheri Division
-                </p>
+                <div className="flex items-center justify-between text-slate-400">
+                    <span>सिग्नल सामर्थ्य:</span>
+                    <span>94% (Bluetooth / Wi-Fi)</span>
+                </div>
             </div>
         </aside>
     );

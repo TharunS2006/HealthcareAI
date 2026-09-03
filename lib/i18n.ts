@@ -1,6 +1,6 @@
 /**
- * Multilingual Dictionaries for Maharashtra Rural Public Healthcare (SIH PS#26133)
- * Supports English (en), Marathi (mr - मराठी), and Hindi (hi - हिन्दी)
+ * Multilingual Dictionaries for Maharashtra Rural Public Healthcare
+ * Supports Marathi (mr), Hindi (hi), English (en), Tamil (ta), Telugu (te), Bengali (bn)
  */
 
 import { Language } from '@/stores/languageStore';
@@ -9,16 +9,20 @@ export const DICTIONARY = {
     mr: {
         appTitle: 'नलममेश (NalamMesh)',
         appSubtitle: 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — महाराष्ट्र शासन',
-        sihHeader: 'SIH 2025 | समस्या क्रमांक #26133 | कौशल्य, रोजगार व नाविन्यता विभाग',
+        govtHeader: 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन | राष्ट्रीय आरोग्य अभियान (NHM)',
 
         // Navigation
-        navHome: 'मुख्य पृष्ठ',
+        navHome: 'मुख्य पोर्टल',
         navOpd: 'ओपीडी व डिजिटल ट्राइएज',
         navDashboard: 'जिल्हा आरोग्य डॅशबोर्ड',
+        navFollowup: 'उच्च जोखीम फॉलो-अप (ANC/बालक/NCD)',
+        navDiagnostics: 'निदान व लॅब समन्वय',
+        navMedicine: 'औषध साठा व उपलब्धता',
         navReferrals: 'संदर्भ सेवा (रेफरल ट्रॅकर)',
         navQueue: 'रांग व टोकन व्यवस्थापन',
         navTeleconsult: 'टेलिकन्सल्टेशन (ई-संजीवनी)',
-        navMedicine: 'औषध व निदान समन्वय',
+        navFacilities: 'आरोग्य सुविधा निर्देशिका (4-स्तर)',
+        navEmergency: 'आपत्कालीन SOS (१०८/१०२)',
         navMesh: 'ऑफलाइन मेश नेटवर्क',
 
         // Triage Priorities
@@ -41,12 +45,14 @@ export const DICTIONARY = {
         stopDemo: 'डेमो रीसेट',
         systemOnline: 'सर्व आरोग्य यंत्रणा सुरू',
         offlineActive: 'ऑफलाइन मोड सक्रिय',
+        sendSMS: 'एसएमएस स्मरणपत्र पाठवा',
+        viewLHR: 'दीर्घकालीन आरोग्य नोंद (LHR)',
 
         // Vitals & Clinical
         spo2Label: 'ऑक्सिजन पातळी (SpO2 %)',
         pulseLabel: 'नाडीचे ठोके (Pulse BPM)',
         bpLabel: 'रक्तदाब (BP mmHg)',
-        tempLabel: 'तापमान (Temp °F)',
+        tempLabel: 'तापमान (°F)',
         glucoseLabel: 'रक्तातील साखर (Glucose mg/dL)',
         rrLabel: 'श्वसन दर (Resp Rate /min)',
         consciousnessLabel: 'जागृती पातळी (AVPU)',
@@ -64,17 +70,21 @@ export const DICTIONARY = {
 
     en: {
         appTitle: 'NalamMesh',
-        appSubtitle: 'Integrated Rural Healthcare Access Platform — Govt of Maharashtra',
-        sihHeader: 'SIH 2025 | Problem Statement #26133 | Dept of Skills, Employment & Innovation',
+        appSubtitle: 'Integrated Rural Healthcare Access & Quality Platform — Govt of Maharashtra',
+        govtHeader: 'Public Health Department • Government of Maharashtra | National Health Mission (NHM)',
 
         // Navigation
-        navHome: 'Role Hub',
+        navHome: 'Executive Portal',
         navOpd: 'OPD & Digital Triage',
-        navDashboard: 'District Dashboard',
-        navReferrals: 'Referral Pipeline',
-        navQueue: 'Queue & Token Engine',
-        navTeleconsult: 'Teleconsultation',
-        navMedicine: 'Medicine & Diagnostics',
+        navDashboard: 'District Health Command',
+        navFollowup: 'High-Risk Follow-Up & Recall',
+        navDiagnostics: 'Diagnostic Coordination',
+        navMedicine: 'Essential Medicine Inventory',
+        navReferrals: 'Emergency Referral Pipeline (108/102)',
+        navQueue: 'OPD Queue & Token Engine',
+        navTeleconsult: 'Assisted Teleconsultation',
+        navFacilities: '4-Tier Facility Directory',
+        navEmergency: 'Emergency Escalation (SOS)',
         navMesh: 'Offline Mesh Sync',
 
         // Triage Priorities
@@ -93,10 +103,12 @@ export const DICTIONARY = {
         restockMedicine: 'Restock Medicines',
         exportFHIR: 'Export ABDM / FHIR R4',
         printWristband: 'Print QR Wristband',
-        demoMode: 'Load Maharashtra Demo',
+        demoMode: 'Load District Demo Data',
         stopDemo: 'Reset Demo Data',
         systemOnline: 'All Facilities Online',
         offlineActive: 'Offline Mesh Active',
+        sendSMS: 'Send SMS Recall',
+        viewLHR: 'View Longitudinal Record (LHR)',
 
         // Vitals & Clinical
         spo2Label: 'Oxygen Saturation (SpO2 %)',
@@ -121,16 +133,20 @@ export const DICTIONARY = {
     hi: {
         appTitle: 'नलममेश (NalamMesh)',
         appSubtitle: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — महाराष्ट्र सरकार',
-        sihHeader: 'SIH 2025 | समस्या आईडी #26133 | कौशल, रोजगार एवं नवाचार विभाग',
+        govtHeader: 'सार्वजनिक स्वास्थ्य विभाग • महाराष्ट्र सरकार | राष्ट्रीय स्वास्थ्य मिशन (NHM)',
 
         // Navigation
-        navHome: 'मुख्य पृष्ठ',
+        navHome: 'मुख्य पोर्टल',
         navOpd: 'ओपीडी व डिजिटल ट्राइएज',
         navDashboard: 'जिला स्वास्थ्य डैशबोर्ड',
+        navFollowup: 'उच्च जोखिम फॉलो-अप (मातृ/शिशु/NCD)',
+        navDiagnostics: 'जांच एवं लैब समन्वय',
+        navMedicine: 'दवा उपलब्धता एवं स्टॉक',
         navReferrals: 'रेफरल ट्रैकर पाइपलाइन',
         navQueue: 'कतार व टोकन प्रबंधन',
         navTeleconsult: 'टेलीकंसल्टेशन (विशेषज्ञ)',
-        navMedicine: 'दवा व जांच समन्वय',
+        navFacilities: 'स्वास्थ्य सुविधा निर्देशिका',
+        navEmergency: 'आपातकालीन SOS (108/102)',
         navMesh: 'ऑफलाइन मेश नेटवर्क',
 
         // Triage Priorities
@@ -149,10 +165,12 @@ export const DICTIONARY = {
         restockMedicine: 'दवा स्टॉक जोड़ें',
         exportFHIR: 'ABDM / FHIR R4 डाउनलोड',
         printWristband: 'QR रिस्टबैंड प्रिंट',
-        demoMode: 'महाराष्ट्र डेमो लोड करें',
+        demoMode: 'जिला डेमो डेटा लोड करें',
         stopDemo: 'डेमो रीसेट करें',
         systemOnline: 'सभी स्वास्थ्य केंद्र ऑनलाइन',
         offlineActive: 'ऑफलाइन मोड सक्रिय',
+        sendSMS: 'एसएमएस रिमाइंडर भेजें',
+        viewLHR: 'संपूर्ण स्वास्थ्य रिकॉर्ड (LHR)',
 
         // Vitals & Clinical
         spo2Label: 'ऑक्सीजन स्तर (SpO2 %)',
@@ -172,6 +190,177 @@ export const DICTIONARY = {
         activeQueue: 'सक्रिय कतार',
         highRiskAlerts: 'उच्च जोखिम फॉलो-अप',
         facilityHierarchy: 'महाराष्ट्र स्वास्थ्य ढांचा',
+    },
+
+    ta: {
+        appTitle: 'நலம்மெஷ் (NalamMesh)',
+        appSubtitle: 'கிராமப்புற பொது சுகாதார ஒருங்கிணைந்த தளம் — அரசு தளம்',
+        govtHeader: 'பொது சுகாதாரத் துறை • தேசிய சுகாதார இயக்கம் (NHM)',
+
+        navHome: 'முதன்மை போர்டல்',
+        navOpd: 'OPD & அவசர நிலை வகைப்பாடு',
+        navDashboard: 'மாவட்ட டாஷ்போர்டு',
+        navFollowup: 'அதிக ஆபத்துள்ள பின்தொடர்தல்',
+        navDiagnostics: 'மருத்துவ பரிசோதனை ஒருங்கிணைப்பு',
+        navMedicine: 'மருந்து இருப்பு & கிடைக்கும் தன்மை',
+        navReferrals: 'பரிந்துரை கண்காணிப்பாளர்',
+        navQueue: 'டோக்கன் வரிசை மேலாண்மை',
+        navTeleconsult: 'தொலை மருத்துவ ஆலோசனை',
+        navFacilities: 'சுகாதார மைய அடைவு',
+        navEmergency: 'அவசர SOS (108/102)',
+        navMesh: 'ஆஃப்லைன் மெஷ் நெட்வொர்க்',
+
+        critical: 'மிகவும் தீவிரமானது',
+        urgent: 'அவசரமானது',
+        stable: 'நிலையானது',
+        emergency: 'அவசர சிகிச்சை',
+
+        runAnalysis: 'AI பரிசோதனை',
+        generateToken: 'டோக்கன் உருவாக்குக',
+        initiateReferral: 'பரிந்துரை தொடங்கு',
+        startTeleconsult: 'மருத்துவருடன் இணை',
+        callNextPatient: 'அடுத்த நோயாளி',
+        priorityOverride: 'முன்னுரிமை மாற்றம்',
+        restockMedicine: 'மருந்து இருப்பு புதுப்பி',
+        exportFHIR: 'ABDM / FHIR பதிவிறக்கு',
+        printWristband: 'QR அச்சிடு',
+        demoMode: 'டெமோ தரவு',
+        stopDemo: 'மீட்டமை',
+        systemOnline: 'அனைத்து மையங்களும் இணைப்பில்',
+        offlineActive: 'ஆஃப்லைன் முறை செயலில்',
+        sendSMS: 'SMS அனுப்புக',
+        viewLHR: 'முழு மருத்துவ பதிவு',
+
+        spo2Label: 'ஆக்சிஜன் அளவு (SpO2 %)',
+        pulseLabel: 'நாடித் துடிப்பு (BPM)',
+        bpLabel: 'இரத்த அழுத்தம் (mmHg)',
+        tempLabel: 'வெப்பநிலை (°F)',
+        glucoseLabel: 'இரத்த சர்க்கரை (mg/dL)',
+        rrLabel: 'சுவாச விகிதம் (/min)',
+        consciousnessLabel: 'விழிப்புணர்வு நிலை',
+        notesLabel: 'அறிகுறிகள் & புகார்கள்',
+        maternalFlag: 'கர்ப்பிணி தாய்',
+        childFlag: 'குழந்தை (< 5 வயது)',
+
+        patientsToday: 'இன்றைய நோயாளிகள்',
+        pendingReferrals: 'நிலுவையில் உள்ள பரிந்துரைகள்',
+        activeQueue: 'வரிசை எண்ணிக்கை',
+        highRiskAlerts: 'அவசர பின்தொடர்தல்',
+        facilityHierarchy: 'சுகாதார வசதி அடுக்கு',
+    },
+
+    te: {
+        appTitle: 'నలమ్‌మెష్ (NalamMesh)',
+        appSubtitle: 'గ్రామీణ ప్రజా ఆరోగ్య సంరక్షణ వేదిక — ప్రభుత్వ పోర్టల్',
+        govtHeader: 'ప్రజా ఆరోగ్య శాఖ • జాతీయ ఆరోగ్య మిషన్ (NHM)',
+
+        navHome: 'ప్రధాన పోర్టల్',
+        navOpd: 'OPD & డిజిటల్ ట్రయేజ్',
+        navDashboard: 'జిల్లా డాష్‌బోర్డ్',
+        navFollowup: 'అధిక రిస్క్ ఫాలో-అప్',
+        navDiagnostics: 'డయాగ్నస్టిక్ కోఆర్డినేషన్',
+        navMedicine: 'మందుల లభ్యత & స్టాక్',
+        navReferrals: 'రెఫరల్ ట్రాకింగ్',
+        navQueue: 'క్యూ & టోకెన్ నిర్వహణ',
+        navTeleconsult: 'టెలికన్సల్టేషన్',
+        navFacilities: 'ఆరోగ్య కేంద్రాల డైరెక్టరీ',
+        navEmergency: 'అత్యవసర SOS (108/102)',
+        navMesh: 'ఆఫ్‌లైన్ మెష్ నెట్‌వర్క్',
+
+        critical: 'అత్యంత విషమము',
+        urgent: 'అత్యవసరము',
+        stable: 'స్థిరమైన',
+        emergency: 'ఎమర్జెన్సీ',
+
+        runAnalysis: 'AI విశ్లేషణ చేయండి',
+        generateToken: 'టోకెన్ పొందండి',
+        initiateReferral: 'రెఫరల్ ప్రారంభించండి',
+        startTeleconsult: 'స్పెషలిస్ట్‌తో మాట్లాడండి',
+        callNextPatient: 'తరువాతి రోగి',
+        priorityOverride: 'ప్రాధాన్యత మార్చండి',
+        restockMedicine: 'మందుల స్టాక్ అప్‌డేట్',
+        exportFHIR: 'ABDM / FHIR డౌన్‌లోడ్',
+        printWristband: 'QR ప్రింట్',
+        demoMode: 'డెమో లోడ్ చేయండి',
+        stopDemo: 'రీసెట్ చేయండి',
+        systemOnline: 'కేంద్రాలన్నీ ఆన్‌లైన్',
+        offlineActive: 'ఆఫ్‌లైన్ మోడ్ యాక్టివ్',
+        sendSMS: 'SMS పంపండి',
+        viewLHR: 'పూర్తి ఆరోగ్య రికార్డు',
+
+        spo2Label: 'ఆక్సిజన్ స్థాయి (SpO2 %)',
+        pulseLabel: 'నాడి రేటు (BPM)',
+        bpLabel: 'రక్తపోటు (mmHg)',
+        tempLabel: 'ఉష్ణోగ్రత (°F)',
+        glucoseLabel: 'బ్లడ్ షుగర్ (mg/dL)',
+        rrLabel: 'శ్వాసక్రియ రేటు (/min)',
+        consciousnessLabel: 'స్పృహ స్థాయి',
+        notesLabel: 'లక్షణాలు & ఫిర్యాదులు',
+        maternalFlag: 'గర్భిణీ స్త్రీ',
+        childFlag: 'చిన్నపిల్లవాడు (< 5 సం)',
+
+        patientsToday: 'నేటి రోగులు',
+        pendingReferrals: 'పెండింగ్ రెఫరల్స్',
+        activeQueue: 'క్యూ పొడవు',
+        highRiskAlerts: 'హై-రిస్క్ ఫాలో-అప్‌లు',
+        facilityHierarchy: 'ఆరోగ్య సౌకర్యాల క్రమం',
+    },
+
+    bn: {
+        appTitle: 'নলমমেশ (NalamMesh)',
+        appSubtitle: 'গ্রামীণ জনস্বাস্থ্য প্ল্যাটফর্ম — পশ্চিমবঙ্গ ও ভারত',
+        govtHeader: 'স্বাস্থ্য ও পরিবার কল্যাণ বিভাগ • জাতীয় স্বাস্থ্য মিশন (NHM)',
+
+        navHome: 'মূল পোর্টাল',
+        navOpd: 'ওপিডি ও ডিজিটাল ট্রায়াজ',
+        navDashboard: 'জেলা স্বাস্থ্য ড্যাশবোর্ড',
+        navFollowup: 'উচ্চ ঝুঁকি ফলো-আপ',
+        navDiagnostics: 'ল্যাব ও ডায়াগনস্টিক সমন্বয়',
+        navMedicine: 'ওষুধের প্রাপ্যতা ও স্টক',
+        navReferrals: 'রেফারেল ট্র্যাকিং',
+        navQueue: 'টোকেন ও সারি ব্যবস্থাপনা',
+        navTeleconsult: 'টেলিকনসাল্টেশন',
+        navFacilities: 'স্বাস্থ্য কেন্দ্র তালিকা (৪-স্তর)',
+        navEmergency: 'জরুরী SOS (১০৮/১০২)',
+        navMesh: 'অফলাইন জাল নেটওয়ার্ক',
+
+        critical: 'সংকটজনক',
+        urgent: 'জরুরী',
+        stable: 'স্থিতিশীল',
+        emergency: 'আপৎকালীন',
+
+        runAnalysis: 'AI ট্রায়াজ বিশ্লেষণ',
+        generateToken: 'টোকেন তৈরী করুন',
+        initiateReferral: 'রেফারেল শুরু করুন',
+        startTeleconsult: 'বিশেষজ্ঞের সাথে যোগাযোগ',
+        callNextPatient: 'পরবর্তী রোগী',
+        priorityOverride: 'অগ্রাধিকার পরিবর্তন',
+        restockMedicine: 'ওষুধ স্টক যোগ করুন',
+        exportFHIR: 'ABDM / FHIR ডাউনলোড',
+        printWristband: 'QR প্রিন্ট',
+        demoMode: 'ডেমো লোড করুন',
+        stopDemo: 'রিসেট',
+        systemOnline: 'সমস্ত কেন্দ্র অনলাইন',
+        offlineActive: 'অফলাইন মোড সক্রিয়',
+        sendSMS: 'এসএমএস পাঠান',
+        viewLHR: 'সম্পূর্ণ স্বাস্থ্য রেকর্ড',
+
+        spo2Label: 'অক্সিজেন মাত্রা (SpO2 %)',
+        pulseLabel: 'নাড়ির গতি (BPM)',
+        bpLabel: 'রক্তচাপ (mmHg)',
+        tempLabel: 'তাপমাত্রা (°F)',
+        glucoseLabel: 'রক্তে শর্করা (mg/dL)',
+        rrLabel: 'শ্বাসপ্রশ্বাস হার (/min)',
+        consciousnessLabel: 'চেতনার মাত্রা',
+        notesLabel: 'লক্ষণ ও অভিযোগ',
+        maternalFlag: 'গর্ভবতী মহিলা',
+        childFlag: 'শিশু (< ৫ বছর)',
+
+        patientsToday: 'আজকের রোগী সংখ্যা',
+        pendingReferrals: 'অপেক্ষমাণ রেফারেল',
+        activeQueue: 'বর্তমান সারি',
+        highRiskAlerts: 'উচ্চ ঝুঁকি সতর্কতা',
+        facilityHierarchy: 'স্বাস্থ্য পরিকাঠামো স্তর',
     },
 };
 

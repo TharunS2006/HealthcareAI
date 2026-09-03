@@ -12,6 +12,7 @@ import { getPatient } from '@/lib/db';
 import { usePatientStore } from '@/stores/patientStore';
 import Sidebar from '@/components/shared/Sidebar';
 import QRWristband from '@/components/shared/QRWristband';
+import FHIRModal from '@/components/shared/FHIRModal';
 import { getRecommendedHospital, getResourceChecklist } from '@/lib/data/hospitals';
 import toast from 'react-hot-toast';
 
@@ -21,6 +22,7 @@ export default function PatientDetailClient() {
     const { patients } = usePatientStore();
     const [patient, setPatient] = useState<Patient | null>(null);
     const [showQR, setShowQR] = useState(false);
+    const [showFHIRModal, setShowFHIRModal] = useState(false);
 
     useEffect(() => {
         const id = params?.id as string;
@@ -85,7 +87,7 @@ export default function PatientDetailClient() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
 
                 <div className="max-w-5xl mx-auto">
@@ -291,19 +293,25 @@ export default function PatientDetailClient() {
                                 </button>
 
                                 <button
-                                    onClick={() => {
-                                        import('@/lib/fhir').then(m => m.downloadFHIRRecord(patient));
-                                        toast.success('ABDM FHIR R4 Record Exported');
-                                    }}
+                                    onClick={() => setShowFHIRModal(true)}
                                     className="w-full py-3 bg-white border-2 border-indigo-600 text-indigo-700 font-bold rounded-xl shadow-sm hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    Export ABDM / FHIR R4 JSON
+                                    Inspect ABDM / FHIR R4 Bundle
                                 </button>
                             </div>
 
                             {/* QR Wristband */}
                             {showQR && <QRWristband patient={patient} />}
+
+                            {/* ABDM / FHIR R4 Inspector Modal */}
+                            {showFHIRModal && (
+                                <FHIRModal
+                                    patient={patient}
+                                    isOpen={showFHIRModal}
+                                    onClose={() => setShowFHIRModal(false)}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

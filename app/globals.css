@@ -2,147 +2,302 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ═══════════════════════════════════════════════
-   NalamMesh DPI — Modern Medcare Aesthetic
-   Design System Tokens
-   ═══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   NalamMesh — National Rural Public Healthcare Infrastructure (DPI)
+   Government of Maharashtra • Department of Public Health
+   Guidelines for Indian Government Websites (GIGW 3.0) Design Tokens
+   ══════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Primary Brand — Emerald & Teal */
-  --emerald-deep: #0E4D45;
-  /* Sidebar / Headers */
-  --emerald-dark: #093630;
-  --teal-accent: #2AA198;
-  /* Primary Actions */
-  --teal-glow: rgba(42, 161, 152, 0.15);
+  /* Official Government of India & Maharashtra Color Palette */
+  --gov-navy-dark: #11223F;    /* Top & bottom government header/footer */
+  --gov-navy: #1F3A6E;         /* Primary brand: National Health Navy */
+  --gov-navy-light: #2D4F8E;   /* Interactive hover navy */
+  --gov-saffron: #FF9933;      /* National Saffron */
+  --gov-saffron-dark: #B45309; /* High-contrast accessible saffron */
+  --gov-green: #138808;        /* National Forest Green */
+  --gov-green-dark: #0D6E06;   /* Accessible dark green */
+  --gov-white: #FFFFFF;
 
-  /* Status Colors — Softer, Professional */
-  --status-red: #E53E3E;
-  --status-red-bg: #FFF5F5;
-  --status-yellow: #D69E2E;
-  --status-yellow-bg: #FFFFF0;
-  --status-green: #38A169;
-  --status-green-bg: #F0FFF4;
+  /* Executive Compatibility Aliases */
+  --emerald-deep: #1F3A6E;
+  --emerald-dark: #11223F;
+  --emerald-light: #2D4F8E;
+  --teal-accent: #138808;
+  --teal-hover: #0D6E06;
+  --teal-soft: #F0FDF4;
 
-  /* Surfaces */
-  --bg-page: #F7F9FB;
-  /* Clean Blue-Grey */
-  --bg-surface: rgba(255, 255, 255, 0.9);
-  /* Glassmorphic Surface */
-  --bg-sider: #0E4D45;
-  /* Deep Green Sidebar */
-  --border-subtle: #E2E8F0;
-  --border-active: #CBD5E0;
+  /* Status Colors — Strict WCAG AA / AAA Accessibility Standards */
+  --status-red: #C53030;
+  --status-red-bg: #FEF2F2;
+  --status-yellow: #B45309;
+  --status-yellow-bg: #FFFBEB;
+  --status-green: #15803D;
+  --status-green-bg: #F0FDF4;
 
-  /* Text */
-  --text-primary: #1A202C;
-  --text-secondary: #718096;
-  --text-muted: #A0AEC0;
+  --gov-red: #C53030;
+  --gov-red-bg: #FEF2F2;
+  --gov-amber: #B45309;
+  --gov-amber-bg: #FFFBEB;
+  --gov-blue: #1D4ED8;
+  --gov-blue-bg: #EFF6FF;
+  --gov-success: #15803D;
+  --gov-success-bg: #F0FDF4;
+
+  /* Surfaces & Neutral Backgrounds */
+  --bg-page: #F4F6FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F8FAFC;
+  --border-subtle: #CBD5E1;
+  --border-active: #94A3B8;
+
+  /* Typography Colors */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
   --text-on-dark: #FFFFFF;
-  --text-on-dark-muted: rgba(255, 255, 255, 0.7);
+  --text-on-dark-muted: rgba(255, 255, 255, 0.85);
 
   /* Fonts */
-  --font-sans: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+  --font-sans: 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', Arial, Helvetica, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+/* High Contrast Mode (GIGW 3.0 Mandatory) */
+[data-contrast="high"] {
+  --bg-page: #000000 !important;
+  --bg-surface: #000000 !important;
+  --bg-surface-hover: #1A1A1A !important;
+  --border-subtle: #FDE047 !important;
+  --border-active: #FDE047 !important;
+  --text-primary: #FFFF00 !important;
+  --text-secondary: #FFFFFF !important;
+  --text-muted: #E2E8F0 !important;
+  --gov-navy: #000066 !important;
+  --gov-navy-dark: #000000 !important;
+}
+
+/* Font Scale Toggle */
+.text-lg-scale {
+  font-size: 112.5% !important;
 }
 
 /* ═══════════════════════════════════════
-   Base Styles
+   Base HTML & Reset
    ═══════════════════════════════════════ */
 
 body {
   color: var(--text-primary);
-  background: var(--bg-page);
+  background-color: var(--bg-page);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* Subtle Background Gradient */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(42, 161, 152, 0.03) 0%, transparent 50%, rgba(14, 77, 69, 0.02) 100%);
-  z-index: -1;
-  pointer-events: none;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.55;
 }
 
 /* ═══════════════════════════════════════
-   Utility Classes
+   National Tricolor Stripe (3px GIGW Bar)
+   ═══════════════════════════════════════ */
+
+.tricolor-stripe {
+  height: 3.5px;
+  background: linear-gradient(
+    to right,
+    #FF9933 0%, #FF9933 33.33%,
+    #FFFFFF 33.33%, #FFFFFF 66.66%,
+    #138808 66.66%, #138808 100%
+  );
+  width: 100%;
+}
+
+/* Skip to Content for Screen Readers */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #11223F;
+  color: #FFFFFF;
+  padding: 0.5rem 1.25rem;
+  border: 2px solid #FF9933;
+  border-radius: 0 0 4px 4px;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  z-index: 99999;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Accessibility Focus Ring */
+*:focus-visible {
+  outline: 2.5px solid #1F3A6E !important;
+  outline-offset: 2px !important;
+}
+
+/* ═══════════════════════════════════════
+   Authentic Government UI Components
    ═══════════════════════════════════════ */
 
 @layer utilities {
 
-  /* Modern Card Surface */
-  .surface-card {
-    background: var(--bg-surface);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    /* Glass-like border */
-    border-radius: 1rem;
-    /* rounded-2xl */
-    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.02);
-    /* shadow-soft */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Institutional Government Card (Clean, dense, structured) */
+  .surface-card,
+  .gov-card {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease;
   }
 
-  .surface-card:hover {
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-    /* shadow-lift */
-    transform: translateY(-2px);
-    border-color: var(--teal-accent);
+  .surface-card:hover,
+  .gov-card:hover {
+    border-color: #94A3B8;
   }
 
-  /* Sidebar Gradient */
-  .sidebar-gradient {
-    background: linear-gradient(180deg, var(--emerald-deep) 0%, var(--emerald-dark) 100%);
+  /* Government Card Header */
+  .gov-card-header {
+    background: #F8FAFC;
+    border-bottom: 1px solid #CBD5E1;
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #1F3A6E;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  /* Status Badges */
+  /* Status Badges with Clear Contrast */
   .badge-red {
-    background: var(--status-red-bg);
-    color: var(--status-red);
-    border: 1px solid rgba(229, 62, 62, 0.1);
+    background: #FEF2F2;
+    color: #991B1B;
+    border: 1px solid #F87171;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
   }
 
-  .badge-yellow {
-    background: var(--status-yellow-bg);
-    color: var(--status-yellow);
-    border: 1px solid rgba(214, 158, 46, 0.1);
+  .badge-yellow,
+  .badge-amber {
+    background: #FFFBEB;
+    color: #92400E;
+    border: 1px solid #FCD34D;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
   }
 
   .badge-green {
-    background: var(--status-green-bg);
-    color: var(--status-green);
-    border: 1px solid rgba(56, 161, 105, 0.1);
+    background: #F0FDF4;
+    color: #166534;
+    border: 1px solid #86EFAC;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
   }
 
-  /* Smooth Text Balance */
-  .text-balance {
-    text-wrap: balance;
+  .badge-blue {
+    background: #EFF6FF;
+    color: #1E40AF;
+    border: 1px solid #93C5FD;
+    font-weight: 700;
+    font-size: 0.6875rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
   }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* Government Action Buttons (Crisp 4px radius, authoritative) */
+  .gov-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-weight: 700;
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    border: 1px solid transparent;
+    text-decoration: none;
+    line-height: 1.25rem;
   }
 
-  ::-webkit-scrollbar-track {
+  .gov-btn-primary {
+    background: #1F3A6E;
+    color: #FFFFFF;
+    border-color: #16294E;
+  }
+
+  .gov-btn-primary:hover:not(:disabled) {
+    background: #16294E;
+  }
+
+  .gov-btn-secondary {
+    background: #FFFFFF;
+    color: #1F3A6E;
+    border-color: #1F3A6E;
+  }
+
+  .gov-btn-secondary:hover:not(:disabled) {
+    background: #F1F5F9;
+  }
+
+  .gov-btn-danger {
+    background: #C53030;
+    color: #FFFFFF;
+    border-color: #991B1B;
+  }
+
+  .gov-btn-danger:hover:not(:disabled) {
+    background: #991B1B;
+  }
+
+  .gov-btn-ghost {
     background: transparent;
+    color: #475569;
+    border-color: #CBD5E1;
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: #CBD5E0;
-    border-radius: 3px;
+  .gov-btn-ghost:hover:not(:disabled) {
+    background: #F8FAFC;
+    color: #0F172A;
   }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: #A0AEC0;
+  /* Government Data Table */
+  .gov-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+  }
+
+  .gov-table th {
+    background: #F1F5F9;
+    color: #1E293B;
+    font-weight: 700;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #CBD5E1;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .gov-table td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #E2E8F0;
+    color: #334155;
+  }
+
+  .gov-table tr:nth-child(even) {
+    background-color: #F8FAFC;
+  }
+
+  .gov-table tr:hover {
+    background-color: #F1F5F9;
   }
 }

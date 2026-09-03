@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
                 <MobileMenu />
 
                 <div className="max-w-6xl mx-auto space-y-6">
