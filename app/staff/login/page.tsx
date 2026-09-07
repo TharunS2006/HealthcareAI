@@ -9,6 +9,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 
 export default function StaffLoginPage() {
@@ -20,7 +21,7 @@ export default function StaffLoginPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success(`Welcome Dr. Suresh Atram (Medical Officer @ PHC Bhamragad)`, { icon: '👨‍⚕️' });
+        toast.success(`Welcome Dr. Suresh Atram (Medical Officer @ PHC Bhamragad)`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
         router.push('/staff');
     };
 
@@ -28,8 +29,8 @@ export default function StaffLoginPage() {
         <div className="max-w-md mx-auto px-4 py-12">
             <div className="surface-card p-6 sm:p-8 space-y-6">
                 <div className="text-center">
-                    <div className="w-12 h-12 bg-gov-navy text-white rounded-xl flex items-center justify-center mx-auto mb-3 font-bold text-lg">
-                        👨‍⚕️
+                    <div className="w-12 h-12 bg-gov-navy text-white rounded flex items-center justify-center mx-auto mb-3">
+                        <Icon name="clinician" className="w-6 h-6" />
                     </div>
                     <h1 className="text-xl font-bold text-gov-navy">Healthcare Staff Portal Login</h1>
                     <p className="text-xs text-txt-secondary mt-1">

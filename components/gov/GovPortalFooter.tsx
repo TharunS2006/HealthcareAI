@@ -153,7 +153,7 @@ export default function GovPortalFooter() {
             </div>
 
             {/* Official NIC Attribution Tier */}
-            <div className="max-w-7xl mx-auto px-4 py-4 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="max-w-7xl mx-auto px-4 py-4 sm:pr-40 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="space-y-0.5 text-center sm:text-left">
                     <p>
                         {F.rights}

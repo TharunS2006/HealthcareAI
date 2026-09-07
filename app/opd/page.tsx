@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import QRWristband from '@/components/shared/QRWristband';
+import Icon from '@/components/gov/Icon';
 import { Vitals, Patient } from '@/types/patient';
 import { QueueEntry } from '@/types/facility';
 import { classifyTriage, TriageResult } from '@/lib/triage/model';
@@ -154,6 +155,12 @@ export default function OPDPage() {
             : isHi
             ? 'बाईं ओर मरीज के लक्षण व संकेत दर्ज करें और "एआई ट्राइएज विश्लेषण" बटन पर क्लिक करें। प्रणाली तत्काल जोखिम वर्गीकरण और सरकारी ओपीडी टोकन जारी करेगी।'
             : 'डाव्या बाजूला रुग्णाची लक्षणे व नोंदी भरून "एआई ट्राइएज विश्लेषण" बटणावर क्लिक करा. सिस्टीम तात्काळ धोक्याचे वर्गीकरण व अधिकृत ओपीडी टोकन जारी करेल.',
+        analyzingTitle: isEn ? 'Running On-Device Triage Model…' : isHi ? 'ऑन-डिवाइस ट्राइएज मॉडेल चल रहा है…' : 'ऑन-डिव्हाइस ट्राइएज मॉडेल सुरू आहे…',
+        analyzingDesc: isEn
+            ? 'Scoring vitals and symptoms against the IPHS danger-sign protocol and neural network. This runs entirely on this device — no internet required.'
+            : isHi
+            ? 'IPHS खतरे के लक्षण प्रोटोकॉल व न्यूरल नेटवर्क के आधार पर विश्लेषण जारी है। यह पूरी तरह इस डिवाइस पर चलता है — इंटरनेट की आवश्यकता नहीं।'
+            : 'IPHS धोकादायक लक्षण प्रोटोकॉल व न्यूरल नेटवर्कच्या आधारे विश्लेषण सुरू आहे. हे पूर्णपणे याच डिव्हाइसवर चालते — इंटरनेटची गरज नाही.',
         queueHeader: isEn ? 'Live OPD Queue Board' : isHi ? 'दैनिक ओपीडी कतार बोर्ड' : 'दैनिक ओपीडी रांग फलक (Live OPD Queue Board)',
         queueLive: isEn ? 'Live Real-time' : isHi ? 'लाइव अपडेट' : 'थेट अद्ययावत',
         colToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
@@ -162,7 +169,7 @@ export default function OPDPage() {
         colWait: isEn ? 'Est. Wait' : isHi ? 'समय' : 'वेळ',
         minUnit: isEn ? 'min' : isHi ? 'मि.' : 'मि.',
         voiceListening: isEn ? 'Listening... Speak symptoms' : isHi ? 'सुन रहा है... लक्षण बोलें' : 'ऐकत आहे... लक्षणे बोला',
-        voicePrompt: isEn ? '🎙️ Voice Intake (EN/HI/MR)' : isHi ? '🎙️ आवाज इनपुट (हिन्दी/मराठी/Eng)' : '🎙️ आवाज इनपुट (मराठी/हिन्दी/Eng)',
+        voicePrompt: isEn ? 'Voice Intake (EN/HI/MR)' : isHi ? 'आवाज इनपुट (हिन्दी/मराठी/Eng)' : 'आवाज इनपुट (मराठी/हिन्दी/Eng)',
     };
 
     // Handle Quick Search
@@ -328,7 +335,7 @@ export default function OPDPage() {
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     className="w-full px-3 py-1.5 pl-8 bg-slate-50 border border-slate-300 rounded text-xs focus:bg-white focus:outline-none focus:border-[#1F3A6E]"
                                 />
-                                <span className="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                                <Icon name="search" className="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" />
                             </div>
                             <button
                                 onClick={handleSearch}
@@ -647,6 +654,7 @@ export default function OPDPage() {
                                                         isListening ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                                                     }`}
                                                 >
+                                                    <Icon name={isListening ? 'mic' : 'mic'} className="w-3 h-3" />
                                                     {isListening ? L.voiceListening : L.voicePrompt}
                                                 </button>
                                             )}
@@ -759,23 +767,37 @@ export default function OPDPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowQR(true)}
-                                                className="gov-btn gov-btn-secondary text-xs flex-1"
+                                                className="gov-btn gov-btn-secondary text-xs flex-1 inline-flex items-center justify-center gap-1.5"
                                             >
-                                                🖨️ {L.wristbandBtn}
+                                                <Icon name="printer" className="w-3.5 h-3.5" /> {L.wristbandBtn}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => createdPatient && downloadFHIRRecord(createdPatient)}
-                                                className="gov-btn gov-btn-primary text-xs flex-1"
+                                                className="gov-btn gov-btn-primary text-xs flex-1 inline-flex items-center justify-center gap-1.5"
                                             >
-                                                📥 {L.downloadFHIR}
+                                                <Icon name="download" className="w-3.5 h-3.5" /> {L.downloadFHIR}
                                             </button>
                                         </div>
                                     </div>
                                 </div>
+                            ) : isAnalyzing ? (
+                                <div className="gov-card p-6 text-center text-xs text-slate-600 space-y-3">
+                                    <div
+                                        className="w-8 h-8 mx-auto rounded-full border-[3px] border-slate-200 border-t-[#1F3A6E] animate-spin"
+                                        role="status"
+                                        aria-label={L.analyzingTitle}
+                                    />
+                                    <strong className="text-slate-700 block text-xs">
+                                        {L.analyzingTitle}
+                                    </strong>
+                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                        {L.analyzingDesc}
+                                    </p>
+                                </div>
                             ) : (
                                 <div className="gov-card p-4 text-center text-xs text-slate-500 space-y-2">
-                                    <span className="text-2xl block">📋</span>
+                                    <Icon name="clipboard" className="w-7 h-7 mx-auto text-slate-300" />
                                     <strong className="text-slate-700 block text-xs">
                                         {L.waitingAnalysisTitle}
                                     </strong>
@@ -841,9 +863,9 @@ export default function OPDPage() {
                                 <QRWristband patient={createdPatient} />
                                 <button
                                     onClick={() => window.print()}
-                                    className="gov-btn gov-btn-primary w-full text-xs"
+                                    className="gov-btn gov-btn-primary w-full text-xs inline-flex items-center justify-center gap-1.5"
                                 >
-                                    🖨️ {isEn ? 'Print Wristband' : 'प्रिंट काढा (Print)'}
+                                    <Icon name="printer" className="w-3.5 h-3.5" /> {isEn ? 'Print Wristband' : 'प्रिंट काढा (Print)'}
                                 </button>
                             </div>
                         </div>

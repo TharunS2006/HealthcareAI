@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { MedicineStockItem, DiagnosticOrder } from '@/types/facility';
@@ -63,7 +64,7 @@ export default function MedicinePage() {
             : isHi
             ? 'गढ़चिरौली जिले में दवा स्टॉक, आपातकालीन पुनः आपूर्ति व बहु-स्तरीय परीक्षण ट्रैकिंग'
             : 'गडचिरोली जिल्ह्यातील औषध साठा, तातडीची मागणी सूचना आणि सर्व स्तरीय लॅब चाचण्यांची स्थिती',
-        emergencyReqBtn: isEn ? '🚨 Emergency Supply Request' : isHi ? '🚨 आपातकालीन आपूर्ति मांग' : '🚨 आपत्कालीन औषध मागणी',
+        emergencyReqBtn: isEn ? 'Emergency Supply Request' : isHi ? 'आपातकालीन आपूर्ति मांग' : 'आपत्कालीन औषध मागणी',
         criticalAlert: isEn
             ? `Critical Stock Alert: ${outOfStockMeds.length} items Out-of-Stock, ${lowStockMeds.length} items Low`
             : isHi
@@ -121,9 +122,9 @@ export default function MedicinePage() {
 
                         <button
                             onClick={() => toast.success(isEn ? 'Emergency Drug Requisition sent to District Warehouse Gadchiroli' : isHi ? 'जिला गोदाम गढ़चिरौली को आपातकालीन दवा मांग भेजी गई' : 'जिल्हा गोदाम गडचिरोलीकडे आपत्कालीन औषध मागणी नोंदवली')}
-                            className="px-4 py-2 bg-gradient-to-r from-rose-600 to-rose-700 text-white text-xs font-bold rounded-xl shadow hover:opacity-95 cursor-pointer"
+                            className="gov-btn gov-btn-danger text-xs"
                         >
-                            {txt.emergencyReqBtn}
+                            <Icon name="alert-siren" className="w-3.5 h-3.5" /> {txt.emergencyReqBtn}
                         </button>
                     </div>
 
@@ -131,7 +132,7 @@ export default function MedicinePage() {
                     {(outOfStockMeds.length > 0 || lowStockMeds.length > 0) && (
                         <div className="p-4 bg-amber-50 border border-amber-300 rounded-2xl flex items-center justify-between text-xs text-amber-950 shadow-sm">
                             <div className="flex items-center gap-3">
-                                <span className="text-2xl">⚠️</span>
+                                <Icon name="warning" className="w-6 h-6 text-amber-700" />
                                 <div>
                                     <strong className="block text-amber-900 text-sm font-extrabold">
                                         {txt.criticalAlert}
@@ -281,9 +282,9 @@ export default function MedicinePage() {
                                         ) : (
                                             <button
                                                 onClick={() => setSelectedDiag(diag)}
-                                                className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer"
+                                                className="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5"
                                             >
-                                                ✍️ {txt.resultsEntryTitle}
+                                                <Icon name="edit" className="w-3 h-3" /> {txt.resultsEntryTitle}
                                             </button>
                                         )}
                                     </div>
@@ -295,8 +296,8 @@ export default function MedicinePage() {
 
                     {/* Result Entry Modal */}
                     {selectedDiag && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                            <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+                            <div className="bg-white rounded p-6 max-w-md w-full shadow-xl space-y-4">
                                 <h3 className="text-base font-black text-[#1F3A6E]">
                                     {txt.resultsEntryTitle}: {selectedDiag.testName}
                                 </h3>

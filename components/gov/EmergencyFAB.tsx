@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useLanguageStore } from '@/stores/languageStore';
+import Icon from './Icon';
 
 export default function EmergencyFAB() {
     const [expanded, setExpanded] = useState(false);
@@ -24,8 +25,8 @@ export default function EmergencyFAB() {
             : isHi
             ? 'यह आपके स्वास्थ्य सारांश के साथ निकटतम उच्च स्तरीय अस्पताल को आपातकालीन अलर्ट भेजेगा।'
             : 'हे तात्काळ जवळच्या उपजिल्हा/जिल्हा रुग्णालयाला आपत्कालीन सूचना पाठवेल.',
-        call108: isEn ? '🚑 Call 108 Ambulance' : isHi ? '🚑 १०८ एम्बुलेंस कॉल करें' : '🚑 १०८ रुग्णवाहिका बोलवा',
-        call102: isEn ? '🤰 Call 102 Maternal' : isHi ? '🤰 १०२ जननी एक्सप्रेस' : '🤰 १०२ जननी-शिशु वाहन',
+        call108: isEn ? 'Call 108 Ambulance' : isHi ? '१०८ एम्बुलेंस कॉल करें' : '१०८ रुग्णवाहिका बोलवा',
+        call102: isEn ? 'Call 102 Maternal' : isHi ? '१०२ जननी एक्सप्रेस' : '१०२ जननी-शिशु वाहन',
         digitalAlert: isEn ? 'Send Digital Alert' : isHi ? 'डिजिटल अलर्ट भेजें' : 'डिजिटल अलर्ट पाठवा',
         cancel: isEn ? 'Cancel' : isHi ? 'रद्द करें' : 'रद्द करा',
     };
@@ -41,15 +42,15 @@ export default function EmergencyFAB() {
                     <div className="space-y-2">
                         <a
                             href="tel:108"
-                            className="block text-center py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
+                            className="flex items-center justify-center gap-1.5 text-center py-2.5 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
                         >
-                            {t.call108}
+                            <Icon name="ambulance" className="w-3.5 h-3.5" /> {t.call108}
                         </a>
                         <a
                             href="tel:102"
-                            className="block text-center py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
+                            className="flex items-center justify-center gap-1.5 text-center py-2.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-sm transition-all"
                         >
-                            {t.call102}
+                            <Icon name="maternal" className="w-3.5 h-3.5" /> {t.call102}
                         </a>
                         <Link
                             href="/emergency"

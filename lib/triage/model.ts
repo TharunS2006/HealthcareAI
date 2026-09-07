@@ -45,9 +45,32 @@ const SAMPLES_PER_CLASS = 160;
 const TRAINING_EPOCHS = 80;
 const TRAINING_BATCH_SIZE = 24;
 
+/**
+ * Both the WebGL training run and the per-prediction tensor readback ultimately depend on
+ * a browser rAF tick to hand data back from the GPU. That tick is not guaranteed: a
+ * backgrounded/minimised tab, a lost WebGL context, or a low-power device can stall it
+ * indefinitely, and neither tf.fit() nor tensor.data() ever reject on their own in that
+ * case — they just never resolve. A triage workstation cannot sit on a spinner forever, so
+ * every awaited model call below is raced against a timeout; losing the race means "treat
+ * the model as unavailable this time" and fall through to the IPHS rule engine, not "fail".
+ */
+const MODEL_LOAD_TIMEOUT_MS = 4000;
+const INFERENCE_TIMEOUT_MS = 3000;
+
 let tfRuntime: typeof TF | null = null;
 let compiledModel: TF.LayersModel | null = null;
 let modelLoadPromise: Promise<TF.LayersModel | null> | null = null;
+
+/** Resolves to `null` on timeout instead of rejecting — the loser is treated as absence, not failure. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve(null), ms);
+        promise.then(
+            (value) => { clearTimeout(timer); resolve(value); },
+            () => { clearTimeout(timer); resolve(null); }
+        );
+    });
+}
 
 /** Deterministic PRNG (mulberry32) so every device trains on the same dataset. */
 function seededRandom(seed: number): () => number {
@@ -395,15 +418,23 @@ export async function classifyTriage(vitals: Vitals): Promise<TriageResult> {
     } = assessClinically(vitals);
 
     try {
-        const model = await loadTriageModel();
+        const model = await withTimeout(loadTriageModel(), MODEL_LOAD_TIMEOUT_MS);
         const tf = tfRuntime;
 
         if (model && tf) {
             const inputTensor = tf.tensor2d([normalizeFeatures(features)]);
             const pred = model.predict(inputTensor) as TF.Tensor;
-            const raw = await pred.data();
-            inputTensor.dispose();
-            pred.dispose();
+            // Tensors are disposed once the readback settles, whenever that is — if the
+            // timeout below wins the race, this .finally() still cleans up in the background
+            // instead of double-disposing or freeing tensors still in flight.
+            const raw = await withTimeout(
+                pred.data().finally(() => {
+                    inputTensor.dispose();
+                    pred.dispose();
+                }),
+                INFERENCE_TIMEOUT_MS
+            );
+            if (!raw) throw new Error('Inference timed out (GPU readback stalled)');
 
             const probabilities = { RED: raw[0], YELLOW: raw[1], GREEN: raw[2] };
 

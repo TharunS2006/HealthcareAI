@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
 import { FacilityType } from '@/types/facility';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -103,7 +104,7 @@ export default function FacilitiesPage() {
             : isHi
             ? 'उप-केंद्र (SC) → प्राथमिक स्वास्थ्य केंद्र (PHC) → CHC/SDH → जिला अस्पताल (DH)'
             : 'उपकेंद्र (SC) → प्राथमिक आरोग्य केंद्र (PHC) → CHC/SDH → जिल्हा रुग्णालय (DH)',
-        districtBadge: isEn ? '📍 District: Gadchiroli (Tribal Division)' : isHi ? '📍 जिला: गढ़चिरौली (आदिवासी क्षेत्र)' : '📍 जिल्हा: गडचिरोली (आदिवासी विभाग)',
+        districtBadge: isEn ? 'District: Gadchiroli (Tribal Division)' : isHi ? 'जिला: गढ़चिरौली (आदिवासी क्षेत्र)' : 'जिल्हा: गडचिरोली (आदिवासी विभाग)',
         searchPlaceholder: isEn ? 'Search facility, tehsil, equipment, doctor...' : isHi ? 'अस्पताल, तहसील, उपकरण, डॉक्टर खोजें...' : 'आरोग्य केंद्र, तालुका, उपकरण, डॉक्टर शोधा...',
         allTiers: isEn ? 'All Tiers' : isHi ? 'सभी स्तर' : 'सर्व स्तर',
         servicesTitle: isEn ? 'Available Specialized Clinical Services' : isHi ? 'उपलब्ध विशिष्ट चिकित्सीय सेवाएं' : 'उपलब्ध विशेष वैद्यकीय सेवा',
@@ -142,8 +143,8 @@ export default function FacilitiesPage() {
                         </div>
 
                         <div className="flex items-center gap-2 text-xs">
-                            <span className="px-3 py-1.5 bg-white border border-border-subtle rounded-xl font-bold text-txt-secondary shadow-sm">
-                                {txt.districtBadge}
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-border-subtle rounded font-bold text-txt-secondary shadow-sm">
+                                <Icon name="map-pin" className="w-3.5 h-3.5" /> {txt.districtBadge}
                             </span>
                         </div>
                     </div>

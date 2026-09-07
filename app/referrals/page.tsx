@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { useReferralStore } from '@/stores/referralStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useFacilityStore } from '@/stores/facilityStore';
@@ -118,9 +119,9 @@ export default function ReferralsPage() {
 
                         <button
                             onClick={() => setShowNewModal(true)}
-                            className="px-4 py-2.5 bg-gradient-to-r from-emerald-deep to-teal-accent text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                            className="gov-btn gov-btn-primary text-sm"
                         >
-                            <span>➕ Initiate New Referral</span>
+                            <span>+ Initiate New Referral</span>
                         </button>
                     </div>
 
@@ -187,7 +188,8 @@ export default function ReferralsPage() {
 
                                                     {ref.ambulanceVehicleNo && (
                                                         <div className="flex items-center gap-1.5 text-[10px] text-amber-800 font-bold bg-amber-50 px-2 py-1 rounded">
-                                                            <span>🚑 {ref.transportMode}:</span>
+                                                            <Icon name="ambulance" className="w-3 h-3" />
+                                                            <span>{ref.transportMode}:</span>
                                                             <span className="font-mono">{ref.ambulanceVehicleNo}</span>
                                                         </div>
                                                     )}
@@ -205,9 +207,9 @@ export default function ReferralsPage() {
                                                         {ref.status === 'ACCEPTED' && (
                                                             <button
                                                                 onClick={() => changeStatus(ref.id, 'IN_TRANSIT')}
-                                                                className="w-full py-1 bg-amber-50 text-amber-700 font-bold rounded hover:bg-amber-100 transition-all text-center"
+                                                                className="w-full py-1 bg-amber-50 text-amber-700 font-bold rounded hover:bg-amber-100 transition-all text-center inline-flex items-center justify-center gap-1"
                                                             >
-                                                                🚑 Mark In-Transit →
+                                                                <Icon name="ambulance" className="w-3 h-3" /> Mark In-Transit →
                                                             </button>
                                                         )}
                                                         {ref.status === 'IN_TRANSIT' && (
@@ -235,7 +237,7 @@ export default function ReferralsPage() {
 
                     {/* New Referral Modal */}
                     {showNewModal && (
-                        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}

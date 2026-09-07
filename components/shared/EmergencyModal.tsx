@@ -13,6 +13,7 @@ import { useReferralStore } from '@/stores/referralStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
 import { ReferralRecord } from '@/types/patient';
+import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 
 export default function EmergencyModal() {
@@ -91,9 +92,9 @@ export default function EmergencyModal() {
         await addReferral(emergencyRecord);
         setDispatchSummary(emergencyRecord);
         setIsDispatched(true);
-        toast.error(`🚨 108/102 DISPATCHED: ${targetFacility.name}`, {
+        toast.error(`108/102 DISPATCHED: ${targetFacility.name}`, {
             duration: 6000,
-            icon: '🚑',
+            icon: <Icon name="ambulance" className="w-4 h-4" />,
         });
     };
 
@@ -125,18 +126,18 @@ export default function EmergencyModal() {
             {/* Emergency Modal Backdrop */}
             <AnimatePresence>
                 {isOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 overflow-y-auto">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-white rounded-3xl shadow-2xl border-4 border-red-500 max-w-2xl w-full overflow-hidden my-8"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="bg-white rounded shadow-xl border-2 border-red-700 max-w-2xl w-full overflow-hidden my-8"
                         >
                             {/* Modal Header */}
-                            <div className="bg-gradient-to-r from-red-600 via-rose-700 to-red-800 text-white p-5 flex items-center justify-between">
+                            <div className="bg-red-700 text-white p-5 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center text-xl font-bold">
-                                        🚑
+                                    <div className="w-10 h-10 rounded bg-white/15 flex items-center justify-center">
+                                        <Icon name="ambulance" className="w-5 h-5" />
                                     </div>
                                     <div>
                                         <h2 className="text-lg font-black tracking-tight flex items-center gap-2">
@@ -190,14 +191,14 @@ export default function EmergencyModal() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedType('108_TRAUMA')}
-                                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                                                    className={`p-4 rounded-xl border-2 text-left transition-all ${
                                                         selectedType === '108_TRAUMA'
                                                             ? 'border-red-600 bg-red-50/70 shadow-sm'
                                                             : 'border-slate-200 hover:border-slate-300 bg-white'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-xl">🚑</span>
+                                                        <Icon name="ambulance" className="w-5 h-5 text-red-700" />
                                                         <strong className="text-xs font-black text-red-950">{t.traumaTitle}</strong>
                                                     </div>
                                                     <p className="text-[11px] text-slate-600 leading-snug">
@@ -208,14 +209,14 @@ export default function EmergencyModal() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedType('102_MATERNAL')}
-                                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
+                                                    className={`p-4 rounded-xl border-2 text-left transition-all ${
                                                         selectedType === '102_MATERNAL'
                                                             ? 'border-emerald-600 bg-emerald-50/70 shadow-sm'
                                                             : 'border-slate-200 hover:border-slate-300 bg-white'
                                                     }`}
                                                 >
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-xl">🤰</span>
+                                                        <Icon name="maternal" className="w-5 h-5 text-emerald-700" />
                                                         <strong className="text-xs font-black text-emerald-950">{t.maternalTitle}</strong>
                                                     </div>
                                                     <p className="text-[11px] text-slate-600 leading-snug">
@@ -228,7 +229,7 @@ export default function EmergencyModal() {
                                         {/* Destination Routing Confirmation Box */}
                                         <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-950">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-base">📍</span>
+                                                <Icon name="map-pin" className="w-4 h-4 text-amber-700" />
                                                 <div>
                                                     <span className="font-bold block">{t.targetFacility}</span>
                                                     <span className="text-amber-900 font-extrabold">{targetFacility.name} (FRU Aheri)</span>
@@ -243,10 +244,10 @@ export default function EmergencyModal() {
                                         <button
                                             type="button"
                                             onClick={handleDispatch}
-                                            className="w-full py-4 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white font-black text-sm rounded-2xl shadow-xl shadow-red-600/30 transition-all flex items-center justify-center gap-2"
+                                            className="w-full py-4 bg-red-700 hover:bg-red-800 text-white font-black text-sm rounded-xl transition-all flex items-center justify-center gap-2"
                                             id="confirm-sos-dispatch-btn"
                                         >
-                                            <span className="text-lg">🚨</span>
+                                            <Icon name="alert-siren" className="w-5 h-5" />
                                             <span>{t.dispatchBtn}</span>
                                         </button>
                                     </>

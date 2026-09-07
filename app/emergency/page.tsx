@@ -9,6 +9,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
@@ -97,7 +98,7 @@ export default function EmergencyPage() {
                         <div className="surface-card border-2 border-status-green bg-green-50/40 p-6 rounded-2xl space-y-4 animate-fade-in">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-status-green font-bold text-lg">
-                                    <span>✅</span>
+                                    <Icon name="check-circle" className="w-5 h-5" />
                                     <span>Emergency Escalation Dispatched Successfully</span>
                                 </div>
                                 <span className="text-xs font-mono bg-status-green text-white px-2 py-1 rounded">
@@ -145,7 +146,7 @@ export default function EmergencyPage() {
                                             : 'border-border-subtle bg-white hover:border-gray-300'
                                     }`}
                                 >
-                                    <span className="text-2xl block mb-1">🚑</span>
+                                    <Icon name="ambulance" className="w-6 h-6 mb-1 text-status-red" />
                                     <strong className="text-sm block text-emerald-deep">108 MEMS Trauma</strong>
                                     <span className="text-[11px] text-txt-secondary">Accident, Stroke, Shock, Cardiac</span>
                                 </button>
@@ -159,7 +160,7 @@ export default function EmergencyPage() {
                                             : 'border-border-subtle bg-white hover:border-gray-300'
                                     }`}
                                 >
-                                    <span className="text-2xl block mb-1">🤰</span>
+                                    <Icon name="maternal" className="w-6 h-6 mb-1 text-status-green" />
                                     <strong className="text-sm block text-emerald-deep">102 Janani Shishu</strong>
                                     <span className="text-[11px] text-txt-secondary">Maternal Labor, Preeclampsia</span>
                                 </button>
@@ -173,7 +174,7 @@ export default function EmergencyPage() {
                                             : 'border-border-subtle bg-white hover:border-gray-300'
                                     }`}
                                 >
-                                    <span className="text-2xl block mb-1">👶</span>
+                                    <Icon name="child" className="w-6 h-6 mb-1 text-gov-blue" />
                                     <strong className="text-sm block text-emerald-deep">Pediatric Emergency</strong>
                                     <span className="text-[11px] text-txt-secondary">Neonatal Asphyxia, SAM Shock</span>
                                 </button>
@@ -240,7 +241,7 @@ export default function EmergencyPage() {
                                     onClick={handleTriggerEmergency}
                                     className="gov-btn gov-btn-danger w-full text-base py-3 font-bold"
                                 >
-                                    🚨 1-Tap Emergency Dispatch & Transmit LHR
+                                    <Icon name="alert-siren" className="w-4 h-4" /> 1-Tap Emergency Dispatch & Transmit LHR
                                 </button>
                             </div>
 
@@ -248,13 +249,13 @@ export default function EmergencyPage() {
                                 <span className="text-xs text-txt-secondary font-medium">Or place an immediate direct telephone call:</span>
                                 <div className="flex items-center justify-center gap-3 flex-wrap">
                                     <a href="tel:108" className="gov-btn gov-btn-danger text-sm">
-                                        📞 Call 108 (Ambulance)
+                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 108 (Ambulance)
                                     </a>
                                     <a href="tel:102" className="gov-btn gov-btn-danger text-sm">
-                                        📞 Call 102 (Maternal)
+                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 102 (Maternal)
                                     </a>
                                     <a href="tel:104" className="gov-btn gov-btn-secondary text-sm">
-                                        📞 Call 104 (Health Advice)
+                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 104 (Health Advice)
                                     </a>
                                 </div>
                             </div>

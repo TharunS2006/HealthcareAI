@@ -256,7 +256,7 @@ export default function PatientDetailClient() {
                                 <h2 className="text-lg font-bold text-emerald-deep mb-6">Patient Journey Timeline</h2>
                                 <div className="relative">
                                     {/* Vertical line */}
-                                    <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-teal-accent via-emerald-300 to-gray-200" />
+                                    <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gray-200" />
 
                                     <div className="space-y-6">
                                         {timeline.map((event, i) => (
@@ -372,7 +372,7 @@ export default function PatientDetailClient() {
                             <div className="space-y-3">
                                 <button
                                     onClick={() => setShowQR(!showQR)}
-                                    className="w-full py-3 bg-gradient-to-r from-emerald-deep to-teal-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                                    className="gov-btn gov-btn-primary w-full py-3"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
                                     <span>{showQR ? 'Hide QR Wristband' : 'Generate QR Wristband'}</span>

@@ -10,6 +10,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
+import LoadingSkeleton from '@/components/gov/LoadingSkeleton';
 import { useQueueStore } from '@/stores/queueStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
@@ -19,6 +21,7 @@ export default function QueuePage() {
     const {
         queue,
         currentServing,
+        isLoading,
         loadQueue,
         callNext,
         prioritizeEntry,
@@ -51,7 +54,7 @@ export default function QueuePage() {
             : isHi
             ? 'गंभीर मरीजों को प्राथमिकता, प्रतीक्षा समय की निगरानी एवं त्वरित डॉक्टर परामर्श'
             : 'अतिगंभीर रुग्णांना प्राधान्य, प्रतीक्षा वेळेचे नियंत्रण आणि जलद वैद्यकीय तपासणी',
-        launchTv: isEn ? '📺 Launch Full-Screen TV Display' : isHi ? '📺 पूर्ण-स्क्रीन टीवी डिस्प्ले चालू करें' : '📺 टीव्ही डिस्प्ले सुरू करा (TV Mode)',
+        launchTv: isEn ? 'Launch Full-Screen TV Display' : isHi ? 'पूर्ण-स्क्रीन टीवी डिस्प्ले चालू करें' : 'टीव्ही डिस्प्ले सुरू करा (TV Mode)',
         exitTv: isEn ? 'Exit TV Mode (Esc)' : isHi ? 'टीवी मोड से बाहर निकलें' : 'टीव्ही मोड बंद करा',
         nowServing: isEn ? 'Currently In Consultation' : isHi ? 'वर्तमान में परामर्श जारी' : 'सध्या तपासणी सुरू',
         nowServingTv: isEn ? '● Now Serving' : isHi ? '● वर्तमान परामर्श जारी' : '● सध्या तपासणी सुरू',
@@ -59,7 +62,7 @@ export default function QueuePage() {
         allDone: isEn ? 'All Waiting Patients Consulted' : isHi ? 'सभी प्रतीक्षा कर रहे मरीजों का परामर्श पूर्ण' : 'सर्व प्रतीक्षारत रुग्णांची तपासणी पूर्ण झाली आहे',
         finishConsult: isEn ? '✓ Finish Consultation' : isHi ? '✓ परामर्श पूर्ण करें' : '✓ तपासणी पूर्ण झाली',
         readyNext: isEn ? "Doctor ready for next patient. Click 'Call Next Patient' below." : isHi ? "डॉक्टर अगले मरीज हेतु तैयार हैं। नीचे 'अगले मरीज को बुलाएं' पर क्लिक करें।" : "डॉक्टर पुढील रुग्णासाठी सज्ज आहेत. खालील 'पुढील रुग्णास बोलवा' बटनावर क्लिक करा.",
-        callNextBtn: isEn ? '📢 Call Next Patient' : isHi ? '📢 अगले मरीज को बुलाएं' : '📢 पुढील रुग्णास बोलवा',
+        callNextBtn: isEn ? 'Call Next Patient' : isHi ? 'अगले मरीज को बुलाएं' : 'पुढील रुग्णास बोलवा',
         waitingQueueTitle: isEn ? 'Waiting Queue' : isHi ? 'प्रतीक्षारत कतार' : 'प्रतीक्षा रांग',
         estWait: isEn ? 'Est. Avg. Wait: ~15 mins' : isHi ? 'अनुमानित औसत प्रतीक्षा: ~१५ मिनट' : 'सरासरी प्रतीक्षा वेळ: ~१५ मिनिटे',
         thToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
@@ -68,7 +71,7 @@ export default function QueuePage() {
         thWaitTime: isEn ? 'Wait Time' : isHi ? 'प्रतीक्षा समय' : 'प्रतीक्षा वेळ',
         thActions: isEn ? 'Actions' : isHi ? 'कार्रवाई' : 'क्रिया',
         noWaiting: isEn ? 'No patients waiting in queue.' : isHi ? 'कतार में कोई मरीज प्रतीक्षारत नहीं है।' : 'रांगेमध्ये कोणताही रुग्ण प्रतीक्षेत नाही.',
-        overrideBtn: isEn ? 'Override ⚡' : isHi ? 'प्राथमिकता दें ⚡' : 'अग्रक्रम द्या ⚡',
+        overrideBtn: isEn ? 'Override' : isHi ? 'प्राथमिकता दें' : 'अग्रक्रम द्या',
         skipBtn: isEn ? 'Skip' : isHi ? 'छोड़ें' : 'वगळा',
         analyticsTitle: isEn ? 'Queue Performance Today' : isHi ? 'आज का कतार प्रदर्शन' : 'आजचे रांग व्यवस्थापन आकडेवारी',
         totalServed: isEn ? 'Total Consulted' : isHi ? 'कुल परामर्शित' : 'एकूण तपासलेले रुग्ण',
@@ -212,21 +215,24 @@ export default function QueuePage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setIsTvMode(true)}
-                                className="px-4 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl shadow hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                                className="gov-btn gov-btn-primary text-xs"
                             >
-                                <span>{txt.launchTv}</span>
+                                <Icon name="tv" className="w-3.5 h-3.5" /> {txt.launchTv}
                             </button>
                         </div>
                     </div>
 
                     {/* Main Area: 2 Columns */}
+                    {isLoading && queue.length === 0 ? (
+                        <LoadingSkeleton variant="card" rows={3} />
+                    ) : (
                     <div className="grid lg:grid-cols-12 gap-6">
 
                         {/* Left Column (7 cols): Live Serving Banner & Waiting List */}
                         <div className="lg:col-span-7 space-y-6">
 
                             {/* Now Serving Big Card */}
-                            <div className="surface-card p-6 border-l-4 border-l-emerald-deep bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/30">
+                            <div className="surface-card p-6 border-l-4 border-l-emerald-deep bg-emerald-50/40">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
                                         ● {txt.nowServing}
@@ -265,8 +271,9 @@ export default function QueuePage() {
                                 <div className="pt-4 border-t border-gray-100 flex gap-3">
                                     <button
                                         onClick={() => callNext()}
-                                        className="flex-1 py-3.5 bg-gradient-to-r from-emerald-deep to-teal-700 text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                                        className="flex-1 py-3.5 bg-emerald-deep hover:bg-emerald-800 text-white font-bold text-sm rounded transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
+                                        <Icon name="megaphone" className="w-4 h-4" />
                                         <span>{txt.callNextBtn}</span>
                                         <span>→</span>
                                     </button>
@@ -400,6 +407,7 @@ export default function QueuePage() {
                         </div>
 
                     </div>
+                    )}
                 </div>
             </main>
         </div>

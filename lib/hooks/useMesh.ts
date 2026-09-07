@@ -37,7 +37,7 @@ export function useMesh({ nodeName, gps, autoConnect = false }: UseMeshOptions):
         try {
             await client.connect();
             setConnected(true);
-            toast.success('📡 Connected to mesh network');
+            toast.success('Connected to mesh network');
             logger.info('Mesh network connected');
         } catch (error) {
             logger.error('Failed to connect to mesh network', { error });
@@ -50,7 +50,7 @@ export function useMesh({ nodeName, gps, autoConnect = false }: UseMeshOptions):
         client.disconnect();
         setConnected(false);
         setNodes([]);
-        toast('📡 Disconnected from mesh network', { icon: '⚠️' });
+        toast('Disconnected from mesh network');
         logger.info('Mesh network disconnected');
     }, [client]);
 

@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -125,7 +126,7 @@ export default function DiagnosticsPage() {
             : isHi
             ? 'सैंपल कलेक्शन पाइपलाइन, अनुपलब्ध टेस्ट हेतु निकटतम लैब राउटर एवं डिजिटल LHR रिकॉर्ड'
             : 'नमुने संकलन, उपलब्ध नसलेल्या चाचण्यांसाठी जवळचे लॅब राऊटर आणि थेट डिजिटल आरोग्य नोंद (LHR)',
-        orderTestBtn: isEn ? '➕ Order Diagnostic Test' : isHi ? '➕ नई जांच ऑर्डर करें' : '➕ नवीन लॅब चाचणी नोंदवा',
+        orderTestBtn: isEn ? 'Order Diagnostic Test' : isHi ? 'नई जांच ऑर्डर करें' : 'नवीन लॅब चाचणी नोंदवा',
         catalogTitle: isEn ? 'IPHS Diagnostic Catalog & Multi-Tier Facility Availability' : isHi ? 'IPHS जांच सूची एवं स्तर-वार उपलब्धता राउटर' : 'IPHS चाचण्यांची सूची व बहु-स्तरीय आरोग्य केंद्र उपलब्धता',
         catalogSub: isEn ? 'Real-time routing for Sub-Centres & PHCs' : isHi ? 'उपकेंद्रों व प्राथमिक स्वास्थ्य केंद्रों हेतु लाइव मैपिंग' : 'उपकेंद्रे व प्राथमिक आरोग्य केंद्रांसाठी थेट लॅब जोडणी',
         inHouse: isEn ? '✓ In-House' : isHi ? '✓ स्थानीय उपलब्ध' : '✓ केंद्रात उपलब्ध',
@@ -136,8 +137,8 @@ export default function DiagnosticsPage() {
         inProgress: isEn ? 'In Progress' : isHi ? 'प्रक्रियाधीन' : 'तपासणी सुरू',
         completed: isEn ? 'Completed' : isHi ? 'पूर्ण' : 'पूर्ण झाले',
         searchPlaceholder: isEn ? 'Search patient, test, facility...' : isHi ? 'मरीज, टेस्ट, अस्पताल खोजें...' : 'रुग्ण, चाचणी, आरोग्य केंद्र शोधा...',
-        abnormalBadge: isEn ? '⚠️ ABNORMAL RESULT' : isHi ? '⚠️ असामान्य परिणाम' : '⚠️ असामान्य अहवाल (Abnormal)',
-        enterResultBtn: isEn ? '✍️ Enter Lab Result' : isHi ? '✍️ रिपोर्ट दर्ज करें' : '✍️ अहवाल नोंदवा',
+        abnormalBadge: isEn ? 'ABNORMAL RESULT' : isHi ? 'असामान्य परिणाम' : 'असामान्य अहवाल (Abnormal)',
+        enterResultBtn: isEn ? 'Enter Lab Result' : isHi ? 'रिपोर्ट दर्ज करें' : 'अहवाल नोंदवा',
         resultModalTitle: isEn ? 'Enter Lab Diagnostic Result' : isHi ? 'लैब रिपोर्ट दर्ज करें' : 'लॅब अहवाल नोंदवा',
         resultFindings: isEn ? 'Result Findings / Measured Values:' : isHi ? 'परीक्षण परिणाम / निष्कर्ष:' : 'चाचणीचे निष्कर्ष व मूल्ये:',
         markAbnormal: isEn ? 'Flag as Abnormal / Alert Consulting Doctor' : isHi ? 'असामान्य (Abnormal) चिह्नित कर डॉक्टर को अलर्ट करें' : 'असामान्य (Abnormal) चिन्हांकित करून डॉक्टरना सतर्क करा',
@@ -178,9 +179,9 @@ export default function DiagnosticsPage() {
 
                         <button
                             onClick={() => setShowNewOrderModal(true)}
-                            className="px-4 py-2 bg-[#1F3A6E] hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow flex items-center gap-2 cursor-pointer transition-all"
+                            className="gov-btn gov-btn-primary text-xs"
                         >
-                            <span>{txt.orderTestBtn}</span>
+                            + {txt.orderTestBtn}
                         </button>
                     </div>
 
@@ -285,8 +286,8 @@ export default function DiagnosticsPage() {
                                                      order.status === 'SAMPLE_COLLECTED' ? txt.sampleCollected : txt.ordered}
                                                 </span>
                                                 {order.isAbnormal && (
-                                                    <span className="text-[10px] font-extrabold bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">
-                                                        {txt.abnormalBadge}
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+                                                        <Icon name="warning" className="w-2.5 h-2.5" /> {txt.abnormalBadge}
                                                     </span>
                                                 )}
                                             </div>
@@ -338,8 +339,8 @@ export default function DiagnosticsPage() {
 
                     {/* Result Entry Modal */}
                     {showResultModal && selectedTest && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                            <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+                            <div className="bg-white rounded p-6 max-w-lg w-full shadow-xl space-y-4">
                                 <div className="flex justify-between items-center border-b pb-3">
                                     <div>
                                         <h3 className="text-base font-extrabold text-[#1F3A6E]">
@@ -407,8 +408,8 @@ export default function DiagnosticsPage() {
 
                     {/* New Order Modal */}
                     {showNewOrderModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                            <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+                            <div className="bg-white rounded p-6 max-w-lg w-full shadow-xl space-y-4">
                                 <div className="flex justify-between items-center border-b pb-3">
                                     <h3 className="text-base font-extrabold text-[#1F3A6E]">
                                         {txt.createModalTitle}

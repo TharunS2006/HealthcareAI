@@ -17,6 +17,7 @@ import { useReferralStore } from '@/stores/referralStore';
 import { useQueueStore } from '@/stores/queueStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useMeshStatus } from '@/lib/hooks/useMeshStatus';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -25,6 +26,7 @@ export default function DashboardPage() {
     const { queue, loadQueue } = useQueueStore();
     const { facilities, loadAll } = useFacilityStore();
     const { language } = useLanguageStore();
+    const meshStatus = useMeshStatus();
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -57,7 +59,9 @@ export default function DashboardPage() {
             ? 'उप-केंद्र, प्राथमिक स्वास्थ्य केंद्र (PHC), सामुदायिक स्वास्थ्य केंद्र (CHC) और जिला अस्पताल की वास्तविक समय निगरानी'
             : 'उप-केंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) आणि जिल्हा रुग्णालयाचे थेट निरीक्षण',
         meshOnline: isEn ? 'Mesh Relay Online' : isHi ? 'मेश रिले ऑनलाइन' : 'मेश रिले ऑनलाइन',
-        
+        meshStandalone: isEn ? 'Mesh Relay Standalone' : isHi ? 'मेश रिले स्वतंत्र' : 'मेश रिले स्वतंत्र',
+        meshConnecting: isEn ? 'Mesh Relay Connecting' : isHi ? 'मेश रिले जुड़ रहा है' : 'मेश रिले जोडत आहे',
+
         // Metrics
         patientsToday: isEn ? 'Patients Today' : isHi ? 'आज के कुल मरीज' : 'आजचे एकूण रुग्ण',
         vsTribalAvg: isEn ? 'vs. tribal weekly avg' : isHi ? 'आदिवासी साप्ताहिक औसत की तुलना में' : 'आदिवासी साप्ताहिक सरासरीपेक्षा',
@@ -190,11 +194,23 @@ export default function DashboardPage() {
 
                         <div className="flex items-center gap-3">
                             <DemoModeToggle />
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white text-slate-700 border border-slate-300 rounded text-xs font-medium">
-                                <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            {/* Reflects the actual relay socket — see lib/socket.ts for why this must
+                                never be hardcoded to "Online". */}
+                            <div
+                                className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs font-medium ${
+                                    meshStatus === 'ONLINE'
+                                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                        : meshStatus === 'STANDALONE'
+                                        ? 'bg-amber-50 text-amber-900 border-amber-300'
+                                        : 'bg-slate-100 text-slate-700 border-slate-300'
+                                }`}
+                            >
+                                <svg className={`w-4 h-4 ${meshStatus === 'ONLINE' ? 'text-emerald-600' : meshStatus === 'STANDALONE' ? 'text-amber-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
                                 </svg>
-                                <span>{txt.meshOnline}</span>
+                                <span>
+                                    {meshStatus === 'ONLINE' ? txt.meshOnline : meshStatus === 'STANDALONE' ? txt.meshStandalone : txt.meshConnecting}
+                                </span>
                             </div>
                         </div>
                     </header>

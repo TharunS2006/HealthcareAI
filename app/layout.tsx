@@ -61,7 +61,7 @@ export default function RootLayout({
                 {/* Main Content Area */}
                 <ErrorBoundary>
                     <SocketInit />
-                    <div id="main-content" className="flex-1">
+                    <div id="main-content" className="flex-1 pb-20">
                         {children}
                     </div>
                     {/* Universal Emergency SOS Modal */}

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Patient } from '@/types/patient';
 import { generateFHIRBundle } from '@/lib/fhir';
+import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 
 interface FHIRModalProps {
@@ -48,18 +49,18 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 overflow-y-auto">
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-white rounded-3xl shadow-2xl border border-border-subtle max-w-4xl w-full overflow-hidden my-6 flex flex-col max-h-[90vh]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-white rounded shadow-xl border border-border-subtle max-w-4xl w-full overflow-hidden my-6 flex flex-col max-h-[90vh]"
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-5 flex items-center justify-between">
+                    <div className="bg-emerald-950 text-white p-5 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-xl">
-                                📑
+                            <div className="w-10 h-10 rounded bg-teal-500/20 border border-teal-400/30 flex items-center justify-center">
+                                <Icon name="document" className="w-5 h-5" />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
@@ -92,7 +93,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                         : 'bg-white text-txt-secondary border border-border-subtle hover:bg-gray-100'
                                 }`}
                             >
-                                📦 FHIR Resources ({bundle.entry.length})
+                                <Icon name="archive-box" className="w-3.5 h-3.5 inline -mt-0.5 mr-1" /> FHIR Resources ({bundle.entry.length})
                             </button>
                             <button
                                 onClick={() => setSelectedTab('RAW_JSON')}
@@ -112,7 +113,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                         : 'bg-white text-txt-secondary border border-border-subtle hover:bg-gray-100'
                                 }`}
                             >
-                                🏛️ ABDM M1/M2/M3 Compliance
+                                <Icon name="government" className="w-3.5 h-3.5 inline -mt-0.5 mr-1" /> ABDM M1/M2/M3 Compliance
                             </button>
                         </div>
 
@@ -121,13 +122,15 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                 onClick={handleCopy}
                                 className="px-3 py-1.5 bg-white border border-border-subtle hover:bg-gray-100 text-txt-primary text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm"
                             >
-                                <span>{copied ? '✓ Copied' : '📋 Copy JSON'}</span>
+                                {copied ? <Icon name="check-circle" className="w-3.5 h-3.5" /> : <Icon name="clipboard" className="w-3.5 h-3.5" />}
+                                <span>{copied ? 'Copied' : 'Copy JSON'}</span>
                             </button>
                             <button
                                 onClick={handleDownload}
                                 className="px-3.5 py-1.5 bg-emerald-deep hover:bg-emerald-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm"
                             >
-                                <span>⬇️ Download Bundle</span>
+                                <Icon name="download" className="w-3.5 h-3.5" />
+                                <span>Download Bundle</span>
                             </button>
                         </div>
                     </div>
@@ -226,7 +229,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
 
                                 <div className="space-y-3">
                                     <div className="p-4 bg-white border border-border-subtle rounded-2xl flex items-start gap-3">
-                                        <span className="text-xl">✅</span>
+                                        <Icon name="check-circle" className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                                         <div>
                                             <strong className="text-sm font-bold text-emerald-deep block">
                                                 Milestone 1 (M1): ABHA Creation & Verification
@@ -238,7 +241,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                     </div>
 
                                     <div className="p-4 bg-white border border-border-subtle rounded-2xl flex items-start gap-3">
-                                        <span className="text-xl">✅</span>
+                                        <Icon name="check-circle" className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                                         <div>
                                             <strong className="text-sm font-bold text-emerald-deep block">
                                                 Milestone 2 (M2): Health Information Provider (HIP)
@@ -250,7 +253,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                     </div>
 
                                     <div className="p-4 bg-white border border-border-subtle rounded-2xl flex items-start gap-3">
-                                        <span className="text-xl">✅</span>
+                                        <Icon name="check-circle" className="w-5 h-5 text-emerald-700 flex-shrink-0" />
                                         <div>
                                             <strong className="text-sm font-bold text-emerald-deep block">
                                                 Milestone 3 (M3): Health Information User (HIU)

@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -28,12 +29,12 @@ export default function LoginPage() {
             return;
         }
         setOtpSent(true);
-        toast.success(`OTP 4821 sent to +91-${phone} (Mock Gateway)`, { icon: '📲' });
+        toast.success(`OTP 4821 sent to +91-${phone} (Mock Gateway)`, { icon: <Icon name="sms" className="w-4 h-4" /> });
     };
 
     const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Citizen authenticated successfully via ABHA Sandbox', { icon: '✅' });
+        toast.success('Citizen authenticated successfully via ABHA Sandbox', { icon: <Icon name="check-circle" className="w-4 h-4" /> });
         router.push('/');
     };
 
@@ -41,8 +42,8 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto px-4 py-12">
             <div className="surface-card p-6 sm:p-8 space-y-6">
                 <div className="text-center">
-                    <div className="w-12 h-12 bg-gov-navy text-white rounded-xl flex items-center justify-center mx-auto mb-3 font-bold text-lg">
-                        🏛️
+                    <div className="w-12 h-12 bg-gov-navy text-white rounded flex items-center justify-center mx-auto mb-3">
+                        <Icon name="government" className="w-6 h-6" />
                     </div>
                     <h1 className="text-xl font-bold text-gov-navy">Citizen Health Login</h1>
                     <p className="text-xs text-txt-secondary mt-1">

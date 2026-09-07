@@ -92,8 +92,7 @@ let presetIndex = 0;
 export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     if (demoInterval) return;
 
-    toast('⚡ Maharashtra Rural Public Health Live Demo Mode Activated!', {
-        icon: '🚀',
+    toast('Maharashtra Rural Public Health Live Demo Mode Activated', {
         duration: 4000,
         style: { background: '#0E7D6B', color: '#fff', fontWeight: 'bold' },
     });
@@ -135,11 +134,11 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
         if (onPatientGenerated) onPatientGenerated(patient);
 
         if (patient.triageStatus === 'RED') {
-            toast.error(`🚨 EMERGENCY: ${patient.name} (${patient.vitals.injuryType})`, {
+            toast.error(`EMERGENCY: ${patient.name} (${patient.vitals.injuryType})`, {
                 duration: 5000,
             });
         } else {
-            toast.success(`⚡ Live Demo: New ${patient.triageStatus} patient triaged at ${patient.village}`, {
+            toast.success(`Live Demo: New ${patient.triageStatus} patient triaged at ${patient.village}`, {
                 duration: 3000,
             });
         }
@@ -153,7 +152,7 @@ export function stopDemoMode() {
     if (demoInterval) {
         clearInterval(demoInterval);
         demoInterval = null;
-        toast('Demo Mode Stopped', { icon: '⏹️' });
+        toast('Demo Mode Stopped');
     }
 }
 

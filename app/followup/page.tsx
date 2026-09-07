@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { t } from '@/lib/i18n';
@@ -185,11 +186,11 @@ export default function FollowUpPage() {
         const handedOff = openSmsComposer(smsModalPatient.phone, customSmsText);
 
         if (handedOff) {
-            toast.success(`SMS composer opened for ${smsModalPatient.phone}`, { icon: '📲' });
+            toast.success(`SMS composer opened for ${smsModalPatient.phone}`, { icon: <Icon name="sms" className="w-4 h-4" /> });
         } else {
             toast.success(
                 `Recall queued for ${smsModalPatient.phone} — will dispatch via the NIC SMS gateway on next sync (open on a mobile device to send now)`,
-                { icon: '📲', duration: 5000 }
+                { icon: <Icon name="sms" className="w-4 h-4" />, duration: 5000 }
             );
         }
         setSmsModalPatient(null);
@@ -198,7 +199,7 @@ export default function FollowUpPage() {
     const handleBulkSMS = () => {
         setTasks(prev => prev.map(t => ({ ...t, status: 'SMS_SENT' })));
         toast.success(`${filteredTasks.length} high-risk recalls queued for the NIC SMS gateway`, {
-            icon: '📲',
+            icon: <Icon name="sms" className="w-4 h-4" />,
         });
     };
 
@@ -231,9 +232,9 @@ export default function FollowUpPage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={handleBulkSMS}
-                                className="px-4 py-2 bg-gradient-to-r from-teal-700 to-emerald-800 text-white text-xs font-bold rounded-xl shadow hover:opacity-95 flex items-center gap-2"
+                                className="gov-btn gov-btn-primary text-xs"
                             >
-                                <span>📲 Dispatch Bulk SMS Recalls</span>
+                                <Icon name="sms" className="w-3.5 h-3.5" /> Dispatch Bulk SMS Recalls
                             </button>
                         </div>
                     </div>
@@ -254,7 +255,7 @@ export default function FollowUpPage() {
                                     </span>
                                     <h3 className="text-2xl font-black text-rose-950 mt-0.5">{maternalCount} Active</h3>
                                 </div>
-                                <span className="p-2 bg-rose-100 text-rose-700 rounded-xl text-lg">🤰</span>
+                                <span className="p-2 bg-rose-100 text-rose-700 rounded"><Icon name="maternal" className="w-5 h-5" /></span>
                             </div>
                             <p className="text-[11px] text-txt-muted mt-2">
                                 ANC 1-4 visits, Preeclampsia & Severe Anemia surveillance
@@ -275,7 +276,7 @@ export default function FollowUpPage() {
                                     </span>
                                     <h3 className="text-2xl font-black text-amber-950 mt-0.5">{childCount} Active</h3>
                                 </div>
-                                <span className="p-2 bg-amber-100 text-amber-700 rounded-xl text-lg">👶</span>
+                                <span className="p-2 bg-amber-100 text-amber-700 rounded"><Icon name="child" className="w-5 h-5" /></span>
                             </div>
                             <p className="text-[11px] text-txt-muted mt-2">
                                 Immunization milestones & MUAC Malnutrition tracking
@@ -296,7 +297,7 @@ export default function FollowUpPage() {
                                     </span>
                                     <h3 className="text-2xl font-black text-blue-950 mt-0.5">{chronicCount} Active</h3>
                                 </div>
-                                <span className="p-2 bg-blue-100 text-blue-700 rounded-xl text-lg">🩺</span>
+                                <span className="p-2 bg-blue-100 text-blue-700 rounded"><Icon name="stethoscope" className="w-5 h-5" /></span>
                             </div>
                             <p className="text-[11px] text-txt-muted mt-2">
                                 Hypertension, Diabetes & DOTS TB adherence recall
@@ -314,7 +315,7 @@ export default function FollowUpPage() {
                                         {Math.round((completedCount / tasks.length) * 100)}%
                                     </h3>
                                 </div>
-                                <span className="p-2 bg-emerald-100 text-emerald-800 rounded-xl text-lg">🎯</span>
+                                <span className="p-2 bg-emerald-100 text-emerald-800 rounded"><Icon name="target" className="w-5 h-5" /></span>
                             </div>
                             <p className="text-[11px] text-txt-muted mt-2">
                                 {completedCount} of {tasks.length} weekly visits completed
@@ -402,8 +403,8 @@ export default function FollowUpPage() {
                                                     {task.patientName} ({task.age}y, {task.gender})
                                                 </h3>
 
-                                                <span className="text-xs text-txt-muted font-medium">
-                                                    📍 {task.village}
+                                                <span className="text-xs text-txt-muted font-medium inline-flex items-center gap-1">
+                                                    <Icon name="map-pin" className="w-3 h-3" /> {task.village}
                                                 </span>
                                             </div>
 
@@ -412,13 +413,13 @@ export default function FollowUpPage() {
                                             </p>
 
                                             <div className="p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs text-txt-secondary">
-                                                <strong>📋 ASHA Action Required:</strong> {task.actionNeeded}
+                                                <strong>ASHA Action Required:</strong> {task.actionNeeded}
                                             </div>
 
                                             <div className="flex items-center gap-4 text-xs text-txt-muted pt-1">
-                                                <span>👩‍⚕️ Assigned: <strong>{task.ashaAssigned}</strong></span>
-                                                <span>⏰ Schedule: <strong className="text-rose-700">{task.dueDate}</strong></span>
-                                                <span>📞 {task.phone}</span>
+                                                <span className="inline-flex items-center gap-1"><Icon name="community-worker" className="w-3.5 h-3.5" /> Assigned: <strong>{task.ashaAssigned}</strong></span>
+                                                <span>Schedule: <strong className="text-rose-700">{task.dueDate}</strong></span>
+                                                <span className="inline-flex items-center gap-1"><Icon name="phone" className="w-3 h-3" /> {task.phone}</span>
                                             </div>
                                         </div>
 
@@ -428,7 +429,7 @@ export default function FollowUpPage() {
                                                 onClick={() => handleOpenSMSModal(task)}
                                                 className="px-3.5 py-2 bg-white border border-border-subtle hover:bg-teal-50 text-teal-800 text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5"
                                             >
-                                                <span>📲 SMS Reminder</span>
+                                                <Icon name="sms" className="w-3.5 h-3.5" /> SMS Reminder
                                             </button>
 
                                             {task.status !== 'COMPLETED' ? (
@@ -461,11 +462,11 @@ export default function FollowUpPage() {
 
                 {/* SMS Recall Modal */}
                 {smsModalPatient && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-border-subtle space-y-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+                        <div className="bg-white rounded p-6 max-w-lg w-full shadow-xl border border-border-subtle space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                    <span className="text-2xl">📲</span>
+                                    <Icon name="sms" className="w-6 h-6 text-emerald-deep" />
                                     <div>
                                         <h3 className="text-base font-bold text-emerald-deep">
                                             Vernacular SMS Recall Dispatcher

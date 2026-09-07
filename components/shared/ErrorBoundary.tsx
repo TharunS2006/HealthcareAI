@@ -9,6 +9,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '@/lib/logger';
+import Icon from '@/components/gov/Icon';
 
 interface Props {
     children: ReactNode;
@@ -62,9 +63,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-6 bg-bg-page">
-                    <div className="bg-white rounded-2xl p-8 max-w-lg w-full text-center space-y-6 shadow-card border border-border-subtle">
-                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto text-3xl">
-                            ⚠️
+                    <div className="bg-white rounded-lg p-8 max-w-lg w-full text-center space-y-6 shadow-card border border-border-subtle">
+                        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto">
+                            <Icon name="warning" className="w-8 h-8 text-status-red" />
                         </div>
 
                         <div>

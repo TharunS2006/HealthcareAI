@@ -6,25 +6,26 @@
 'use client';
 
 import Link from 'next/link';
+import Icon, { IconName } from '@/components/gov/Icon';
 
 export default function StaffHome() {
-    const todaysTasks = [
-        { label: 'OPD Patients Seen Today', value: '24', icon: '🩺', color: 'border-l-emerald-deep' },
-        { label: '108 / 102 In Transit', value: '3 Active', icon: '🚑', color: 'border-l-amber-500' },
-        { label: 'Overdue ANC / SAM Recalls', value: '7 Due', icon: '⚠️', color: 'border-l-rose-500' },
-        { label: 'Teleconsults Scheduled', value: '2 Scheduled', icon: '📹', color: 'border-l-teal-600' },
+    const todaysTasks: { label: string; value: string; icon: IconName; color: string }[] = [
+        { label: 'OPD Patients Seen Today', value: '24', icon: 'stethoscope', color: 'border-l-emerald-deep' },
+        { label: '108 / 102 In Transit', value: '3 Active', icon: 'ambulance', color: 'border-l-amber-500' },
+        { label: 'Overdue ANC / SAM Recalls', value: '7 Due', icon: 'warning', color: 'border-l-rose-500' },
+        { label: 'Teleconsults Scheduled', value: '2 Scheduled', icon: 'video', color: 'border-l-teal-600' },
     ];
 
-    const quickLinks = [
-        { href: '/opd', label: 'Start OPD Intake & AI Triage', icon: '🩺', desc: 'Register new patient & assess emergency symptoms' },
-        { href: '/teleconsult', label: 'Launch Teleconsult Room', icon: '📹', desc: 'Connect with District Hospital specialist doctor' },
-        { href: '/referrals', label: 'Emergency Referral Pipeline', icon: '🚑', desc: 'Refer patient with real-time 108/102 tracking' },
-        { href: '/followup', label: 'High-Risk Follow-Up Engine', icon: '📋', desc: 'ANC, infant malnutrition & NCD cohort recalls' },
-        { href: '/diagnostics', label: 'Diagnostic Lab Network', icon: '🧪', desc: 'Order laboratory tests & track sample lifecycle' },
-        { href: '/medicine', label: 'Essential Medicine Stock', icon: '💊', desc: 'Facility inventory & emergency reorder requisitions' },
-        { href: '/queue', label: 'OPD Live Queue Board', icon: '🎟️', desc: 'Manage facility token queue & call next patient' },
-        { href: '/facilities', label: '4-Tier Health Directory', icon: '🏥', desc: 'Sub-Centre → PHC → CHC → DH locator' },
-        { href: '/dashboard', label: 'District Health Command', icon: '📊', desc: 'Executive scorecards, bed census & KPI analytics' },
+    const quickLinks: { href: string; label: string; icon: IconName; desc: string }[] = [
+        { href: '/opd', label: 'Start OPD Intake & AI Triage', icon: 'stethoscope', desc: 'Register new patient & assess emergency symptoms' },
+        { href: '/teleconsult', label: 'Launch Teleconsult Room', icon: 'video', desc: 'Connect with District Hospital specialist doctor' },
+        { href: '/referrals', label: 'Emergency Referral Pipeline', icon: 'ambulance', desc: 'Refer patient with real-time 108/102 tracking' },
+        { href: '/followup', label: 'High-Risk Follow-Up Engine', icon: 'clipboard', desc: 'ANC, infant malnutrition & NCD cohort recalls' },
+        { href: '/diagnostics', label: 'Diagnostic Lab Network', icon: 'flask', desc: 'Order laboratory tests & track sample lifecycle' },
+        { href: '/medicine', label: 'Essential Medicine Stock', icon: 'pill', desc: 'Facility inventory & emergency reorder requisitions' },
+        { href: '/queue', label: 'OPD Live Queue Board', icon: 'ticket', desc: 'Manage facility token queue & call next patient' },
+        { href: '/facilities', label: '4-Tier Health Directory', icon: 'hospital', desc: 'Sub-Centre → PHC → CHC → DH locator' },
+        { href: '/dashboard', label: 'District Health Command', icon: 'chart-bar', desc: 'Executive scorecards, bed census & KPI analytics' },
     ];
 
     return (
@@ -57,7 +58,7 @@ export default function StaffHome() {
                                 {stat.value}
                             </span>
                         </div>
-                        <span className="text-2xl" aria-hidden="true">{stat.icon}</span>
+                        <Icon name={stat.icon} className="w-6 h-6 text-txt-muted flex-shrink-0" />
                     </div>
                 ))}
             </div>
@@ -71,7 +72,7 @@ export default function StaffHome() {
                     {quickLinks.map((link) => (
                         <Link key={link.href} href={link.href} className="group block">
                             <div className="surface-card p-4.5 hover:shadow-card transition-all h-full flex items-start gap-3 bg-white">
-                                <span className="text-2xl flex-shrink-0" aria-hidden="true">{link.icon}</span>
+                                <Icon name={link.icon} className="w-6 h-6 flex-shrink-0 text-emerald-deep" />
                                 <div>
                                     <h3 className="text-sm font-bold text-emerald-deep group-hover:text-teal-700 transition-colors">
                                         {link.label}
@@ -87,7 +88,7 @@ export default function StaffHome() {
             {/* Active Clinical Alerts */}
             <div className="surface-card border-l-4 border-l-rose-600 bg-rose-50/30 p-5">
                 <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">⚠️</span>
+                    <Icon name="warning" className="w-5 h-5 text-rose-700" />
                     <h3 className="text-sm font-bold text-rose-900">Priority Clinical & Supply Alerts</h3>
                 </div>
                 <ul className="space-y-1.5 text-xs text-txt-secondary">

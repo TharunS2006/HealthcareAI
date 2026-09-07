@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
+import Icon from '@/components/gov/Icon';
 import { SEED_TELECONSULT, MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
@@ -108,20 +109,20 @@ export default function TeleconsultPage() {
 
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl text-xs font-bold font-mono">
-                                <span>🔴 {formatTimer(callDuration)}</span>
+                                <Icon name="record-dot" className="w-2.5 h-2.5 text-rose-600" /> {formatTimer(callDuration)}
                             </div>
                             <button
                                 onClick={() => {
                                     setIsLowBandwidth(!isLowBandwidth);
                                     toast(isLowBandwidth ? 'High Definition Video Enabled' : 'Low-Bandwidth 2G/3G Audio Mode Enabled');
                                 }}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                                     isLowBandwidth
                                         ? 'bg-amber-500 text-white border-amber-600'
                                         : 'bg-white text-txt-secondary border-border-subtle hover:bg-gray-50'
                                 }`}
                             >
-                                {isLowBandwidth ? '📶 2G Audio Mode (Active)' : '📶 Low Bandwidth Mode'}
+                                <Icon name="signal" className="w-3.5 h-3.5" /> {isLowBandwidth ? '2G Audio Mode (Active)' : 'Low Bandwidth Mode'}
                             </button>
                         </div>
                     </div>
@@ -151,13 +152,13 @@ export default function TeleconsultPage() {
                                 {/* Main Visual Video Area */}
                                 <div className="my-auto text-center space-y-3">
                                     {isLowBandwidth || isVideoOff ? (
-                                        <div className="w-24 h-24 rounded-full bg-teal-900/80 border-2 border-teal-500 text-teal-300 flex items-center justify-center text-4xl mx-auto shadow-inner">
-                                            👩‍⚕️
+                                        <div className="w-24 h-24 rounded-full bg-teal-900/80 border-2 border-teal-500 text-teal-300 flex items-center justify-center mx-auto shadow-inner">
+                                            <Icon name="clinician" className="w-10 h-10" />
                                         </div>
                                     ) : (
-                                        <div className="w-28 h-28 rounded-full bg-gradient-to-tr from-teal-600 to-emerald-400 p-1 mx-auto shadow-2xl animate-pulse">
-                                            <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-5xl">
-                                                🩺
+                                        <div className="w-28 h-28 rounded-full border-2 border-teal-500 p-1 mx-auto animate-pulse">
+                                            <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-teal-300">
+                                                <Icon name="stethoscope" className="w-12 h-12" />
                                             </div>
                                         </div>
                                     )}
@@ -175,7 +176,7 @@ export default function TeleconsultPage() {
                                 {/* Inset Self Video (Frontline Health Worker) */}
                                 <div className="absolute bottom-20 right-6 w-32 h-20 bg-slate-900 border-2 border-teal-500/60 rounded-xl overflow-hidden shadow-lg p-2 flex flex-col justify-between">
                                     <span className="text-[9px] font-bold text-teal-300">CHO Field Device</span>
-                                    <div className="text-center text-lg">👩‍🌾</div>
+                                    <div className="flex justify-center text-teal-300"><Icon name="community-worker" className="w-5 h-5" /></div>
                                     <span className="text-[8px] text-slate-400 truncate">Sunita Hichami</span>
                                 </div>
 
@@ -183,27 +184,27 @@ export default function TeleconsultPage() {
                                 <div className="bg-slate-900/90 backdrop-blur p-3 rounded-2xl border border-slate-800 flex justify-center items-center gap-4 z-10">
                                     <button
                                         onClick={() => setIsMuted(!isMuted)}
-                                        className={`p-3 rounded-full text-sm font-bold transition-all ${
+                                        className={`inline-flex items-center gap-1.5 p-3 rounded-full text-sm font-bold transition-all ${
                                             isMuted ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
                                         }`}
                                     >
-                                        {isMuted ? '🔇 Unmute' : '🎙️ Mute'}
+                                        <Icon name={isMuted ? 'mic-off' : 'mic'} className="w-4 h-4" /> {isMuted ? 'Unmute' : 'Mute'}
                                     </button>
 
                                     <button
                                         onClick={() => setIsVideoOff(!isVideoOff)}
-                                        className={`p-3 rounded-full text-sm font-bold transition-all ${
+                                        className={`inline-flex items-center gap-1.5 p-3 rounded-full text-sm font-bold transition-all ${
                                             isVideoOff ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
                                         }`}
                                     >
-                                        {isVideoOff ? '🚫 Start Video' : '📹 Stop Video'}
+                                        <Icon name={isVideoOff ? 'video-off' : 'video'} className="w-4 h-4" /> {isVideoOff ? 'Start Video' : 'Stop Video'}
                                     </button>
 
                                     <button
                                         onClick={() => toast.success('Patient Vitals & Ultrasound link shared with Specialist')}
-                                        className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-sm font-bold"
+                                        className="inline-flex items-center gap-1.5 p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-sm font-bold"
                                     >
-                                        📤 Share Screen / Vitals
+                                        <Icon name="upload" className="w-4 h-4" /> Share Screen / Vitals
                                     </button>
 
                                     <button
@@ -330,9 +331,9 @@ export default function TeleconsultPage() {
                                 <div className="space-y-2 pt-2 border-t">
                                     <button
                                         onClick={handleDispatchReferral}
-                                        className="w-full py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-xs rounded-xl shadow hover:opacity-90 flex items-center justify-center gap-2"
+                                        className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2"
                                     >
-                                        <span>🚑 Authorize Immediate Referral to DH Gadchiroli</span>
+                                        <Icon name="ambulance" className="w-4 h-4" /> Authorize Immediate Referral to DH Gadchiroli
                                     </button>
 
                                     <button

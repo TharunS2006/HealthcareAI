@@ -3,6 +3,8 @@
  * Always provides a retry action (GIGW: no dead-end screens).
  */
 
+import Icon from './Icon';
+
 interface ErrorStateProps {
     title?: string;
     message?: string;
@@ -16,7 +18,7 @@ export default function ErrorState({
 }: ErrorStateProps) {
     return (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center" role="alert">
-            <span className="text-5xl mb-4" aria-hidden="true">⚠️</span>
+            <Icon name="warning" className="w-12 h-12 mb-4 text-gov-red" />
             <h3 className="text-lg font-bold text-gov-red mb-1">{title}</h3>
             <p className="text-sm text-txt-secondary max-w-md mb-4">{message}</p>
             {onRetry && (
