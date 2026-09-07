@@ -106,7 +106,7 @@ export default function ReferralsPage() {
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
                                 <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">
-                                    Tiered Referral Continuum (SC $\to$ PHC $\to$ CHC $\to$ DH)
+                                    Tiered Referral Continuum (SC → PHC → CHC → DH)
                                 </span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">

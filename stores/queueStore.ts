@@ -63,11 +63,6 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     callNext: async (doctorName = 'Dr. Suresh Atram') => {
         const { queue, currentServing } = get();
 
-        // 1. Complete previous consultation if any
-        if (currentServing) {
-            await updateQueueStatus(currentServing.id, 'COMPLETED');
-        }
-
         // 2. Prioritize emergency/urgent waiting patients first, then lowest sequence
         const waiting = queue.filter(q => q.status === 'WAITING');
         if (waiting.length === 0) {
@@ -84,7 +79,20 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
         });
 
         const nextPatient = sorted[0];
-        await updateQueueStatus(nextPatient.id, 'IN_CONSULTATION', doctorName);
+
+        // Both writes land before anything is announced. Calling a token on screen that
+        // did not persist means the next person to look at the board calls the same
+        // patient again, or skips one who was never marked seen.
+        try {
+            if (currentServing) {
+                await updateQueueStatus(currentServing.id, 'COMPLETED');
+            }
+            await updateQueueStatus(nextPatient.id, 'IN_CONSULTATION', doctorName);
+        } catch (error) {
+            console.error('Failed to advance the queue:', error);
+            toast.error('Could not call the next token — queue unchanged. Please retry.');
+            return;
+        }
 
         const updatedQueue = queue.map(q => {
             if (currentServing && q.id === currentServing.id) return { ...q, status: 'COMPLETED' as const };
@@ -101,23 +109,44 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
     },
 
     prioritizeEntry: async (id: string) => {
+        const previous = get().queue;
+        const entry = previous.find(q => q.id === id);
+        if (!entry) {
+            toast.error('Token not found — priority unchanged');
+            return;
+        }
+
         set(state => ({
             queue: state.queue.map(q =>
                 q.id === id ? { ...q, priority: 'EMERGENCY' as const } : q
             ),
         }));
-        const entry = get().queue.find(q => q.id === id);
-        if (entry) {
+
+        try {
             await saveQueueEntry({ ...entry, priority: 'EMERGENCY' });
             toast.success(`Priority Override applied for Token ${entry.tokenNumber}`);
+        } catch (error) {
+            console.error('Failed to apply priority override:', error);
+            set({ queue: previous });
+            toast.error(`Could not override priority for Token ${entry.tokenNumber}`);
         }
     },
 
     updateEntryStatus: async (id: string, status: QueueEntry['status']) => {
+        const previousQueue = get().queue;
+        const previousServing = get().currentServing;
+
         set(state => ({
             queue: state.queue.map(q => q.id === id ? { ...q, status } : q),
-            currentServing: (get().currentServing?.id === id && status === 'COMPLETED') ? null : get().currentServing
+            currentServing: (previousServing?.id === id && status === 'COMPLETED') ? null : previousServing
         }));
-        await updateQueueStatus(id, status);
+
+        try {
+            await updateQueueStatus(id, status);
+        } catch (error) {
+            console.error('Failed to update queue entry status:', error);
+            set({ queue: previousQueue, currentServing: previousServing });
+            toast.error(`Could not mark token as ${status} — no change saved`);
+        }
     }
 }));

@@ -188,9 +188,20 @@ export default function PatientDetailClient() {
                             </svg>
                         </button>
                         <div className="flex-1">
-                            <h1 className="text-2xl font-bold text-emerald-deep">Patient #{patient.id.slice(0, 6)}</h1>
+                            {/* Name first, full id beside it: a truncated id renders every
+                                "p-gad-XXXX" patient identically, which is a misidentification risk
+                                on a record a clinician acts from. */}
+                            <h1 className="text-2xl font-bold text-emerald-deep">
+                                {patient.name}
+                                <span className="ml-2 text-base font-normal text-txt-muted">
+                                    ({patient.age}
+                                    {patient.gender ? ` / ${patient.gender}` : ''})
+                                </span>
+                            </h1>
                             <p className="text-sm text-txt-secondary">
-                                Registered: {new Date(patient.timestamp).toLocaleString()}
+                                <span className="font-mono">{patient.id}</span>
+                                {patient.abhaId ? <span className="font-mono"> • {patient.abhaId}</span> : null}
+                                {' • '}Registered: {new Date(patient.timestamp).toLocaleString()}
                             </p>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-bold ${colors.badge}`}>

@@ -240,12 +240,16 @@ export async function updateReferralStatus(
 ): Promise<void> {
     const db = await getDB();
     const ref = await db.get('referrals', id);
-    if (ref) {
-        ref.status = status;
-        if (notes) ref.notes = notes;
-        if (status === 'COMPLETED') ref.completedAt = new Date().toISOString();
-        await db.put('referrals', ref);
+    // Throw rather than return quietly: the caller reports success to a clinician on
+    // resolve, so a silent no-op here means a referral shows as COMPLETED on screen
+    // while the stored record still says otherwise.
+    if (!ref) {
+        throw new DatabaseError(`Referral ${id} not found — status not updated to ${status}`);
     }
+    ref.status = status;
+    if (notes) ref.notes = notes;
+    if (status === 'COMPLETED') ref.completedAt = new Date().toISOString();
+    await db.put('referrals', ref);
 }
 
 // -------------------------------------------------------------
@@ -272,13 +276,16 @@ export async function updateQueueStatus(
 ): Promise<void> {
     const db = await getDB();
     const q = await db.get('queue', id);
-    if (q) {
-        q.status = status;
-        if (doctor) q.consultingDoctor = doctor;
-        if (status === 'IN_CONSULTATION') q.calledAt = new Date().toISOString();
-        if (status === 'COMPLETED') q.completedAt = new Date().toISOString();
-        await db.put('queue', q);
+    // See updateReferralStatus: a token silently failing to move means the board and
+    // the stored queue disagree about who has been seen.
+    if (!q) {
+        throw new DatabaseError(`Queue entry ${id} not found — status not updated to ${status}`);
     }
+    q.status = status;
+    if (doctor) q.consultingDoctor = doctor;
+    if (status === 'IN_CONSULTATION') q.calledAt = new Date().toISOString();
+    if (status === 'COMPLETED') q.completedAt = new Date().toISOString();
+    await db.put('queue', q);
 }
 
 // -------------------------------------------------------------

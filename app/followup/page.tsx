@@ -28,7 +28,13 @@ interface RecallTask {
     condition: string;
     village: string;
     ashaAssigned: string;
-    dueDate: string;
+    /**
+     * Days from today the visit is due — negative is overdue, 0 is today. Held as an
+     * offset rather than a fixed calendar date so a recall never drifts into showing
+     * "due in 2 days" beside a date that has already passed; the ASHA acts on this.
+     * `null` means the visit is tied to the next VHND rather than a fixed interval.
+     */
+    dueInDays: number | null;
     status: 'PENDING' | 'VISITED' | 'SMS_SENT' | 'COMPLETED';
     phone: string;
     priority: 'HIGH' | 'CRITICAL' | 'ROUTINE';
@@ -61,7 +67,7 @@ export default function FollowUpPage() {
             condition: 'High-Risk Pregnancy 32w (Preeclampsia risk, BP 160/102)',
             village: 'Kothi (Sub-Centre)',
             ashaAssigned: 'Lakshmi Netam (ASHA)',
-            dueDate: 'Due in 2 days (29 Aug 2026)',
+            dueInDays: 2,
             status: 'PENDING',
             phone: '+91-98765-43210',
             priority: 'CRITICAL',
@@ -77,7 +83,7 @@ export default function FollowUpPage() {
             condition: 'Severe Acute Malnutrition (SAM) + Pneumonia follow-up',
             village: 'Perimili',
             ashaAssigned: 'Sharda Narote (ASHA)',
-            dueDate: 'Today (Overdue 1 day)',
+            dueInDays: 0,
             status: 'PENDING',
             phone: '+91-94218-33412',
             priority: 'CRITICAL',
@@ -93,7 +99,7 @@ export default function FollowUpPage() {
             condition: 'Uncontrolled Type-2 Diabetes + Plantar Foot Ulcer',
             village: 'Govindpur',
             ashaAssigned: 'Kavita Madavi (ANM)',
-            dueDate: 'Overdue by 5 days',
+            dueInDays: -5,
             status: 'PENDING',
             phone: '+91-94218-77112',
             priority: 'HIGH',
@@ -109,7 +115,7 @@ export default function FollowUpPage() {
             condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-MH-GAD-29402)',
             village: 'Bhamragad',
             ashaAssigned: 'Sunita Hichami (CHO)',
-            dueDate: 'Due in 4 days',
+            dueInDays: 4,
             status: 'VISITED',
             phone: '+91-91300-44982',
             priority: 'HIGH',
@@ -125,7 +131,7 @@ export default function FollowUpPage() {
             condition: '1st Trimester ANC (Hemoglobin 8.4 g/dL - Moderate Anemia)',
             village: 'Laheri Tribal SC',
             ashaAssigned: 'Vandana Kallo (ASHA)',
-            dueDate: 'Due in 3 days',
+            dueInDays: 3,
             status: 'PENDING',
             phone: '+91-94233-11892',
             priority: 'HIGH',
@@ -141,13 +147,48 @@ export default function FollowUpPage() {
             condition: 'Pentavalent-3 & MR-1 Immunization Milestone Due',
             village: 'Aheri Gram',
             ashaAssigned: 'Rekha Atram (ASHA)',
-            dueDate: 'Due on next Village Health & Nutrition Day (VHND)',
+            dueInDays: null,
             status: 'PENDING',
             phone: '+91-94222-77881',
             priority: 'ROUTINE',
             actionNeeded: 'Administer MR-1 dose + Vitamin A syrup, update MCP Card & RCH portal.',
         },
     ]);
+
+    const isEn = language === 'en';
+    const isHi = language === 'hi';
+
+    /** Renders a due-day offset as a schedule label plus the real calendar date it lands on. */
+    const formatDue = (dueInDays: number | null): string => {
+        if (dueInDays === null) {
+            return isEn
+                ? 'Due on next Village Health & Nutrition Day (VHND)'
+                : isHi
+                ? 'अगले ग्राम स्वास्थ्य एवं पोषण दिवस (VHND) पर देय'
+                : 'पुढील ग्राम आरोग्य व पोषण दिनी (VHND) नियोजित';
+        }
+
+        const due = new Date();
+        due.setDate(due.getDate() + dueInDays);
+        const dateStr = due.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        if (dueInDays < 0) {
+            const n = Math.abs(dueInDays);
+            return isEn
+                ? `Overdue by ${n} day${n === 1 ? '' : 's'} (${dateStr})`
+                : isHi
+                ? `${n} दिन विलंबित (${dateStr})`
+                : `${n} दिवस विलंबित (${dateStr})`;
+        }
+        if (dueInDays === 0) {
+            return isEn ? `Due today (${dateStr})` : isHi ? `आज देय (${dateStr})` : `आज नियोजित (${dateStr})`;
+        }
+        return isEn
+            ? `Due in ${dueInDays} day${dueInDays === 1 ? '' : 's'} (${dateStr})`
+            : isHi
+            ? `${dueInDays} दिन में देय (${dateStr})`
+            : `${dueInDays} दिवसांत नियोजित (${dateStr})`;
+    };
 
     const filteredTasks = tasks.filter(t => {
         const matchesCohort = activeTab === 'ALL' || t.cohort === activeTab;
@@ -418,7 +459,7 @@ export default function FollowUpPage() {
 
                                             <div className="flex items-center gap-4 text-xs text-txt-muted pt-1">
                                                 <span className="inline-flex items-center gap-1"><Icon name="community-worker" className="w-3.5 h-3.5" /> Assigned: <strong>{task.ashaAssigned}</strong></span>
-                                                <span>Schedule: <strong className="text-rose-700">{task.dueDate}</strong></span>
+                                                <span>Schedule: <strong className="text-rose-700">{formatDue(task.dueInDays)}</strong></span>
                                                 <span className="inline-flex items-center gap-1"><Icon name="phone" className="w-3 h-3" /> {task.phone}</span>
                                             </div>
                                         </div>

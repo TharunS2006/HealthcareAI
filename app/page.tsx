@@ -50,7 +50,7 @@ export default function Home() {
             title: isEn ? 'District Health Command (DHO)' : isHi ? 'जिला स्वास्थ्य आदेश कक्ष (DHO)' : 'जिल्हा आरोग्य आदेश कक्ष (DHO)',
             dept: isEn ? 'Public Health Command' : isHi ? 'स्वास्थ्य निगरानी' : 'आरोग्य संनियंत्रण',
             desc: isEn
-                ? 'Real-time census, facility scorecards, travel time savings, referral audits, and mortality prevention telemetry across all 10 talukas.'
+                ? 'Real-time census, IPHS facility scorecards, travel burden avoided, referral audits, and danger-sign escalation telemetry across the Gadchiroli facility network.'
                 : isHi
                 ? 'जिले के सभी उपकेंद्र, प्राथमिक स्वास्थ्य केंद्र व ग्रामीण अस्पतालों का सीधा सांख्यिकी एवं गुणवत्ता मूल्यांकन।'
                 : 'जिल्ह्यातील सर्व उपकेंद्र, प्राथमिक आरोग्य केंद्र व ग्रामीण रुग्णालयांचे थेट संख्याशास्त्रीय व गुणवत्ता मूल्यमापन.',
@@ -182,11 +182,14 @@ export default function Home() {
             : isHi
             ? 'थेट स्वास्थ्य सांख्यिकी फलक — गढ़चिरौली मंडल'
             : 'थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census — Gadchiroli Division)',
+        // No hardcoded date here: a "live" census stamped with a fixed calendar date
+        // reads as stale the day after it is written, and it disagreed with the English
+        // string beside it.
         censusDate: isEn
-            ? 'Updated: Live Real-time • Synchronized across all 10 Talukas'
+            ? 'Updated: Live Real-time • Synchronized across the Gadchiroli facility network'
             : isHi
-            ? 'अद्यतन: लाइव रीयल-टाइम | सभी १० तहसीलों का सीधा एकत्रीकरण'
-            : 'अद्ययावत: ०३-सप्टेंबर-२०२६ | सर्व १० तालुक्यांचे थेट एकत्रीकरण',
+            ? 'अद्यतन: लाइव रीयल-टाइम | गढ़चिरौली सुविधा नेटवर्क में सीधा एकत्रीकरण'
+            : 'अद्ययावत: थेट रिअल-टाइम | गडचिरोली आरोग्य संस्था नेटवर्कमध्ये थेट एकत्रीकरण',
         stat1Label: isEn ? 'Patients Examined Today (OPD)' : isHi ? 'आज देखे गए मरीज (OPD)' : 'आज तपासलेले रुग्ण (OPD)',
         stat1Sub: isEn ? '↑ 100% Digital Registration' : isHi ? '↑ १००% डिजिटल पंजीकरण' : '↑ १००% डिजिटल नोंदणी',
         stat2Label: isEn ? '108 / 102 Ambulances in Transit' : isHi ? '१०८ / १०२ एम्बुलेंस ट्रांजिट' : '१०८/१०२ रुग्णवाहिका प्रवास',

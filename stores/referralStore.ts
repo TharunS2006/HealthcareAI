@@ -54,16 +54,24 @@ export const useReferralStore = create<ReferralStore>((set, get) => ({
     },
 
     changeStatus: async (id: string, status: ReferralRecord['status'], notes?: string) => {
+        const previous = get().referrals;
+
         set(state => ({
             referrals: state.referrals.map(r =>
                 r.id === id ? { ...r, status, ...(notes && { notes }) } : r
             ),
         }));
+
         try {
             await updateReferralStatus(id, status, notes);
             toast.success(`Referral updated to ${status}`);
         } catch (error) {
+            // Roll the board back to what is actually stored. Leaving the optimistic
+            // update on screen after a failed write would tell the referring officer a
+            // patient had been accepted or admitted when the record says otherwise.
             console.error('Failed to update referral status:', error);
+            set({ referrals: previous });
+            toast.error(`Could not update referral to ${status} — status unchanged`);
         }
     },
 }));

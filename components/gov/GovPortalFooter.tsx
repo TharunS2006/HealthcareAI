@@ -6,6 +6,7 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import StateEmblem from '@/components/gov/StateEmblem';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -14,6 +15,22 @@ export default function GovPortalFooter() {
     const { language } = useLanguageStore();
     const isEn = language === 'en';
     const isHi = language === 'hi';
+
+    /**
+     * Resolved after mount, not during render: this is a static export, so anything
+     * derived from the clock at render time is baked into the prerendered HTML at build
+     * time and then disagrees with the client on hydration. Empty until mounted.
+     */
+    const [today, setToday] = useState('');
+    useEffect(() => {
+        setToday(new Date().toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+        }));
+    }, []);
+
+    const currentYear = today ? new Date().getFullYear() : '';
 
     const F = {
         helplineHeader: isEn
@@ -47,16 +64,16 @@ export default function GovPortalFooter() {
         trans3: isEn ? 'Grievance Redressal' : isHi ? 'शिकायत निवारण' : 'तक्रार निवारण (Grievance Redressal)',
         nodal: isEn ? 'Nodal Officer: Chief Medical Officer, Gadchiroli' : isHi ? 'नोडल अधिकारी: मुख्य चिकित्सा अधिकारी, गढ़चिरौली' : 'नोडल अधिकारी: मुख्य वैद्यकीय अधिकारी, गडचिरोली',
         rights: isEn
-            ? '© 2026 NalamMesh • Department of Public Health, Government of Maharashtra. All rights reserved.'
+            ? `© ${currentYear} NalamMesh • Department of Public Health, Government of Maharashtra. All rights reserved.`
             : isHi
-            ? '© २०२६ नलममेश • सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार। सर्वाधिकार सुरक्षित।'
-            : '© २०२६ नलममेश • सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन. सर्व हक्क राखीव.',
+            ? `© ${currentYear} नलममेश • सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार। सर्वाधिकार सुरक्षित।`
+            : `© ${currentYear} नलममेश • सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन. सर्व हक्क राखीव.`,
         designedBy: isEn
             ? 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).'
             : isHi
             ? 'राष्ट्रीय सूचना विज्ञान केंद्र (NIC) द्वारा डिज़ाइन, विकसित व होस्ट किया गया। GIGW 3.0 व W3C WCAG 2.1 (AA) प्रमाणित।'
             : 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).',
-        lastUpdated: isEn ? 'Last Updated: 03-September-2026' : isHi ? 'अंतिम अपडेट: ०३-सितंबर-२०२६' : 'शेवटचा बदल: ०३-सप्टेंबर-२०२६',
+        lastUpdated: isEn ? `Last Updated: ${today}` : isHi ? `अंतिम अपडेट: ${today}` : `शेवटचा बदल: ${today}`,
         visitorCount: isEn ? 'Total Visitors: 184,392' : isHi ? 'कुल विजिटर: १,८४,३९२' : 'एकूण भेट संख्या: १,८४,३९२',
     };
 

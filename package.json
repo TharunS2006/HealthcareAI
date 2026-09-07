@@ -10,6 +10,7 @@
     "lint": "next lint",
     "server": "tsx server/mesh-server.ts",
     "verify:triage": "tsx scripts/verify-triage.mts",
+    "verify:metrics": "tsx scripts/verify-metrics.mts",
     "cap:sync": "next build && npx cap sync",
     "cap:open": "npx cap open android"
   },

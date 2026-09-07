@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -18,13 +18,18 @@ import { useQueueStore } from '@/stores/queueStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useMeshStatus } from '@/lib/hooks/useMeshStatus';
+import {
+    scoreAllFacilities,
+    computeDangerSignTelemetry,
+    computeTravelSavings,
+} from '@/lib/analytics/facilityMetrics';
 import Link from 'next/link';
 
 export default function DashboardPage() {
     const { patients, loadPatients } = usePatientStore();
     const { referrals, loadReferrals } = useReferralStore();
     const { queue, loadQueue } = useQueueStore();
-    const { facilities, loadAll } = useFacilityStore();
+    const { facilities, medicines, loadAll } = useFacilityStore();
     const { language } = useLanguageStore();
     const meshStatus = useMeshStatus();
 
@@ -48,6 +53,55 @@ export default function DashboardPage() {
 
     // Collect High Risk Flagged Patients
     const highRiskPatients = patients.filter(p => (p.highRiskFlags && p.highRiskFlags.length > 0) || p.triageStatus === 'RED');
+
+    // Derived district analytics — every figure below is computed from the records
+    // actually held on this device, so they move with the data instead of being fixed
+    // display numbers a judge or a DHO could not reconcile against the record list.
+    const scorecards = useMemo(() => scoreAllFacilities(facilities), [facilities]);
+    const dangerSigns = useMemo(
+        () => computeDangerSignTelemetry(patients, referrals),
+        [patients, referrals]
+    );
+    const travel = useMemo(
+        () => computeTravelSavings(patients, referrals, facilities),
+        [patients, referrals, facilities]
+    );
+
+    // IPHS quality indicators, measured rather than asserted.
+    const completedRefs = referrals.filter(r => r.status === 'COMPLETED').length;
+    const referralCompletionRate = referrals.length === 0
+        ? 0
+        : Math.round((completedRefs / referrals.length) * 100);
+
+    // Measured from the clock, not from the estimate shown to the patient at check-in:
+    // `estimatedWaitMinutes` is a forecast and is zeroed once a token is called, so
+    // averaging it over completed tokens reports 0 minutes for a queue that really waited.
+    const consultedQueue = queue.filter(q => q.status === 'COMPLETED' && q.registeredAt && q.calledAt);
+    const waitSamples = consultedQueue
+        .map(q => (new Date(q.calledAt!).getTime() - new Date(q.registeredAt).getTime()) / 60000)
+        .filter(mins => Number.isFinite(mins) && mins >= 0);
+    const avgWaitMinutes = waitSamples.length === 0
+        ? 0
+        : Math.round(waitSamples.reduce((sum, m) => sum + m, 0) / waitSamples.length);
+    // IPHS benchmark for OPD waiting is 30 minutes; score against that, floored at 0.
+    const waitTimeScore = waitSamples.length === 0
+        ? 0
+        : Math.max(0, Math.min(100, Math.round(((30 - avgWaitMinutes) / 30) * 100)));
+
+    const essentialMeds = medicines.filter(m => m.isEssentialIPHS);
+    const medicineAvailability = essentialMeds.length === 0
+        ? 0
+        : Math.round(
+            (essentialMeds.filter(m => m.status === 'ADEQUATE').length / essentialMeds.length) * 100
+        );
+
+    const maternalFlagged = patients.filter(p => p.highRiskFlags?.some(f => f.type === 'MATERNAL'));
+    const maternalOnSchedule = maternalFlagged.filter(p =>
+        p.highRiskFlags?.some(f => f.type === 'MATERNAL' && (f.overdueDays ?? 0) <= 0)
+    ).length;
+    const maternalFollowUpRate = maternalFlagged.length === 0
+        ? 0
+        : Math.round((maternalOnSchedule / maternalFlagged.length) * 100);
 
     // Localization Dictionary for Dashboard
     const txt = {
@@ -112,6 +166,63 @@ export default function DashboardPage() {
         priorityRed: isEn ? 'RED PRIORITY' : isHi ? 'अति गंभीर (लाल)' : 'तातडीचे (लाल)',
         priorityYellow: isEn ? 'YELLOW PRIORITY' : isHi ? 'प्राथमिकता (पीला)' : 'प्राधान्य (पिवळा)',
         priorityGreen: isEn ? 'GREEN PRIORITY' : isHi ? 'सामान्य (हरा)' : 'नियमित (हिरवा)',
+
+        // Danger-sign cascade (mortality prevention telemetry)
+        cascadeTitle: isEn ? 'Danger-Sign Escalation Cascade' : isHi ? 'खतरे के लक्षण एस्केलेशन शृंखला' : 'धोकादायक लक्षण एस्केलेशन शृंखला',
+        cascadeSub: isEn
+            ? 'Tracks every detected danger sign through to definitive care. Cases detected but never escalated are the avoidable-mortality gap MDSR/CDR reviews look for.'
+            : isHi
+            ? 'प्रत्येक खतरे के लक्षण को निश्चित उपचार तक ट्रैक करता है। पहचाने गए किंतु रेफर न किए गए मामले ही टाली जा सकने वाली मृत्यु का अंतर हैं।'
+            : 'प्रत्येक धोकादायक लक्षणाचा निश्चित उपचारापर्यंत मागोवा. आढळूनही संदर्भित न झालेली प्रकरणे हीच टाळता येणाऱ्या मृत्यूची तफावत आहे.',
+        detected: isEn ? 'Detected' : isHi ? 'पहचाने गए' : 'आढळले',
+        escalated: isEn ? 'Escalated' : isHi ? 'रेफर किए' : 'संदर्भित',
+        reachedCare: isEn ? 'Reached Care' : isHi ? 'उपचार मिला' : 'उपचार मिळाले',
+        escalationRate: isEn ? 'Escalation Rate' : isHi ? 'रेफरल दर' : 'संदर्भ दर',
+        awaitingEscalation: isEn
+            ? 'danger sign(s) detected but not yet escalated — review today'
+            : isHi
+            ? 'खतरे के लक्षण पहचाने गए किंतु रेफर नहीं — आज समीक्षा करें'
+            : 'धोकादायक लक्षणे आढळली पण संदर्भित नाहीत — आज आढावा घ्या',
+        noBacklog: isEn
+            ? 'Every detected danger sign has been escalated'
+            : isHi
+            ? 'सभी पहचाने गए खतरे के लक्षण रेफर किए जा चुके हैं'
+            : 'सर्व आढळलेली धोकादायक लक्षणे संदर्भित झाली आहेत',
+        stillInTransit: isEn ? 'still in the referral pipeline' : isHi ? 'अभी भी रेफरल पाइपलाइन में' : 'अद्याप संदर्भ प्रक्रियेत',
+
+        // Travel burden avoided
+        travelTitle: isEn ? 'Travel Burden Avoided' : isHi ? 'यात्रा भार में कमी' : 'प्रवास भार बचत',
+        travelSub: isEn
+            ? 'Round-trip distance patients did not travel because the episode was closed at their nearest Sub-Centre/PHC/CHC instead of the district hospital. Referred patients are excluded — they travelled anyway.'
+            : isHi
+            ? 'रोगियों द्वारा न की गई आवागमन दूरी, क्योंकि उपचार निकटतम उपकेंद्र/PHC/CHC पर ही पूर्ण हुआ। रेफर किए गए रोगी शामिल नहीं हैं।'
+            : 'रुग्णांनी न केलेले येण्या-जाण्याचे अंतर, कारण उपचार जवळच्या उपकेंद्र/PHC/CHC मध्येच पूर्ण झाले. संदर्भित रुग्ण वगळले आहेत.',
+        episodes: isEn ? 'Episodes' : isHi ? 'प्रकरण' : 'प्रकरणे',
+        kmAvoided: isEn ? 'KM Avoided' : isHi ? 'कि.मी. बचे' : 'कि.मी. वाचले',
+        hoursAvoided: isEn ? 'Hours Avoided' : isHi ? 'घंटे बचे' : 'तास वाचले',
+        avgPerEpisode: isEn ? 'Average per episode:' : isHi ? 'प्रति प्रकरण औसत:' : 'प्रति प्रकरण सरासरी:',
+        hoursRoundTrip: isEn ? 'hours round trip' : isHi ? 'घंटे आना-जाना' : 'तास येणे-जाणे',
+        noLocalEpisodes: isEn
+            ? 'No locally-closed episodes yet — every current patient was referred onward.'
+            : isHi
+            ? 'अभी तक कोई स्थानीय रूप से पूर्ण प्रकरण नहीं — सभी रोगी रेफर किए गए।'
+            : 'अद्याप स्थानिक पातळीवर पूर्ण झालेले प्रकरण नाही — सर्व रुग्ण संदर्भित झाले.',
+
+        // Facility scorecards
+        scorecardTitle: isEn ? 'Facility Scorecards (IPHS 2022 Benchmark)' : isHi ? 'सुविधा स्कोरकार्ड (IPHS 2022)' : 'आरोग्य संस्था गुणपत्रिका (IPHS 2022)',
+        scorecardSub: isEn ? 'Weakest facility first — each tier scored against its own IPHS norm' : isHi ? 'सबसे कमजोर पहले — प्रत्येक स्तर अपने IPHS मानक पर' : 'सर्वात कमकुवत प्रथम — प्रत्येक स्तर स्वतःच्या IPHS मानकानुसार',
+        colFacility: isEn ? 'Facility' : isHi ? 'सुविधा' : 'संस्था',
+        colTier: isEn ? 'Tier' : isHi ? 'स्तर' : 'स्तर',
+        colScore: isEn ? 'Grade' : isHi ? 'ग्रेड' : 'श्रेणी',
+        colGaps: isEn ? 'Primary Gap' : isHi ? 'मुख्य कमी' : 'प्रमुख त्रुटी',
+        meetsNorms: isEn ? 'Meets IPHS norms' : isHi ? 'IPHS मानक पूर्ण' : 'IPHS मानके पूर्ण',
+        moreGaps: isEn ? 'more' : isHi ? 'और' : 'अधिक',
+        awaitingData: isEn ? 'Awaiting data' : isHi ? 'डेटा प्रतीक्षित' : 'डेटा प्रतीक्षेत',
+        noCompletedConsults: isEn
+            ? 'No completed consultations yet today'
+            : isHi
+            ? 'आज अभी तक कोई परामर्श पूर्ण नहीं'
+            : 'आज अद्याप कोणतीही तपासणी पूर्ण नाही',
 
         // Emergency Dispatch Banner
         dispatchTitle: isEn ? '108 / 102 Emergency Dispatch' : isHi ? '१०८ / १०२ आपातकालीन एम्बुलेंस नियंत्रण' : '१०८ / १०२ आपत्कालीन रुग्णवाहिका नियंत्रण',
@@ -488,49 +599,219 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind1Title}</span>
-                                    <span className="text-amber-700">78%</span>
+                                    <span className="text-amber-700">{referralCompletionRate}%</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
-                                    <div className="bg-[#B45309] h-full rounded" style={{ width: '78%' }} />
+                                    <div className="bg-[#B45309] h-full rounded" style={{ width: `${referralCompletionRate}%` }} />
                                 </div>
-                                <span className="text-[10px] text-txt-muted">{txt.ind1Sub}</span>
+                                <span className="text-[10px] text-txt-muted">
+                                    {completedRefs} of {referrals.length} referrals closed
+                                </span>
                             </div>
 
                             {/* Average Wait Time */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind2Title}</span>
-                                    <span className="text-emerald-700">16 mins (88%)</span>
+                                    <span className="text-emerald-700">
+                                        {waitSamples.length === 0 ? txt.awaitingData : `${avgWaitMinutes} mins (${waitTimeScore}%)`}
+                                    </span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
-                                    <div className="bg-[#15803D] h-full rounded" style={{ width: '88%' }} />
+                                    <div className="bg-[#15803D] h-full rounded" style={{ width: `${waitTimeScore}%` }} />
                                 </div>
-                                <span className="text-[10px] text-txt-muted">{txt.ind2Sub}</span>
+                                <span className="text-[10px] text-txt-muted">
+                                    {waitSamples.length === 0
+                                        ? txt.noCompletedConsults
+                                        : `${waitSamples.length} consultations vs 30-min IPHS norm`}
+                                </span>
                             </div>
 
                             {/* Essential Medicine Availability */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind3Title}</span>
-                                    <span className="text-[#1F3A6E]">82%</span>
+                                    <span className="text-[#1F3A6E]">{medicineAvailability}%</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
-                                    <div className="bg-[#1F3A6E] h-full rounded" style={{ width: '82%' }} />
+                                    <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${medicineAvailability}%` }} />
                                 </div>
-                                <span className="text-[10px] text-txt-muted">{txt.ind3Sub}</span>
+                                <span className="text-[10px] text-txt-muted">
+                                    {essentialMeds.filter(m => m.status === 'ADEQUATE').length} of {essentialMeds.length} IPHS drugs adequate
+                                </span>
                             </div>
 
                             {/* Maternal ANC Follow-up Rate */}
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind4Title}</span>
-                                    <span className="text-[#1F3A6E]">91%</span>
+                                    <span className="text-[#1F3A6E]">{maternalFollowUpRate}%</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
-                                    <div className="bg-[#1F3A6E] h-full rounded" style={{ width: '91%' }} />
+                                    <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${maternalFollowUpRate}%` }} />
                                 </div>
-                                <span className="text-[10px] text-txt-muted">{txt.ind4Sub}</span>
+                                <span className="text-[10px] text-txt-muted">
+                                    {maternalOnSchedule} of {maternalFlagged.length} ANC recalls on schedule
+                                </span>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Row 4: Danger-Sign Cascade & Travel Burden Avoided */}
+                    <div className="grid lg:grid-cols-2 gap-6">
+
+                        {/* Mortality-prevention cascade telemetry */}
+                        <div className="bg-white rounded border border-slate-300 shadow-sm">
+                            <div className="gov-card-header flex items-center justify-between">
+                                <span>{txt.cascadeTitle}</span>
+                                {dangerSigns.awaitingEscalation > 0 && (
+                                    <span className="badge-red">{txt.actionRequired}</span>
+                                )}
+                            </div>
+                            <div className="p-4 space-y-3">
+                                <p className="text-[11px] text-txt-muted leading-relaxed">
+                                    {txt.cascadeSub}
+                                </p>
+
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.detected}</span>
+                                        <strong className="text-2xl font-black text-[#1F3A6E]">{dangerSigns.dangerSignsDetected}</strong>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.escalated}</span>
+                                        <strong className="text-2xl font-black text-[#B45309]">{dangerSigns.escalated}</strong>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.reachedCare}</span>
+                                        <strong className="text-2xl font-black text-[#15803D]">{dangerSigns.reachedDefinitiveCare}</strong>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-xs font-bold">
+                                        <span className="text-[#1F3A6E]">{txt.escalationRate}</span>
+                                        <span className="text-[#1F3A6E]">{dangerSigns.escalationRate}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
+                                        <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${dangerSigns.escalationRate}%` }} />
+                                    </div>
+                                </div>
+
+                                {/* The gap a DHO can still close today, stated plainly rather
+                                    than absorbed into an aggregate success percentage. */}
+                                <div className={`p-2.5 rounded border text-[11px] ${
+                                    dangerSigns.awaitingEscalation > 0
+                                        ? 'bg-gov-red-bg border-red-300 text-red-900'
+                                        : 'bg-gov-success-bg border-emerald-300 text-emerald-900'
+                                }`}>
+                                    <strong>
+                                        {dangerSigns.awaitingEscalation > 0
+                                            ? `${dangerSigns.awaitingEscalation} ${txt.awaitingEscalation}`
+                                            : txt.noBacklog}
+                                    </strong>
+                                    {dangerSigns.inTransit > 0 && (
+                                        <span className="block mt-0.5">
+                                            {dangerSigns.inTransit} {txt.stillInTransit}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Travel burden avoided */}
+                        <div className="bg-white rounded border border-slate-300 shadow-sm">
+                            <div className="gov-card-header">{txt.travelTitle}</div>
+                            <div className="p-4 space-y-3">
+                                <p className="text-[11px] text-txt-muted leading-relaxed">
+                                    {txt.travelSub}
+                                </p>
+
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.episodes}</span>
+                                        <strong className="text-2xl font-black text-[#1F3A6E]">{travel.episodesResolvedLocally}</strong>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.kmAvoided}</span>
+                                        <strong className="text-2xl font-black text-[#15803D]">{Math.round(travel.kilometresAvoided)}</strong>
+                                    </div>
+                                    <div className="p-3 bg-slate-50 border border-slate-200 rounded">
+                                        <span className="text-[10px] font-bold text-slate-600 uppercase block">{txt.hoursAvoided}</span>
+                                        <strong className="text-2xl font-black text-[#15803D]">{travel.hoursAvoided.toFixed(1)}</strong>
+                                    </div>
+                                </div>
+
+                                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded text-[11px] text-txt-secondary">
+                                    {travel.episodesResolvedLocally > 0
+                                        ? `${txt.avgPerEpisode} ${travel.averageHoursPerEpisode.toFixed(1)} ${txt.hoursRoundTrip}`
+                                        : txt.noLocalEpisodes}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Row 5: Per-Facility IPHS Scorecards */}
+                    <div className="bg-white rounded border border-slate-300 shadow-sm">
+                        <div className="gov-card-header flex items-center justify-between">
+                            <span>{txt.scorecardTitle}</span>
+                            <span className="text-[10px] font-normal normal-case text-slate-500">{txt.scorecardSub}</span>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="gov-table">
+                                <thead>
+                                    <tr>
+                                        <th>{txt.colFacility}</th>
+                                        <th>{txt.colTier}</th>
+                                        <th>{txt.colScore}</th>
+                                        {scorecards[0]?.components.map(c => (
+                                            <th key={c.label} className="hidden lg:table-cell">{c.label}</th>
+                                        ))}
+                                        <th>{txt.colGaps}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {scorecards.map(s => (
+                                        <tr key={s.facilityId}>
+                                            <td className="font-semibold text-[#1F3A6E]">{s.facilityName}</td>
+                                            <td className="font-mono">{s.type}</td>
+                                            <td>
+                                                <span className={
+                                                    s.grade === 'A' ? 'badge-green'
+                                                        : s.grade === 'B' ? 'badge-blue'
+                                                        : s.grade === 'C' ? 'badge-amber'
+                                                        : 'badge-red'
+                                                }>
+                                                    {s.grade} · {s.score}
+                                                </span>
+                                            </td>
+                                            {s.components.map(c => (
+                                                <td key={c.label} className="hidden lg:table-cell">
+                                                    <span className={
+                                                        c.score >= 85 ? 'text-emerald-800 font-bold'
+                                                            : c.score >= 55 ? 'text-amber-800 font-bold'
+                                                            : 'text-red-800 font-bold'
+                                                    }>
+                                                        {c.score}
+                                                    </span>
+                                                    <span className="block text-[10px] text-slate-500">{c.detail}</span>
+                                                </td>
+                                            ))}
+                                            <td className="text-[11px]">
+                                                {s.gaps.length === 0
+                                                    ? <span className="text-emerald-800 font-semibold">{txt.meetsNorms}</span>
+                                                    : <span className="text-red-800">{s.gaps[0]}</span>}
+                                                {s.gaps.length > 1 && (
+                                                    <span className="block text-[10px] text-slate-500">
+                                                        +{s.gaps.length - 1} {txt.moreGaps}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
