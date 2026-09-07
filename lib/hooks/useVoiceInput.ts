@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface VoiceParsedVitals {
     spo2?: number;
@@ -109,8 +109,20 @@ export function useVoiceInput(): UseVoiceInputReturn {
     const [error, setError] = useState<string | null>(null);
     const recognitionRef = useRef<any>(null);
 
-    const isSupported = typeof window !== 'undefined' &&
-        ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+    /**
+     * Detected AFTER mount, never during render.
+     *
+     * `typeof window !== 'undefined' && 'SpeechRecognition' in window` evaluates false on
+     * the server and true in the browser, so any `{isSupported && <button/>}` renders a
+     * node the server HTML does not contain. React then fails hydration and throws away
+     * the whole server tree to re-render on the client — an expensive full repaint on the
+     * low-end rural hardware this app targets, and invisible in production builds.
+     */
+    const [isSupported, setIsSupported] = useState(false);
+
+    useEffect(() => {
+        setIsSupported('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+    }, []);
 
     const startListening = useCallback((lang = 'en-IN') => {
         if (!isSupported) {

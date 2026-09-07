@@ -14,18 +14,28 @@ const config: Config = {
                     navy: '#1F3A6E',
                     'navy-dark': '#11223F',
                     'navy-light': '#284B8C',
+                    'navy-hover': '#16294E',
                     saffron: '#FF9933',
                     'saffron-dark': '#B45309',
                     green: '#138808',
                     'green-dark': '#0D6E06',
+                    'green-bg': '#E8F5E9',
+                    'green-border': '#A5D6A7',
                     red: '#C53030',
                     'red-bg': '#FEF2F2',
                     amber: '#B45309',
                     'amber-bg': '#FFFBEB',
                     blue: '#1D4ED8',
                     'blue-bg': '#EFF6FF',
+                    'blue-border': '#93C5FD',
                     success: '#15803D',
                     'success-bg': '#F0FDF4',
+                    // Module accent hues — used only to differentiate service cards
+                    'accent-sky': '#0284C7',
+                    'accent-indigo': '#4F46E5',
+                    'accent-teal': '#0D9488',
+                    'accent-violet': '#7C3AED',
+                    'accent-crimson': '#DC2626',
                 },
                 // Backward-compatible theme tokens mapped to official Gov colors
                 emerald: {
@@ -69,7 +79,7 @@ const config: Config = {
                 },
             },
             fontFamily: {
-                sans: ['Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Arial', 'Helvetica', 'sans-serif'],
+                sans: ['Noto Sans', 'Noto Sans Devanagari', 'Arial', 'Helvetica', 'sans-serif'],
                 mono: ['JetBrains Mono', 'Courier New', 'monospace'],
             },
             borderRadius: {

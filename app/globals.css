@@ -59,7 +59,7 @@
   --text-on-dark-muted: rgba(255, 255, 255, 0.85);
 
   /* Fonts */
-  --font-sans: 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', Arial, Helvetica, sans-serif;
+  --font-sans: 'Noto Sans', 'Noto Sans Devanagari', Arial, Helvetica, sans-serif;
   --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 

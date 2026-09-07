@@ -2,6 +2,7 @@
  * Diagnostic Coordination Module — NalamMesh (SIH PS#26133 Module 6)
  * End-to-end sample collection, processing, and results delivery to LHR.
  * Smart "Unavailable Test Router" pointing to nearest lab across Sub-Centre -> PHC -> CHC -> DH.
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
  */
 
 'use client';
@@ -12,6 +13,7 @@ import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { usePatientStore } from '@/stores/patientStore';
+import { useLanguageStore } from '@/stores/languageStore';
 import { DiagnosticOrder } from '@/types/facility';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
 import toast from 'react-hot-toast';
@@ -19,6 +21,10 @@ import toast from 'react-hot-toast';
 export default function DiagnosticsPage() {
     const { diagnostics, loadAll, updateDiagnosticResult } = useFacilityStore();
     const { patients, loadPatients } = usePatientStore();
+    const { language } = useLanguageStore();
+
+    const isEn = language === 'en';
+    const isHi = language === 'hi';
 
     const [selectedTest, setSelectedTest] = useState<DiagnosticOrder | null>(null);
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -29,7 +35,7 @@ export default function DiagnosticsPage() {
     // New Order Form State
     const [orderPatientId, setOrderPatientId] = useState('');
     const [orderTestType, setOrderTestType] = useState('CBC');
-    const [orderFacilityId, setOrderFacilityId] = useState('phc-bhamragad');
+    const [orderFacilityId, setOrderFacilityId] = useState('fac-phc-001');
     const [orderNotes, setOrderNotes] = useState('');
 
     // Result Entry State
@@ -44,20 +50,24 @@ export default function DiagnosticsPage() {
     const testCatalog: Array<{
         code: string;
         name: string;
+        nameMr: string;
+        nameHi: string;
         category: DiagnosticOrder['category'];
         tier: string;
         localAvail: boolean;
         nearest: string;
+        nearestMr: string;
+        nearestHi: string;
         time: string;
     }> = [
-        { code: 'CBC', name: 'Complete Blood Count (CBC) with Automated Cell Counter', category: 'Hematology', tier: 'CHC / DH', localAvail: false, nearest: 'CHC Etapalli (28 km)', time: '3 hrs' },
-        { code: 'MALARIA_RDT', name: 'Rapid Diagnostic Test (RDT) Malaria Pf / Pv', category: 'Rapid Test', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre / PHC', time: '15 mins' },
-        { code: 'SICKLE_CELL', name: 'Sickle Cell Solubility & Electrophoresis', category: 'Hematology', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', time: '45 mins' },
-        { code: 'HBA1C', name: 'Glycated Hemoglobin (HbA1c) & Fasting Blood Sugar', category: 'Biochemistry', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', time: '1 hr' },
-        { code: 'SPUTUM_AFB', name: 'Sputum Smear for AFB / CBNAAT GeneXpert', category: 'Microbiology/Sputum', tier: 'PHC (Smear) / DH (CBNAAT)', localAvail: true, nearest: 'Sample collected at PHC -> DH Gadchiroli', time: '24 hrs' },
-        { code: 'USG_OBSTETRIC', name: 'Obstetric Ultrasound (USG Antenatal Scan)', category: 'Radiology', tier: 'SDH Aheri / DH Gadchiroli', localAvail: false, nearest: 'SDH Aheri (CEmONC, 38 km)', time: 'Same Day' },
-        { code: 'ECG_DIGITAL', name: '12-Lead Digital ECG with Tele-Cardiology', category: 'Biochemistry', tier: 'PHC / CHC / DH', localAvail: true, nearest: 'PHC Bhamragad (On-site)', time: '10 mins' },
-        { code: 'URINE_ALBUMIN', name: 'Urine Albumin (Proteinuria Dipstick)', category: 'Urine', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre Kothi', time: '5 mins' },
+        { code: 'CBC', name: 'Complete Blood Count (CBC) with Automated Cell Counter', nameMr: 'रक्त तपासणी (CBC) ऑटोमेटेड सेल काउंटर', nameHi: 'कम्प्लीट ब्लड काउंट (CBC) सेल काउंटर', category: 'Hematology', tier: 'CHC / DH', localAvail: false, nearest: 'CHC Etapalli (28 km)', nearestMr: 'ग्रामीण रुग्णालय एटापल्ली (२८ किमी)', nearestHi: 'सामुदायिक स्वास्थ्य केंद्र एटापल्ली (२८ किमी)', time: '3 hrs' },
+        { code: 'MALARIA_RDT', name: 'Rapid Diagnostic Test (RDT) Malaria Pf / Pv', nameMr: 'मलेरिया जलद निदान चाचणी (RDT Malaria Pf/Pv)', nameHi: 'मलेरिया रैपिड टेस्ट (RDT Malaria Pf/Pv)', category: 'Rapid Test', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre / PHC', nearestMr: 'उपकेंद्र / प्रा. आ. केंद्रात उपलब्ध', nearestHi: 'उप-केंद्र / पीएचसी में ऑन-साइट', time: '15 mins' },
+        { code: 'SICKLE_CELL', name: 'Sickle Cell Solubility & Electrophoresis', nameMr: 'सिकलसेल चाचणी व इलेक्ट्रोफोरेसीस', nameHi: 'सिकल सेल घुलनशीलता व इलेक्ट्रोफोरेसिस', category: 'Hematology', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '45 mins' },
+        { code: 'HBA1C', name: 'Glycated Hemoglobin (HbA1c) & Fasting Blood Sugar', nameMr: 'मधुमेह चाचणी (HbA1c व रक्तातील साखर)', nameHi: 'ग्लाइकेटेड हीमोग्लोबिन (HbA1c) व शुगर', category: 'Biochemistry', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '1 hr' },
+        { code: 'SPUTUM_AFB', name: 'Sputum Smear for AFB / CBNAAT GeneXpert (TB)', nameMr: 'क्षयरोग थुंकी चाचणी / CBNAAT GeneXpert (TB)', nameHi: 'टीबी बलगम जांच / CBNAAT GeneXpert (TB)', category: 'Microbiology/Sputum', tier: 'PHC / DH', localAvail: true, nearest: 'Sample at PHC -> DH Gadchiroli', nearestMr: 'नमुना भामरागड -> जिल्हा रुग्णालय गडचिरोली', nearestHi: 'सैंपल पीएचसी -> जिला अस्पताल गढ़चिरौली', time: '24 hrs' },
+        { code: 'USG_OBSTETRIC', name: 'Obstetric Ultrasound (USG Antenatal Scan)', nameMr: 'सोनोग्राफी (USG गरोदर माता तपासणी)', nameHi: 'सोनोग्राफी (USG प्रसूति पूर्व जांच)', category: 'Radiology', tier: 'SDH Aheri / DH Gadchiroli', localAvail: false, nearest: 'SDH Aheri (CEmONC, 38 km)', nearestMr: 'उपजिल्हा रुग्णालय अहेरी (३८ किमी)', nearestHi: 'उप-जिला अस्पताल अहेरी (३८ किमी)', time: 'Same Day' },
+        { code: 'ECG_DIGITAL', name: '12-Lead Digital ECG with Tele-Cardiology', nameMr: '१२-लीड डिजिटल ECG (टेली-कार्डिओलॉजी)', nameHi: '१२-लीड डिजिटल ईसीजी (टेली-कार्डियोलॉजी)', category: 'Biochemistry', tier: 'PHC / CHC / DH', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '10 mins' },
+        { code: 'URINE_ALBUMIN', name: 'Urine Albumin (Proteinuria Dipstick)', nameMr: 'लघवीतील प्रथिने तपासणी (Albumin Dipstick)', nameHi: 'मूत्र एल्बुमिन जांच (Proteinuria Dipstick)', category: 'Urine', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre Kothi', nearestMr: 'आरोग्य वर्धिनी उपकेंद्र कोठी येथे उपलब्ध', nearestHi: 'आरोग्य मंदिर उप-केंद्र कोठी में उपलब्ध', time: '5 mins' },
     ];
 
     const filteredDiagnostics = diagnostics.filter(d => {
@@ -80,15 +90,15 @@ export default function DiagnosticsPage() {
             patientAge: p.age,
             facilityId: orderFacilityId,
             facilityName: MAHARASHTRA_FACILITIES.find(f => f.id === orderFacilityId)?.name || 'PHC Bhamragad',
-            testName: selectedCat.name,
+            testName: isEn ? selectedCat.name : isHi ? selectedCat.nameHi : selectedCat.nameMr,
             category: selectedCat.category,
-            orderedBy: 'Dr. Suresh Atram (MO)',
+            orderedBy: isEn ? 'Dr. Suresh Atram (MO)' : isHi ? 'डॉ. सुरेश आत्राम (MO)' : 'डॉ. सुरेश आत्राम (MO)',
             orderedAt: new Date().toISOString(),
             status: 'ORDERED',
             isAbnormal: false,
         };
 
-        toast.success(`Diagnostic Requisition Created for ${p.name}`);
+        toast.success(isEn ? `Diagnostic Requisition Created for ${p.name}` : isHi ? `${p.name} हेतु लैब जांच ऑर्डर दर्ज किया गया` : `${p.name} साठी लॅब चाचणी नोंदवली गेली`);
         setShowNewOrderModal(false);
     };
 
@@ -103,10 +113,41 @@ export default function DiagnosticsPage() {
         e.preventDefault();
         if (!selectedTest) return;
         await updateDiagnosticResult(selectedTest.id, resultText, isAbnormal);
-        toast.success('Diagnostic Result Saved & Automatically Pushed to Patient LHR!', {
-            icon: '📑',
-        });
+        toast.success(isEn ? 'Diagnostic Result Saved & Pushed to Patient LHR!' : isHi ? 'लैब रिपोर्ट सुरक्षित कर मरीज के LHR रिकॉर्ड में दर्ज की गई!' : 'लॅब अहवाल जतन करून रुग्णाच्या डिजिटल LHR ला जोडला गेला!');
         setShowResultModal(false);
+    };
+
+    const txt = {
+        deptTag: isEn ? 'Government of Maharashtra • Cross-Tier Diagnostic Lab Network' : isHi ? 'महाराष्ट्र सरकार • बहु-स्तरीय स्वास्थ्य जांच नेटवर्क' : 'महाराष्ट्र शासन • बहु-स्तरीय लॅब व निदान नेटवर्क',
+        title: isEn ? 'Diagnostic Coordination & Lab Tracking' : isHi ? 'निदान समन्वय एवं लैब ट्रैकिंग' : 'निदान व प्रयोगशाळा समन्वय',
+        subTitle: isEn
+            ? 'Sample collection pipeline, nearest lab router for unavailable tests, and instant LHR push'
+            : isHi
+            ? 'सैंपल कलेक्शन पाइपलाइन, अनुपलब्ध टेस्ट हेतु निकटतम लैब राउटर एवं डिजिटल LHR रिकॉर्ड'
+            : 'नमुने संकलन, उपलब्ध नसलेल्या चाचण्यांसाठी जवळचे लॅब राऊटर आणि थेट डिजिटल आरोग्य नोंद (LHR)',
+        orderTestBtn: isEn ? '➕ Order Diagnostic Test' : isHi ? '➕ नई जांच ऑर्डर करें' : '➕ नवीन लॅब चाचणी नोंदवा',
+        catalogTitle: isEn ? 'IPHS Diagnostic Catalog & Multi-Tier Facility Availability' : isHi ? 'IPHS जांच सूची एवं स्तर-वार उपलब्धता राउटर' : 'IPHS चाचण्यांची सूची व बहु-स्तरीय आरोग्य केंद्र उपलब्धता',
+        catalogSub: isEn ? 'Real-time routing for Sub-Centres & PHCs' : isHi ? 'उपकेंद्रों व प्राथमिक स्वास्थ्य केंद्रों हेतु लाइव मैपिंग' : 'उपकेंद्रे व प्राथमिक आरोग्य केंद्रांसाठी थेट लॅब जोडणी',
+        inHouse: isEn ? '✓ In-House' : isHi ? '✓ स्थानीय उपलब्ध' : '✓ केंद्रात उपलब्ध',
+        referLab: isEn ? '↗ Refer Lab' : isHi ? '↗ रेफरल लैब' : '↗ संदर्भ लॅबकडे',
+        allOrders: isEn ? 'All Orders' : isHi ? 'सभी ऑर्डर्स' : 'सर्व ऑर्डर्स',
+        ordered: isEn ? 'Ordered' : isHi ? 'ऑर्डर की गई' : 'नोंदवलेली',
+        sampleCollected: isEn ? 'Sample Collected' : isHi ? 'सैंपल संकलित' : 'नमुना गोळा केला',
+        inProgress: isEn ? 'In Progress' : isHi ? 'प्रक्रियाधीन' : 'तपासणी सुरू',
+        completed: isEn ? 'Completed' : isHi ? 'पूर्ण' : 'पूर्ण झाले',
+        searchPlaceholder: isEn ? 'Search patient, test, facility...' : isHi ? 'मरीज, टेस्ट, अस्पताल खोजें...' : 'रुग्ण, चाचणी, आरोग्य केंद्र शोधा...',
+        abnormalBadge: isEn ? '⚠️ ABNORMAL RESULT' : isHi ? '⚠️ असामान्य परिणाम' : '⚠️ असामान्य अहवाल (Abnormal)',
+        enterResultBtn: isEn ? '✍️ Enter Lab Result' : isHi ? '✍️ रिपोर्ट दर्ज करें' : '✍️ अहवाल नोंदवा',
+        resultModalTitle: isEn ? 'Enter Lab Diagnostic Result' : isHi ? 'लैब रिपोर्ट दर्ज करें' : 'लॅब अहवाल नोंदवा',
+        resultFindings: isEn ? 'Result Findings / Measured Values:' : isHi ? 'परीक्षण परिणाम / निष्कर्ष:' : 'चाचणीचे निष्कर्ष व मूल्ये:',
+        markAbnormal: isEn ? 'Flag as Abnormal / Alert Consulting Doctor' : isHi ? 'असामान्य (Abnormal) चिह्नित कर डॉक्टर को अलर्ट करें' : 'असामान्य (Abnormal) चिन्हांकित करून डॉक्टरना सतर्क करा',
+        cancel: isEn ? 'Cancel' : isHi ? 'रद्द करें' : 'रद्द करा',
+        saveBtn: isEn ? 'Save & Push to Patient LHR' : isHi ? 'सुरक्षित करें व LHR में भेजें' : 'जतन करा व LHR मध्ये जोडा',
+        createModalTitle: isEn ? 'Order New Diagnostic Lab Test' : isHi ? 'नई लैब जांच ऑर्डर करें' : 'नवीन लॅब तपासणी नोंदवा',
+        selectPatient: isEn ? 'Select Patient:' : isHi ? 'मरीज चुनें:' : 'रुग्ण निवडा:',
+        selectTest: isEn ? 'Diagnostic Test:' : isHi ? 'जांच का नाम:' : 'चाचणीचे नाव:',
+        routingFacility: isEn ? 'Processing Lab Facility:' : isHi ? 'जांच अस्पताल / लैब:' : 'तपासणी प्रयोगशाळा / केंद्र:',
+        confirmOrderBtn: isEn ? 'Confirm Diagnostic Order' : isHi ? 'ऑर्डर की पुष्टि करें' : 'चाचणी ऑर्डर निश्चित करा',
     };
 
     return (
@@ -124,33 +165,33 @@ export default function DiagnosticsPage() {
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse" />
                                 <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">
-                                    Government of Maharashtra • Cross-Tier Diagnostic Lab Network
+                                    {txt.deptTag}
                                 </span>
                             </div>
-                            <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
-                                Diagnostic Coordination & Lab Tracking
+                            <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">
+                                {txt.title}
                             </h1>
                             <p className="text-xs text-txt-secondary mt-0.5">
-                                Sample collection pipeline, nearest lab router for unavailable tests, and instant LHR push
+                                {txt.subTitle}
                             </p>
                         </div>
 
                         <button
                             onClick={() => setShowNewOrderModal(true)}
-                            className="px-4 py-2 bg-emerald-deep hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow flex items-center gap-2"
+                            className="px-4 py-2 bg-[#1F3A6E] hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow flex items-center gap-2 cursor-pointer transition-all"
                         >
-                            <span>➕ Order Diagnostic Test</span>
+                            <span>{txt.orderTestBtn}</span>
                         </button>
                     </div>
 
                     {/* Diagnostic Test Catalog & Nearest Availability Router */}
                     <div className="surface-card p-5 space-y-3">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-xs font-black text-emerald-deep uppercase tracking-wider">
-                                IPHS Diagnostic Catalog & Multi-Tier Facility Availability
+                            <h2 className="text-xs font-black text-[#1F3A6E] uppercase tracking-wider">
+                                {txt.catalogTitle}
                             </h2>
                             <span className="text-[11px] text-txt-muted">
-                                Real-time routing for Sub-Centres & PHCs
+                                {txt.catalogSub}
                             </span>
                         </div>
 
@@ -165,19 +206,19 @@ export default function DiagnosticsPage() {
                                     }`}
                                 >
                                     <div className="flex items-start justify-between gap-2">
-                                        <span className="text-xs font-extrabold text-emerald-deep leading-tight">
-                                            {item.name}
+                                        <span className="text-xs font-extrabold text-[#1F3A6E] leading-tight">
+                                            {isEn ? item.name : isHi ? item.nameHi : item.nameMr}
                                         </span>
                                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap ${
-                                            item.localAvail ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+                                            item.localAvail ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
                                         }`}>
-                                            {item.localAvail ? '✓ In-House' : '↗ Refer Lab'}
+                                            {item.localAvail ? txt.inHouse : txt.referLab}
                                         </span>
                                     </div>
                                     <div className="mt-2 text-[11px] text-txt-secondary space-y-0.5">
-                                        <p><strong>Tier:</strong> {item.tier}</p>
-                                        <p><strong>Location:</strong> {item.nearest}</p>
-                                        <p><strong>Turnaround Time:</strong> {item.time}</p>
+                                        <p><strong>{isEn ? 'Tier:' : isHi ? 'स्तर:' : 'स्तर:'}</strong> {item.tier}</p>
+                                        <p><strong>{isEn ? 'Location:' : isHi ? 'स्थान:' : 'स्थान:'}</strong> {isEn ? item.nearest : isHi ? item.nearestHi : item.nearestMr}</p>
+                                        <p><strong>{isEn ? 'Turnaround:' : isHi ? 'समय:' : 'कालावधी:'}</strong> {item.time}</p>
                                     </div>
                                 </div>
                             ))}
@@ -187,18 +228,24 @@ export default function DiagnosticsPage() {
                     {/* Live Diagnostic Orders & Sample Pipeline */}
                     <div className="space-y-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                            <div className="flex items-center gap-2">
-                                {(['ALL', 'ORDERED', 'SAMPLE_COLLECTED', 'IN_PROGRESS', 'COMPLETED'] as const).map((st) => (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {([
+                                    { key: 'ALL', label: txt.allOrders },
+                                    { key: 'ORDERED', label: txt.ordered },
+                                    { key: 'SAMPLE_COLLECTED', label: txt.sampleCollected },
+                                    { key: 'IN_PROGRESS', label: txt.inProgress },
+                                    { key: 'COMPLETED', label: txt.completed }
+                                ]).map((st) => (
                                     <button
-                                        key={st}
-                                        onClick={() => setFilterStatus(st)}
-                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                                            filterStatus === st
-                                                ? 'bg-emerald-deep text-white shadow-sm'
+                                        key={st.key}
+                                        onClick={() => setFilterStatus(st.key)}
+                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                            filterStatus === st.key
+                                                ? 'bg-[#1F3A6E] text-white shadow-sm'
                                                 : 'bg-white border border-border-subtle text-txt-secondary hover:bg-gray-50'
                                         }`}
                                     >
-                                        {st === 'ALL' ? 'All Orders' : st.replace('_', ' ')}
+                                        {st.label}
                                     </button>
                                 ))}
                             </div>
@@ -207,7 +254,7 @@ export default function DiagnosticsPage() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search patient, test, facility..."
+                                placeholder={txt.searchPlaceholder}
                                 className="px-3 py-1.5 bg-white border border-border-subtle rounded-xl text-xs w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-deep"
                             />
                         </div>
@@ -233,19 +280,21 @@ export default function DiagnosticsPage() {
                                                     order.status === 'SAMPLE_COLLECTED' ? 'bg-purple-100 text-purple-800' :
                                                     'bg-amber-100 text-amber-800'
                                                 }`}>
-                                                    {order.status.replace('_', ' ')}
+                                                    {order.status === 'COMPLETED' ? txt.completed :
+                                                     order.status === 'IN_PROGRESS' ? txt.inProgress :
+                                                     order.status === 'SAMPLE_COLLECTED' ? txt.sampleCollected : txt.ordered}
                                                 </span>
                                                 {order.isAbnormal && (
                                                     <span className="text-[10px] font-extrabold bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">
-                                                        ⚠️ ABNORMAL RESULT
+                                                        {txt.abnormalBadge}
                                                     </span>
                                                 )}
                                             </div>
-                                            <h3 className="text-base font-extrabold text-emerald-deep">
+                                            <h3 className="text-base font-extrabold text-[#1F3A6E]">
                                                 {order.testName}
                                             </h3>
                                             <p className="text-xs text-txt-muted mt-0.5">
-                                                Patient: <strong>{order.patientName}</strong> ({order.patientAge}y) • Ordered by: {order.orderedBy}
+                                                {isEn ? 'Patient:' : isHi ? 'मरीज:' : 'रुग्ण:'} <strong>{order.patientName}</strong> ({order.patientAge}y) • {isEn ? 'Ordered by:' : isHi ? 'डॉक्टर:' : 'वैद्यकीय अधिकारी:'} {order.orderedBy}
                                             </p>
                                         </div>
 
@@ -257,187 +306,196 @@ export default function DiagnosticsPage() {
                                     {/* Result Summary */}
                                     <div className="mt-3 p-3 bg-gray-50 border border-border-subtle rounded-xl text-xs space-y-1">
                                         <div className="flex justify-between font-medium">
-                                            <span>Facility: <strong>{order.facilityName}</strong></span>
-                                            <span>Ordered: {new Date(order.orderedAt).toLocaleDateString()}</span>
+                                            <span>{isEn ? 'Facility:' : isHi ? 'केंद्र:' : 'आरोग्य केंद्र:'} <strong>{order.facilityName}</strong></span>
+                                            <span className="text-txt-muted">{new Date(order.orderedAt).toLocaleDateString()}</span>
                                         </div>
+
                                         {order.resultSummary ? (
-                                            <div className="pt-1 text-txt-primary">
-                                                <strong>Result:</strong> <span className={order.isAbnormal ? 'font-bold text-rose-700' : 'text-emerald-800'}>{order.resultSummary}</span>
-                                                {order.normalRange && (
-                                                    <span className="block text-[11px] text-txt-muted">Ref Range: {order.normalRange}</span>
-                                                )}
+                                            <div className="mt-2 pt-2 border-t border-gray-200">
+                                                <span className="font-bold text-txt-primary">{isEn ? 'Result:' : isHi ? 'रिपोर्ट:' : 'अहवाल:'}</span>{' '}
+                                                <span className={order.isAbnormal ? 'font-bold text-status-red' : 'text-txt-secondary'}>
+                                                    {order.resultSummary}
+                                                </span>
+                                                <div className="mt-1 text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                                                    <span>✓ {isEn ? 'Synced to ABDM Longitudinal Health Record (LHR)' : isHi ? 'ABDM हेल्थ रिकॉर्ड (LHR) में दर्ज' : 'ABDM आरोग्य रेकॉर्ड (LHR) ला जोडले गेले'}</span>
+                                                </div>
                                             </div>
                                         ) : (
-                                            <p className="text-txt-muted italic pt-1">
-                                                Sample in transit to designated testing laboratory...
-                                            </p>
+                                            <div className="mt-2 pt-2 border-t border-gray-200 flex justify-end">
+                                                <button
+                                                    onClick={() => handleOpenResultModal(order)}
+                                                    className="px-3 py-1 bg-[#1F3A6E] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-800 transition-colors cursor-pointer"
+                                                >
+                                                    {txt.enterResultBtn}
+                                                </button>
+                                            </div>
                                         )}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="mt-3 flex gap-2 justify-end">
-                                        <button
-                                            onClick={() => handleOpenResultModal(order)}
-                                            className="px-3 py-1.5 bg-white border border-border-subtle hover:bg-gray-100 text-txt-primary text-xs font-bold rounded-xl shadow-sm"
-                                        >
-                                            {order.status === 'COMPLETED' ? '📝 Update Result' : '🧪 Enter Lab Result'}
-                                        </button>
-                                        <button
-                                            onClick={() => toast.success(`Lab Report synced with ABHA ${order.patientId} health locker`)}
-                                            className="px-3 py-1.5 bg-emerald-deep hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm"
-                                        >
-                                            Push to LHR →
-                                        </button>
                                     </div>
                                 </motion.div>
                             ))}
                         </div>
                     </div>
 
-                </div>
-
-                {/* New Order Modal */}
-                {showNewOrderModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-border-subtle space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-black text-emerald-deep">
-                                    Requisition Diagnostic Test
-                                </h3>
-                                <button onClick={() => setShowNewOrderModal(false)} className="text-txt-muted">✕</button>
-                            </div>
-
-                            <form onSubmit={handleCreateOrder} className="space-y-3">
-                                <div>
-                                    <label className="text-xs font-bold text-txt-secondary block mb-1">Select Patient</label>
-                                    <select
-                                        value={orderPatientId}
-                                        onChange={(e) => setOrderPatientId(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs font-semibold"
-                                    >
-                                        <option value="">Choose Patient from Registry...</option>
-                                        {patients.map((p) => (
-                                            <option key={p.id} value={p.id}>{p.name} ({p.age}y, {p.village})</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-bold text-txt-secondary block mb-1">Diagnostic Test</label>
-                                    <select
-                                        value={orderTestType}
-                                        onChange={(e) => setOrderTestType(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs font-semibold"
-                                    >
-                                        {testCatalog.map((c) => (
-                                            <option key={c.code} value={c.code}>{c.name} — {c.localAvail ? 'Local' : 'Referral'}</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-bold text-txt-secondary block mb-1">Testing Facility</label>
-                                    <select
-                                        value={orderFacilityId}
-                                        onChange={(e) => setOrderFacilityId(e.target.value)}
-                                        className="w-full p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs font-semibold"
-                                    >
-                                        {MAHARASHTRA_FACILITIES.map((f) => (
-                                            <option key={f.id} value={f.id}>{f.name} ({f.type})</option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-xs font-bold text-txt-secondary block mb-1">Clinical Indication / Notes</label>
-                                    <input
-                                        type="text"
-                                        value={orderNotes}
-                                        onChange={(e) => setOrderNotes(e.target.value)}
-                                        placeholder="Reason for ordering test..."
-                                        className="w-full p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs"
-                                    />
-                                </div>
-
-                                <div className="flex gap-2 justify-end pt-2">
+                    {/* Result Entry Modal */}
+                    {showResultModal && selectedTest && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                                <div className="flex justify-between items-center border-b pb-3">
+                                    <div>
+                                        <h3 className="text-base font-extrabold text-[#1F3A6E]">
+                                            {txt.resultModalTitle}
+                                        </h3>
+                                        <p className="text-xs text-txt-muted">
+                                            {selectedTest.testName} • {selectedTest.patientName}
+                                        </p>
+                                    </div>
                                     <button
-                                        type="button"
-                                        onClick={() => setShowNewOrderModal(false)}
-                                        className="px-4 py-2 bg-gray-100 text-txt-secondary text-xs font-bold rounded-xl"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-emerald-deep text-white text-xs font-bold rounded-xl shadow"
-                                    >
-                                        Create Requisition
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                )}
-
-                {/* Result Entry Modal */}
-                {showResultModal && selectedTest && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-border-subtle space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-base font-black text-emerald-deep">
-                                        Lab Result Entry: {selectedTest.testName}
-                                    </h3>
-                                    <span className="text-xs text-txt-muted">Patient: {selectedTest.patientName}</span>
-                                </div>
-                                <button onClick={() => setShowResultModal(false)} className="text-txt-muted">✕</button>
-                            </div>
-
-                            <form onSubmit={handleSaveResult} className="space-y-3">
-                                <div>
-                                    <label className="text-xs font-bold text-txt-secondary block mb-1">Lab Findings / Numerical Value</label>
-                                    <textarea
-                                        value={resultText}
-                                        onChange={(e) => setResultText(e.target.value)}
-                                        rows={3}
-                                        required
-                                        placeholder="e.g. Hemoglobin: 8.2 g/dL, Fasting Sugar: 284 mg/dL..."
-                                        className="w-full p-3 bg-gray-50 border border-border-subtle rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-emerald-deep"
-                                    />
-                                </div>
-
-                                <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl">
-                                    <input
-                                        type="checkbox"
-                                        id="abnormalCheck"
-                                        checked={isAbnormal}
-                                        onChange={(e) => setIsAbnormal(e.target.checked)}
-                                        className="w-4 h-4 text-rose-600 rounded"
-                                    />
-                                    <label htmlFor="abnormalCheck" className="text-xs font-bold text-rose-900 cursor-pointer">
-                                        Flag as Critical / Abnormal Result (Triggers Doctor Alert)
-                                    </label>
-                                </div>
-
-                                <div className="flex gap-2 justify-end pt-2">
-                                    <button
-                                        type="button"
                                         onClick={() => setShowResultModal(false)}
-                                        className="px-4 py-2 bg-gray-100 text-txt-secondary text-xs font-bold rounded-xl"
+                                        className="text-gray-400 hover:text-gray-600 font-bold"
                                     >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-emerald-deep text-white text-xs font-bold rounded-xl shadow"
-                                    >
-                                        Save & Sync to LHR
+                                        ✕
                                     </button>
                                 </div>
-                            </form>
+
+                                <form onSubmit={handleSaveResult} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-txt-primary mb-1">
+                                            {txt.resultFindings}
+                                        </label>
+                                        <textarea
+                                            required
+                                            rows={3}
+                                            value={resultText}
+                                            onChange={(e) => setResultText(e.target.value)}
+                                            placeholder={isEn ? 'e.g., Hb: 7.8 g/dL (Severe Microcytic Anemia)' : isHi ? 'उदा. Hb: ७.८ g/dL (एनीमिया)' : 'उदा. हिमोग्लोबिन: ७.८ g/dL (तीव्र अ‍ॅनिमिया)'}
+                                            className="w-full p-3 border border-border-subtle rounded-xl text-xs focus:ring-2 focus:ring-emerald-deep outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            id="abnormalCheck"
+                                            checked={isAbnormal}
+                                            onChange={(e) => setIsAbnormal(e.target.checked)}
+                                            className="rounded text-status-red focus:ring-status-red"
+                                        />
+                                        <label htmlFor="abnormalCheck" className="text-xs font-bold text-status-red cursor-pointer">
+                                            {txt.markAbnormal}
+                                        </label>
+                                    </div>
+
+                                    <div className="flex gap-2 justify-end pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowResultModal(false)}
+                                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-txt-secondary text-xs font-bold rounded-xl cursor-pointer"
+                                        >
+                                            {txt.cancel}
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-[#1F3A6E] hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow cursor-pointer"
+                                        >
+                                            {txt.saveBtn}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* New Order Modal */}
+                    {showNewOrderModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4">
+                                <div className="flex justify-between items-center border-b pb-3">
+                                    <h3 className="text-base font-extrabold text-[#1F3A6E]">
+                                        {txt.createModalTitle}
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowNewOrderModal(false)}
+                                        className="text-gray-400 hover:text-gray-600 font-bold"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleCreateOrder} className="space-y-4 text-xs">
+                                    <div>
+                                        <label className="block font-bold text-txt-primary mb-1">
+                                            {txt.selectPatient}
+                                        </label>
+                                        <select
+                                            required
+                                            value={orderPatientId}
+                                            onChange={(e) => setOrderPatientId(e.target.value)}
+                                            className="w-full p-2.5 border rounded-xl"
+                                        >
+                                            <option value="">-- {isEn ? 'Choose Patient' : isHi ? 'मरीज चुनें' : 'रुग्ण निवडा'} --</option>
+                                            {patients.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.name} ({p.age}y / {p.gender}) — {p.village}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block font-bold text-txt-primary mb-1">
+                                            {txt.selectTest}
+                                        </label>
+                                        <select
+                                            value={orderTestType}
+                                            onChange={(e) => setOrderTestType(e.target.value)}
+                                            className="w-full p-2.5 border rounded-xl"
+                                        >
+                                            {testCatalog.map((c) => (
+                                                <option key={c.code} value={c.code}>
+                                                    {isEn ? c.name : isHi ? c.nameHi : c.nameMr} ({c.tier})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block font-bold text-txt-primary mb-1">
+                                            {txt.routingFacility}
+                                        </label>
+                                        <select
+                                            value={orderFacilityId}
+                                            onChange={(e) => setOrderFacilityId(e.target.value)}
+                                            className="w-full p-2.5 border rounded-xl"
+                                        >
+                                            {MAHARASHTRA_FACILITIES.map((f) => (
+                                                <option key={f.id} value={f.id}>
+                                                    {f.name} ({f.type})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="flex gap-2 justify-end pt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewOrderModal(false)}
+                                            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-txt-secondary rounded-xl font-bold cursor-pointer"
+                                        >
+                                            {txt.cancel}
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-[#1F3A6E] hover:bg-emerald-800 text-white rounded-xl font-bold shadow cursor-pointer"
+                                        >
+                                            {txt.confirmOrderBtn}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
             </main>
         </div>
     );

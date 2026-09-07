@@ -43,7 +43,7 @@ export default function Home() {
             href: '/opd',
             btn: isEn ? 'Launch OPD Intake →' : isHi ? 'ओपीडी शुरू करें →' : 'ओपीडी सुरू करा →',
             tag: isEn ? 'Point of Care' : 'आरोग्य केंद्र',
-            accent: 'border-l-[#1F3A6E]',
+            accent: 'border-l-gov-navy',
         },
         {
             code: 'M-02',
@@ -57,7 +57,7 @@ export default function Home() {
             href: '/dashboard',
             btn: isEn ? 'Open Command Center →' : isHi ? 'डैशबोर्ड खोलें →' : 'डॅशबोर्ड उघडा →',
             tag: isEn ? 'Executive Hub' : 'प्रशासन',
-            accent: 'border-l-[#B45309]',
+            accent: 'border-l-gov-amber',
         },
         {
             code: 'M-03',
@@ -71,7 +71,7 @@ export default function Home() {
             href: '/followup',
             btn: isEn ? 'View Recall Cohorts →' : isHi ? 'फॉलो-अप सूची देखें →' : 'पाठपुरावा यादी पहा →',
             tag: isEn ? 'Surveillance' : 'निगरानी',
-            accent: 'border-l-[#C53030]',
+            accent: 'border-l-gov-red',
         },
         {
             code: 'M-04',
@@ -85,7 +85,7 @@ export default function Home() {
             href: '/diagnostics',
             btn: isEn ? 'Access Lab Network →' : isHi ? 'लैब नेटवर्क खोलें →' : 'लॅब नेटवर्क उघडा →',
             tag: isEn ? 'Lab Network' : 'प्रयोगशाळा',
-            accent: 'border-l-[#0284C7]',
+            accent: 'border-l-gov-accent-sky',
         },
         {
             code: 'M-05',
@@ -99,7 +99,7 @@ export default function Home() {
             href: '/medicine',
             btn: isEn ? 'Check Medicine Stock →' : isHi ? 'दवा स्टॉक देखें →' : 'औषध साठा तपासा →',
             tag: isEn ? 'Free Pharmacy' : 'औषधालय',
-            accent: 'border-l-[#15803D]',
+            accent: 'border-l-gov-success',
         },
         {
             code: 'M-06',
@@ -113,7 +113,7 @@ export default function Home() {
             href: '/referrals',
             btn: isEn ? 'Track Referrals →' : isHi ? 'रेफरल पाइपलाइन देखें →' : 'रेफरल पाइपलाइन →',
             tag: isEn ? 'Emergency Transit' : 'रुग्णवाहिका',
-            accent: 'border-l-[#DC2626]',
+            accent: 'border-l-gov-accent-crimson',
         },
         {
             code: 'M-07',
@@ -127,7 +127,7 @@ export default function Home() {
             href: '/queue',
             btn: isEn ? 'View Queue Board →' : isHi ? 'कतार बोर्ड देखें →' : 'रांग फलक पहा →',
             tag: isEn ? 'Live Queue' : 'रांग फलक',
-            accent: 'border-l-[#4F46E5]',
+            accent: 'border-l-gov-accent-indigo',
         },
         {
             code: 'M-08',
@@ -141,7 +141,7 @@ export default function Home() {
             href: '/teleconsult',
             btn: isEn ? 'Start Teleconsult →' : isHi ? 'कॉल शुरू करें →' : 'कॉल सुरू करा →',
             tag: isEn ? 'Specialist Hub' : 'तज्ज्ञ डॉक्टर',
-            accent: 'border-l-[#0D9488]',
+            accent: 'border-l-gov-accent-teal',
         },
         {
             code: 'M-09',
@@ -155,7 +155,7 @@ export default function Home() {
             href: '/facilities',
             btn: isEn ? 'Explore Facilities →' : isHi ? 'संस्था निर्देशिका देखें →' : 'संस्था निर्देशिका →',
             tag: isEn ? 'Directory' : 'मार्गदर्शक',
-            accent: 'border-l-[#7C3AED]',
+            accent: 'border-l-gov-accent-violet',
         },
     ];
 
@@ -233,11 +233,11 @@ export default function Home() {
             {/* Government Portal Breadcrumb & Official Seal */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-300">
                 <div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-[#1F3A6E] mb-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gov-navy mb-1">
                         <StateEmblem size={18} />
                         <span>{pageTexts.deptTag}</span>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-[#1F3A6E] tracking-tight">
+                    <h1 className="text-2xl sm:text-3xl font-black text-gov-navy tracking-tight">
                         {pageTexts.heroTitle}
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-4xl leading-relaxed">
@@ -246,10 +246,10 @@ export default function Home() {
                 </div>
 
                 <div className="flex items-center gap-2 text-xs flex-shrink-0">
-                    <span className="px-3 py-1.5 bg-[#E8F5E9] text-[#138808] border border-[#A5D6A7] rounded font-bold">
+                    <span className="px-3 py-1.5 bg-gov-green-bg text-gov-green border border-gov-green-border rounded font-bold">
                         {pageTexts.abdmBadge}
                     </span>
-                    <span className="px-3 py-1.5 bg-[#EFF6FF] text-[#1D4ED8] border border-[#93C5FD] rounded font-bold">
+                    <span className="px-3 py-1.5 bg-gov-blue-bg text-gov-blue border border-gov-blue-border rounded font-bold">
                         {pageTexts.offlineBadge}
                     </span>
                 </div>
@@ -257,7 +257,7 @@ export default function Home() {
 
             {/* Official State & District Live Telemetry Table (NIC Style) */}
             <div className="my-5 bg-white border border-slate-300 rounded overflow-hidden shadow-sm">
-                <div className="bg-[#1F3A6E] text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
+                <div className="bg-gov-navy text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
                     <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                         <span>{pageTexts.censusTitle}</span>
@@ -272,7 +272,7 @@ export default function Home() {
                         <span className="text-[11px] text-slate-500 font-bold uppercase block">
                             {pageTexts.stat1Label}
                         </span>
-                        <strong className="text-2xl font-black text-[#1F3A6E]">
+                        <strong className="text-2xl font-black text-gov-navy">
                             {patients.length + 152}
                         </strong>
                         <span className="text-[10px] text-emerald-700 block font-semibold">{pageTexts.stat1Sub}</span>
@@ -314,7 +314,7 @@ export default function Home() {
             <div className="mb-8">
                 <div className="flex items-center justify-between mb-3 border-b border-slate-300 pb-2">
                     <div>
-                        <h2 className="text-base sm:text-lg font-bold text-[#1F3A6E]">
+                        <h2 className="text-base sm:text-lg font-bold text-gov-navy">
                             {pageTexts.modulesHeading}
                         </h2>
                         <p className="text-xs text-slate-500">
@@ -341,7 +341,7 @@ export default function Home() {
                                         {m.tag}
                                     </span>
                                 </div>
-                                <h3 className="text-sm font-bold text-[#1F3A6E] mb-1 leading-snug">
+                                <h3 className="text-sm font-bold text-gov-navy mb-1 leading-snug">
                                     {m.title}
                                 </h3>
                                 <p className="text-xs text-slate-600 leading-relaxed">
@@ -355,7 +355,7 @@ export default function Home() {
                                 </span>
                                 <Link
                                     href={m.href}
-                                    className="font-bold text-[#1F3A6E] hover:text-[#16294E] hover:underline"
+                                    className="font-bold text-gov-navy hover:text-gov-navy-hover hover:underline"
                                 >
                                     {m.btn}
                                 </Link>
@@ -371,7 +371,7 @@ export default function Home() {
                 <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-emerald-600 shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wide">
+                            <h3 className="text-sm font-bold text-gov-navy uppercase tracking-wide">
                                 {pageTexts.citizenTitle}
                             </h3>
                         </div>
@@ -393,10 +393,10 @@ export default function Home() {
                 </div>
 
                 {/* Staff & Medical Cadre Box */}
-                <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-[#1F3A6E] shadow-sm flex flex-col justify-between">
+                <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-gov-navy shadow-sm flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <h3 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wide">
+                            <h3 className="text-sm font-bold text-gov-navy uppercase tracking-wide">
                                 {pageTexts.staffTitle}
                             </h3>
                         </div>

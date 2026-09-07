@@ -5,6 +5,7 @@ import GovPortalFooter from "@/components/gov/GovPortalFooter";
 import OfflineBanner from "@/components/gov/OfflineBanner";
 import EmergencyModal from "@/components/shared/EmergencyModal";
 import SocketInit from "@/components/shared/SocketInit";
+import PWAInstall from "@/components/shared/PWAInstall";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
 
@@ -37,7 +38,7 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link
-                    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap"
+                    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap"
                     rel="stylesheet"
                 />
                 <link
@@ -65,6 +66,8 @@ export default function RootLayout({
                     </div>
                     {/* Universal Emergency SOS Modal */}
                     <EmergencyModal />
+                    {/* Registers the service worker (offline app shell) + install prompt */}
+                    <PWAInstall />
                 </ErrorBoundary>
 
                 {/* Official NIC Government Footer */}

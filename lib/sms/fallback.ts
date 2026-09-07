@@ -33,10 +33,34 @@ export function compressPatientData(patient: Patient): string {
  * Generates the SMS link for mobile devices
  */
 export function generateSMSLink(patient: Patient, recipientNumber: string = '1234567890'): string {
-    const message = compressPatientData(patient);
-    // iOS and Android handle body separator differently sometimes, strictly using ?body=
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
-    const separator = ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1 ? '&' : '?';
+    return buildSmsUri(recipientNumber, compressPatientData(patient));
+}
 
-    return `sms:${recipientNumber}${separator}body=${encodeURIComponent(message)}`;
+/**
+ * Builds an `sms:` URI. iOS wants `&body=`, Android/others want `?body=`.
+ */
+export function buildSmsUri(recipientNumber: string, message: string): string {
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
+    const isApple = ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1;
+    const separator = isApple ? '&' : '?';
+    const cleanNumber = recipientNumber.replace(/[^\d+]/g, '');
+
+    return `sms:${cleanNumber}${separator}body=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Hands the message off to the device's native SMS application.
+ *
+ * This is the genuine 2G / zero-data fallback: it works with no internet at all
+ * because the carrier SMS channel is used, not an HTTP gateway. Returns false when
+ * no SMS handler is available (e.g. desktop browsers), so callers can degrade.
+ */
+export function openSmsComposer(recipientNumber: string, message: string): boolean {
+    if (typeof window === 'undefined') return false;
+
+    const canSendSms = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+    if (!canSendSms) return false;
+
+    window.location.href = buildSmsUri(recipientNumber, message);
+    return true;
 }

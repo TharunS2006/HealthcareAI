@@ -116,7 +116,7 @@ export default function MobileMenu() {
             {/* Top Mobile Bar */}
             <div className="md:hidden flex items-center justify-between p-3 bg-white border-b border-slate-300 sticky top-0 z-40">
                 <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-emerald-700" />
                     <div>
                         <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
                             {language === 'en' ? 'NalamMesh' : 'नलममेश'}

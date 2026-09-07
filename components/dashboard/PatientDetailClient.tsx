@@ -1,11 +1,17 @@
 /**
  * Patient Detail View — Client Component
+ *
+ * Resolves the patient id from EITHER the dynamic route segment (/dashboard/[id])
+ * or a query parameter (/record?id=…). The query-param route is the one that works
+ * for patients created at runtime, because `output: 'export'` can only prerender
+ * the ids known at build time.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Patient } from '@/types/patient';
 import { getPatient } from '@/lib/db';
@@ -18,35 +24,115 @@ import toast from 'react-hot-toast';
 
 export default function PatientDetailClient() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
-    const { patients } = usePatientStore();
+    const { patients, loadPatients } = usePatientStore();
     const [patient, setPatient] = useState<Patient | null>(null);
+    const [status, setStatus] = useState<'loading' | 'found' | 'not-found'>('loading');
     const [showQR, setShowQR] = useState(false);
     const [showFHIRModal, setShowFHIRModal] = useState(false);
 
-    useEffect(() => {
-        const id = params?.id as string;
-        if (!id) return;
+    // /dashboard/[id] takes precedence; /record?id=… is the runtime-safe route.
+    const patientId = (params?.id as string | undefined) || searchParams.get('id') || '';
 
-        // Try from store first (faster), then from DB
-        const fromStore = patients.find(p => p.id === id);
+    // Make sure IndexedDB records are in the store even on a cold deep-link.
+    useEffect(() => {
+        if (patients.length === 0) loadPatients();
+    }, [patients.length, loadPatients]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        if (!patientId) {
+            setStatus('not-found');
+            return;
+        }
+
+        setStatus('loading');
+
+        // Try the store first (already hydrated), then fall back to IndexedDB.
+        const fromStore = patients.find((p) => p.id === patientId);
         if (fromStore) {
             setPatient(fromStore);
-        } else {
-            getPatient(id).then(p => {
-                if (p) setPatient(p);
-            });
+            setStatus('found');
+            return;
         }
-    }, [params?.id, patients]);
+
+        getPatient(patientId)
+            .then((p) => {
+                if (cancelled) return;
+                if (p) {
+                    setPatient(p);
+                    setStatus('found');
+                } else {
+                    setStatus('not-found');
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setStatus('not-found');
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [patientId, patients]);
+
+    if (status === 'loading' || (!patient && status !== 'not-found')) {
+        return (
+            <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                        <div className="w-16 h-16 border-4 border-teal-accent border-t-transparent rounded-full animate-spin mx-auto" />
+                        <p className="text-txt-secondary">Loading patient record…</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     if (!patient) {
         return (
             <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
                 <Sidebar />
-                <main className="flex-1 md:ml-64 p-8 flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                        <div className="w-16 h-16 border-4 border-teal-accent border-t-transparent rounded-full animate-spin mx-auto" />
-                        <p className="text-txt-secondary">Loading patient record...</p>
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="surface-card max-w-md w-full p-8 text-center space-y-4">
+                        <div className="w-14 h-14 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+                            <svg className="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold text-[#1F3A6E]">Patient record not found</h1>
+                            <p className="text-sm text-txt-secondary mt-1">
+                                रुग्ण नोंद सापडली नाही.{' '}
+                                {patientId ? (
+                                    <>
+                                        No record matches ID <span className="font-mono font-bold">{patientId}</span> on this device.
+                                    </>
+                                ) : (
+                                    <>No patient ID was supplied.</>
+                                )}
+                            </p>
+                            <p className="text-xs text-txt-muted mt-2">
+                                Records are stored locally per device. If this patient was registered on another
+                                device, sync the mesh relay first.
+                            </p>
+                        </div>
+                        <div className="flex gap-2 justify-center pt-1">
+                            <Link
+                                href="/dashboard"
+                                className="px-4 py-2 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-sm rounded transition-colors"
+                            >
+                                Back to Command Centre
+                            </Link>
+                            <Link
+                                href="/opd"
+                                className="px-4 py-2 bg-white border border-[#1F3A6E] text-[#1F3A6E] hover:bg-slate-50 font-bold text-sm rounded transition-colors"
+                            >
+                                Register Patient
+                            </Link>
+                        </div>
                     </div>
                 </main>
             </div>

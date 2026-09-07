@@ -117,6 +117,13 @@ export default function OPDPage() {
         pulseLabel: isEn ? 'Pulse Rate (BPM)' : isHi ? 'नाड़ी दर (Pulse / BPM)' : 'नाडीचे ठोके (Pulse / BPM)',
         bpLabel: isEn ? 'Blood Pressure (mmHg)' : isHi ? 'रक्तचाप / Blood Pressure (mmHg)' : 'रक्तदाब / Blood Pressure (mmHg)',
         glucoseLabel: isEn ? 'Blood Glucose' : isHi ? 'रक्त शर्करा (Glucose)' : 'रक्तातील साखर (Glucose)',
+        rrLabel: isEn ? 'Respiratory Rate (/min)' : isHi ? 'श्वसन दर (Respiratory Rate)' : 'श्वसनाचा दर (Respiratory Rate)',
+        tempLabel: isEn ? 'Temperature' : isHi ? 'तापमान (Temperature)' : 'तापमान (Temperature)',
+        avpuLabel: isEn ? 'Consciousness (AVPU)' : isHi ? 'चेतना स्तर (AVPU)' : 'शुद्धीची पातळी (AVPU)',
+        avpuAlert: isEn ? 'Alert' : isHi ? 'सजग' : 'सजग',
+        avpuVoice: isEn ? 'Voice' : isHi ? 'आवाज' : 'आवाज',
+        avpuPain: isEn ? 'Pain' : isHi ? 'वेदना' : 'वेदना',
+        avpuUnresponsive: isEn ? 'Unresponsive' : isHi ? 'बेहोश' : 'बेशुद्ध',
         complaintLabel: isEn ? 'Chief Complaint & Clinical Symptoms' : isHi ? 'मुख्य शिकायत व लक्षण (Chief Complaint)' : 'मुख्य तक्रार व आजाराची लक्षणे (Chief Complaint)',
         analyzingBtn: isEn ? 'Evaluating Triage Risk...' : isHi ? 'विश्लेषण जारी है...' : 'विश्लेषण चालू आहे...',
         runTriageBtn: isEn ? '✓ Run AI Triage & Generate OPD Token' : isHi ? '✓ एआई ट्राइएज विश्लेषण करें व टोकन दें' : '✓ एआई ट्राइएज विश्लेषण करा व ओपीडी टोकन द्या',
@@ -134,6 +141,11 @@ export default function OPDPage() {
         patRoomLabel: isEn ? 'Consultation Room:' : isHi ? 'जांच कक्ष:' : 'तपासणी कक्ष:',
         roomMO: isEn ? 'Room No. 2 (Medical Officer)' : isHi ? 'कक्ष क्र. २ (चिकित्सा अधिकारी)' : 'कक्ष क्र. २ (MO OPD)',
         actionLabel: isEn ? 'Recommended Clinical Action:' : isHi ? 'अनुशंसित चिकित्सकीय कार्रवाई:' : 'वैद्यकीय कृती शिफारस:',
+        basisLabel: isEn ? 'Clinical Basis' : isHi ? 'चिकित्सकीय आधार' : 'वैद्यकीय आधार',
+        srcNeural: isEn ? 'On-device neural network' : isHi ? 'ऑन-डिवाइस न्यूरल नेटवर्क' : 'ऑन-डिव्हाइस न्यूरल नेटवर्क',
+        srcOverride: isEn ? 'IPHS danger-sign protocol (overrode model)' : isHi ? 'IPHS खतरे के लक्षण प्रोटोकॉल (मॉडल अधिभावी)' : 'IPHS धोकादायक लक्षण प्रोटोकॉल (मॉडेलवर प्राधान्य)',
+        srcRules: isEn ? 'IPHS clinical rule engine' : isHi ? 'IPHS चिकित्सकीय नियम इंजन' : 'IPHS वैद्यकीय नियम इंजिन',
+        confLabel: isEn ? 'Confidence' : isHi ? 'विश्वसनीयता' : 'विश्वासार्हता',
         wristbandBtn: isEn ? 'QR Wristband' : isHi ? 'QR रिस्टबैंड' : 'QR रिस्टबँड',
         downloadFHIR: isEn ? 'FHIR R4 JSON' : isHi ? 'FHIR R4 JSON' : 'FHIR R4 JSON',
         waitingAnalysisTitle: isEn ? 'Awaiting Triage Analysis' : isHi ? 'ट्राइएज विश्लेषण की प्रतीक्षा' : 'ट्राइएज विश्लेषण प्रतिक्षा',
@@ -543,6 +555,82 @@ export default function OPDPage() {
                                                 className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
                                             />
                                         </div>
+
+                                        {/* Respiratory Rate — a trained triage input with critical thresholds
+                                            (>=36 or <=8 /min), so it must be capturable at intake. */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                                                    {L.rrLabel}
+                                                </span>
+                                                <strong className={`text-xl font-mono ${
+                                                    (vitals.respiratoryRate || 16) >= 36 || (vitals.respiratoryRate || 16) <= 8
+                                                        ? 'text-red-700 font-black'
+                                                        : (vitals.respiratoryRate || 16) >= 27
+                                                        ? 'text-amber-700 font-black'
+                                                        : 'text-[#1F3A6E]'
+                                                }`}>
+                                                    {vitals.respiratoryRate || 16}
+                                                </strong>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min="4"
+                                                max="60"
+                                                value={vitals.respiratoryRate || 16}
+                                                onChange={(e) => setVitals({ ...vitals, respiratoryRate: Number(e.target.value) })}
+                                                className="w-full accent-[#1F3A6E] cursor-pointer"
+                                            />
+                                        </div>
+
+                                        {/* Temperature */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
+                                            <div className="flex justify-between items-center mb-1">
+                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                                                    {L.tempLabel}
+                                                </span>
+                                                <span className="text-slate-500 text-[10px]">&deg;F</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                value={vitals.temperature || 98.6}
+                                                onChange={(e) => setVitals({ ...vitals, temperature: Number(e.target.value) })}
+                                                className={`w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base ${
+                                                    (vitals.temperature || 98.6) >= 102.5 ? 'text-red-700' : 'text-[#1F3A6E]'
+                                                }`}
+                                            />
+                                        </div>
+
+                                        {/* Consciousness (AVPU) — drives the critical override for altered sensorium. */}
+                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded sm:col-span-2">
+                                            <span className="font-bold text-slate-700 uppercase text-[11px] block mb-1">
+                                                {L.avpuLabel}
+                                            </span>
+                                            <div className="flex border border-slate-300 rounded overflow-hidden">
+                                                {([
+                                                    ['ALERT', L.avpuAlert],
+                                                    ['VOICE', L.avpuVoice],
+                                                    ['PAIN', L.avpuPain],
+                                                    ['UNRESPONSIVE', L.avpuUnresponsive],
+                                                ] as const).map(([level, text]) => (
+                                                    <button
+                                                        key={level}
+                                                        type="button"
+                                                        onClick={() => setVitals({ ...vitals, consciousness: level })}
+                                                        className={`flex-1 py-1.5 text-[11px] font-bold transition-colors ${
+                                                            (vitals.consciousness || 'ALERT') === level
+                                                                ? level === 'ALERT'
+                                                                    ? 'bg-[#1F3A6E] text-white'
+                                                                    : 'bg-red-700 text-white'
+                                                                : 'bg-white text-slate-700 hover:bg-slate-100'
+                                                        }`}
+                                                    >
+                                                        {text}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* Chief Complaint / Symptoms */}
@@ -645,6 +733,26 @@ export default function OPDPage() {
 
                                         <div className="p-2 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900 leading-snug">
                                             <strong>{L.actionLabel}</strong> {triageResult.recommendedAction}
+                                        </div>
+
+                                        {/* Clinical basis — states who actually decided, model or protocol */}
+                                        <div className="p-2 bg-white border border-slate-200 rounded text-[11px] text-slate-700 leading-snug space-y-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <strong className="text-[10px] uppercase tracking-wide text-slate-500">
+                                                    {L.basisLabel}
+                                                </strong>
+                                                <span className="font-mono text-[10px] text-slate-500">
+                                                    {L.confLabel} {Math.round(triageResult.confidence * 100)}% • {triageResult.processingTime} ms
+                                                </span>
+                                            </div>
+                                            <p className="text-slate-700">{triageResult.reasoning}</p>
+                                            <p className="text-[10px] text-slate-500">
+                                                {triageResult.decisionSource === 'CLINICAL_OVERRIDE'
+                                                    ? L.srcOverride
+                                                    : triageResult.decisionSource === 'RULE_ENGINE'
+                                                    ? L.srcRules
+                                                    : L.srcNeural}
+                                            </p>
                                         </div>
 
                                         <div className="flex gap-2 pt-1">

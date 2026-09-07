@@ -66,7 +66,7 @@ export default function GovPortalFooter() {
             <div className="bg-[#0C1A30] border-b border-slate-700 py-3.5 px-4">
                 <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-2 text-slate-300">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-amber-400" />
                         <span className="font-bold text-amber-400 uppercase tracking-wider text-[11px]">
                             {F.helplineHeader}
                         </span>

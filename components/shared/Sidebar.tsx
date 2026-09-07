@@ -10,10 +10,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useMeshStatus } from '@/lib/hooks/useMeshStatus';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { language } = useLanguageStore();
+    const meshStatus = useMeshStatus();
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -27,8 +29,19 @@ export default function Sidebar() {
         doctorName: isEn ? 'Dr. Suresh Atram (MO)' : isHi ? 'डॉ. सुरेश आत्राम (MO)' : 'डॉ. सुरेश आत्राम (MO)',
         meshLabel: isEn ? 'ABDM Mesh Relay' : isHi ? 'ABDM मेश रिले' : 'ABDM मेश रिले',
         online: isEn ? 'ONLINE' : isHi ? 'सक्रिय' : 'सक्रिय',
+        standalone: isEn ? 'STANDALONE' : isHi ? 'स्वतंत्र' : 'स्वतंत्र',
+        connecting: isEn ? 'CONNECTING' : isHi ? 'जुड़ रहा है' : 'जोडत आहे',
         compliance: isEn ? 'NIC / GIGW 3.0 Standard' : isHi ? 'NIC / GIGW 3.0 मानक' : 'NIC / GIGW 3.0 मानके',
     };
+
+    // Reflects the actual relay socket. Records are held in IndexedDB either way, so
+    // STANDALONE means "queued locally, not yet relayed" — not a failure.
+    const mesh =
+        meshStatus === 'ONLINE'
+            ? { text: stationMeta.online, dot: 'bg-emerald-600 animate-pulse', pill: 'bg-emerald-50 text-emerald-800 border-emerald-300' }
+            : meshStatus === 'STANDALONE'
+            ? { text: stationMeta.standalone, dot: 'bg-amber-500', pill: 'bg-amber-50 text-amber-900 border-amber-300' }
+            : { text: stationMeta.connecting, dot: 'bg-slate-400 animate-pulse', pill: 'bg-slate-100 text-slate-700 border-slate-300' };
 
     // Official professional SVG icons (clean, hospital-grade)
     const navItems = [
@@ -57,7 +70,7 @@ export default function Sidebar() {
         },
         {
             href: '/queue',
-            label: isEn ? 'OPD Queue Board' : isHi ? 'ओपीडी कतार व टोकन' : 'ओपीडी रांग व टोकन',
+            label: isEn ? 'OPD Queue Board' : isHi ? 'ओपीडी कतार बोर्ड' : 'ओपीडी रांग फलक',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -65,11 +78,11 @@ export default function Sidebar() {
             ),
         },
         {
-            section: isEn ? 'Continuity of Care' : isHi ? 'स्वास्थ्य निरंतरता (Continuity)' : 'आरोग्य सातत्य (Continuity)',
+            section: isEn ? 'Continuity of Care' : isHi ? 'सेवा निरंतरता (Continuity)' : 'आरोग्य सातत्य (Continuity)',
         },
         {
             href: '/dashboard',
-            label: isEn ? 'District Command' : isHi ? 'जिला स्वास्थ्य डैशबोर्ड' : 'जिल्हा आरोग्य डॅशबोर्ड',
+            label: isEn ? 'District Command' : isHi ? 'जिला कमांड सेंटर' : 'जिल्हा कमांड केंद्र',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -78,7 +91,7 @@ export default function Sidebar() {
         },
         {
             href: '/referrals',
-            label: isEn ? 'Emergency Referrals' : isHi ? '१०८ / १०२ रोगी रेफरल' : '१०८ / १०२ रुग्ण रेफरल',
+            label: isEn ? 'Emergency Referrals' : isHi ? 'आपातकालीन रेफरल' : 'आपत्कालीन संदर्भ सेवा',
             badge: '108/102',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -88,7 +101,7 @@ export default function Sidebar() {
         },
         {
             href: '/followup',
-            label: isEn ? 'High-Risk Follow-Up' : isHi ? 'उच्च जोखिम फॉलो-अप' : 'उच्च जोखीम पाठपुरावा',
+            label: isEn ? 'High-Risk Follow-Up' : isHi ? 'उच्च जोखिम फॉलो-अप' : 'उच्च जोखीम फॉलो-अप',
             badge: 'ANC/SAM',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -97,11 +110,11 @@ export default function Sidebar() {
             ),
         },
         {
-            section: isEn ? 'Diagnostics & Supply' : isHi ? 'निदान एवं दवा आपूर्ति' : 'निदान व औषध पुरवठा',
+            section: isEn ? 'Diagnostics & Supply' : isHi ? 'निदान एवं आपूर्ति' : 'निदान व औषध पुरवठा',
         },
         {
             href: '/diagnostics',
-            label: isEn ? 'Diagnostic Network' : isHi ? 'लैब परीक्षण व नमूने' : 'लॅब चाचण्या व नमुने',
+            label: isEn ? 'Diagnostic Network' : isHi ? 'निदान व जांच नेटवर्क' : 'निदान व लॅब नेटवर्क',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -110,7 +123,7 @@ export default function Sidebar() {
         },
         {
             href: '/medicine',
-            label: isEn ? 'Essential Medicines' : isHi ? 'आवश्यक दवा स्टॉक' : 'आवश्यक औषध साठा',
+            label: isEn ? 'Essential Medicines' : isHi ? 'आवश्यक दवा स्टॉक' : 'अत्यावश्यक औषध साठा',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -118,7 +131,7 @@ export default function Sidebar() {
             ),
         },
         {
-            section: isEn ? 'Facility Network' : isHi ? 'स्वास्थ्य केंद्र ढांचा' : 'आरोग्य संस्था जाळे',
+            section: isEn ? 'Facility Network' : isHi ? 'स्वास्थ्य केंद्र नेटवर्क' : 'आरोग्य केंद्र नेटवर्क',
         },
         {
             href: '/facilities',
@@ -132,7 +145,7 @@ export default function Sidebar() {
         },
         {
             href: '/emergency',
-            label: isEn ? 'Emergency Dispatch' : isHi ? 'आपातकालीन एस्केलेशन' : 'आपत्कालीन एस्केलेशन',
+            label: isEn ? 'Emergency Dispatch' : isHi ? 'आपातकालीन डिस्पैच' : 'आपत्कालीन रुग्णवाहिका',
             badge: 'SOS',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -225,13 +238,13 @@ export default function Sidebar() {
 
             {/* Official Telemetry & ABDM Certified Footer */}
             <div className="p-3 bg-[#F8FAFC] border-t border-slate-200 text-[10px] text-slate-600 space-y-1">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between" role="status" aria-live="polite">
                     <span className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+                        <span className={`w-2 h-2 rounded-full ${mesh.dot}`} />
                         {stationMeta.meshLabel}
                     </span>
-                    <span className="text-[9px] px-1.5 py-0.2 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded font-bold font-mono">
-                        {stationMeta.online}
+                    <span className={`text-[9px] px-1.5 py-0.5 border rounded font-bold font-mono ${mesh.pill}`}>
+                        {mesh.text}
                     </span>
                 </div>
                 <div className="flex items-center justify-between text-slate-500 text-[9px] pt-1 border-t border-slate-200/60">

@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "server": "tsx server/mesh-server.ts",
+    "verify:triage": "tsx scripts/verify-triage.mts",
     "cap:sync": "next build && npx cap sync",
     "cap:open": "npx cap open android"
   },
@@ -16,7 +17,6 @@
     "@capacitor/android": "^8.5.0",
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
-    "@hookform/resolvers": "^5.2.2",
     "@tensorflow/tfjs": "^4.10.0",
     "crypto-js": "^4.2.0",
     "framer-motion": "^11.0.0",
@@ -25,12 +25,9 @@
     "next": "14.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.71.1",
     "react-hot-toast": "^2.6.0",
-    "react-leaflet": "^4.2.1",
     "socket.io-client": "^4.8.3",
     "uuid": "^9.0.1",
-    "web-vitals": "^5.1.0",
     "zod": "^4.3.6",
     "zustand": "^4.5.0"
   },
@@ -46,13 +43,10 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.0",
     "express": "^4.18.0",
-    "next-pwa": "^5.6.0",
     "postcss": "^8",
     "socket.io": "^4.7.0",
     "tailwindcss": "^3.4.0",
     "tsx": "^4.7.0",
-    "twilio": "^4.19.0",
-    "typescript": "^5",
-    "workbox-webpack-plugin": "^7.0.0"
+    "typescript": "^5"
   }
 }

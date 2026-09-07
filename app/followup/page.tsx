@@ -13,6 +13,7 @@ import MobileMenu from '@/components/shared/MobileMenu';
 import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { t } from '@/lib/i18n';
+import { openSmsComposer } from '@/lib/sms/fallback';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
@@ -179,15 +180,24 @@ export default function FollowUpPage() {
     const handleSendSMS = () => {
         if (!smsModalPatient) return;
         setTasks(prev => prev.map(t => t.id === smsModalPatient.id ? { ...t, status: 'SMS_SENT' } : t));
-        toast.success(`SMS Recall transmitted via fallback gateway to ${smsModalPatient.phone}`, {
-            icon: '📲',
-        });
+
+        // Real handoff on mobile/Capacitor: the carrier SMS channel needs no data connection.
+        const handedOff = openSmsComposer(smsModalPatient.phone, customSmsText);
+
+        if (handedOff) {
+            toast.success(`SMS composer opened for ${smsModalPatient.phone}`, { icon: '📲' });
+        } else {
+            toast.success(
+                `Recall queued for ${smsModalPatient.phone} — will dispatch via the NIC SMS gateway on next sync (open on a mobile device to send now)`,
+                { icon: '📲', duration: 5000 }
+            );
+        }
         setSmsModalPatient(null);
     };
 
     const handleBulkSMS = () => {
         setTasks(prev => prev.map(t => ({ ...t, status: 'SMS_SENT' })));
-        toast.success(`Bulk SMS Recalls transmitted to all ${filteredTasks.length} high-risk patients!`, {
+        toast.success(`${filteredTasks.length} high-risk recalls queued for the NIC SMS gateway`, {
             icon: '📲',
         });
     };
@@ -435,7 +445,7 @@ export default function FollowUpPage() {
                                             )}
 
                                             <Link
-                                                href={`/dashboard/${task.patientId}`}
+                                                href={`/record?id=${task.patientId}`}
                                                 className="px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-txt-secondary text-xs font-semibold rounded-xl text-center"
                                             >
                                                 View LHR →
