@@ -135,3 +135,20 @@ export interface TeleconsultSession {
     referralRecommended?: boolean;
     isLowBandwidthMode?: boolean;
 }
+
+/**
+ * Accountability audit entry. Every mutation a clinician acts on (referral status,
+ * queue movement, medicine stock) writes one of these, so the public system can answer
+ * "who changed this, when, and from what to what." Snapshots are small JSON strings.
+ */
+export interface AuditLogEntry {
+    id: string;
+    entityType: 'PATIENT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE';
+    entityId: string;
+    action: string;              // e.g. "CREATE", "STATUS → IN_TRANSIT", "STOCK_UPDATE"
+    actorId: string;             // staff id, or "system" when unattributed
+    actorRole: string;           // e.g. "MO", "DHO", "SYSTEM"
+    timestamp: string;           // ISO
+    before?: string;             // JSON snapshot of the changed fields, pre-change
+    after?: string;              // JSON snapshot, post-change
+}

@@ -6,7 +6,8 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 import { Patient, SyncQueueItem, ReferralRecord } from '@/types/patient';
-import { QueueEntry, MedicineStockItem, DiagnosticOrder, Facility } from '@/types/facility';
+import { QueueEntry, MedicineStockItem, DiagnosticOrder, Facility, AuditLogEntry } from '@/types/facility';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
 import { retry } from '@/lib/utils/retry';
 import {
@@ -78,6 +79,15 @@ type NalamMeshDB = {
         value: SyncQueueItem;
         indexes: { 'by-retry': number };
     };
+    auditLog: {
+        key: string;
+        value: AuditLogEntry;
+        indexes: {
+            'by-entity': string;
+            'by-timestamp': string;
+            'by-actor': string;
+        };
+    };
 };
 
 let dbInstance: IDBPDatabase<NalamMeshDB> | null = null;
@@ -98,7 +108,7 @@ export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
     try {
         dbInstance = await retry(
             async () => {
-                const db = await openDB<NalamMeshDB>('nalammesh-rural-db', 2, {
+                const db = await openDB<NalamMeshDB>('nalammesh-rural-db', 3, {
                     upgrade(db, oldVersion, newVersion, tx) {
                         // 1. Patients store
                         if (!db.objectStoreNames.contains('patients')) {
@@ -152,6 +162,14 @@ export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
                         if (!db.objectStoreNames.contains('syncQueue')) {
                             const syncStore = db.createObjectStore('syncQueue', { keyPath: 'id' });
                             syncStore.createIndex('by-retry', 'retryCount');
+                        }
+
+                        // 8. Audit log (v3) — accountability trail for every mutation
+                        if (!db.objectStoreNames.contains('auditLog')) {
+                            const auditStore = db.createObjectStore('auditLog', { keyPath: 'id' });
+                            auditStore.createIndex('by-entity', 'entityType');
+                            auditStore.createIndex('by-timestamp', 'timestamp');
+                            auditStore.createIndex('by-actor', 'actorId');
                         }
                     },
                 });
@@ -228,9 +246,67 @@ export async function getAllReferrals(): Promise<ReferralRecord[]> {
     return refs.length > 0 ? refs : SEED_REFERRALS;
 }
 
+// -------------------------------------------------------------
+// Accountability audit trail
+// -------------------------------------------------------------
+
+// The acting user for audit attribution. Set at login (see stores/authStore); until
+// then, writes are attributed to "system" rather than to a fabricated clinician.
+let currentActor: { actorId: string; actorRole: string } = { actorId: 'system', actorRole: 'SYSTEM' };
+
+export function setCurrentActor(actorId: string, actorRole: string): void {
+    currentActor = { actorId: actorId || 'system', actorRole: actorRole || 'SYSTEM' };
+}
+
+export function getCurrentActor(): { actorId: string; actorRole: string } {
+    return currentActor;
+}
+
+/**
+ * Record one audit entry. Deliberately non-throwing: the primary clinical write has
+ * already succeeded by the time this is called, and a failed audit write must never
+ * roll back or block patient care — the failure is logged, not propagated.
+ */
+export async function logAudit(
+    entityType: AuditLogEntry['entityType'],
+    entityId: string,
+    action: string,
+    snapshot?: { before?: unknown; after?: unknown }
+): Promise<void> {
+    try {
+        const db = await getDB();
+        const entry: AuditLogEntry = {
+            id: uuidv4(),
+            entityType,
+            entityId,
+            action,
+            actorId: currentActor.actorId,
+            actorRole: currentActor.actorRole,
+            timestamp: new Date().toISOString(),
+            ...(snapshot?.before !== undefined ? { before: JSON.stringify(snapshot.before) } : {}),
+            ...(snapshot?.after !== undefined ? { after: JSON.stringify(snapshot.after) } : {}),
+        };
+        await db.put('auditLog', entry);
+    } catch (error) {
+        console.error('Audit log write failed (clinical action already applied):', error);
+    }
+}
+
+/** Recent audit entries, newest first. */
+export async function getAuditLog(limit = 200): Promise<AuditLogEntry[]> {
+    const db = await getDB();
+    const all = await db.getAll('auditLog');
+    return all
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, limit);
+}
+
 export async function saveReferral(referral: ReferralRecord): Promise<void> {
     const db = await getDB();
     await db.put('referrals', referral);
+    await logAudit('REFERRAL', referral.id, 'CREATE', {
+        after: { status: referral.status, to: referral.toFacilityName, priority: referral.priority },
+    });
 }
 
 export async function updateReferralStatus(
@@ -246,6 +322,7 @@ export async function updateReferralStatus(
     if (!ref) {
         throw new DatabaseError(`Referral ${id} not found — status not updated to ${status}`);
     }
+    const previousStatus = ref.status;
     const now = new Date().toISOString();
     ref.status = status;
     ref.lastUpdatedAt = now;
@@ -255,6 +332,10 @@ export async function updateReferralStatus(
     if (status === 'IN_TRANSIT' && !ref.inTransitAt) ref.inTransitAt = now;
     if (status === 'COMPLETED') ref.completedAt = now;
     await db.put('referrals', ref);
+    await logAudit('REFERRAL', id, `STATUS → ${status}`, {
+        before: { status: previousStatus },
+        after: { status, ...(opts?.ambulanceVehicleNo ? { vehicle: opts.ambulanceVehicleNo } : {}) },
+    });
 }
 
 // -------------------------------------------------------------
@@ -286,11 +367,16 @@ export async function updateQueueStatus(
     if (!q) {
         throw new DatabaseError(`Queue entry ${id} not found — status not updated to ${status}`);
     }
+    const previousStatus = q.status;
     q.status = status;
     if (doctor) q.consultingDoctor = doctor;
     if (status === 'IN_CONSULTATION') q.calledAt = new Date().toISOString();
     if (status === 'COMPLETED') q.completedAt = new Date().toISOString();
     await db.put('queue', q);
+    await logAudit('QUEUE', id, `STATUS → ${status}`, {
+        before: { status: previousStatus },
+        after: { status, token: q.tokenNumber, patient: q.patientName },
+    });
 }
 
 // -------------------------------------------------------------
@@ -305,7 +391,12 @@ export async function getAllMedicines(): Promise<MedicineStockItem[]> {
 
 export async function saveMedicine(medicine: MedicineStockItem): Promise<void> {
     const db = await getDB();
+    const existing = await db.get('medicineStock', medicine.id);
     await db.put('medicineStock', medicine);
+    await logAudit('MEDICINE', medicine.id, existing ? 'STOCK_UPDATE' : 'STOCK_CREATE', {
+        ...(existing ? { before: { stock: existing.currentStock, status: existing.status } } : {}),
+        after: { name: medicine.name, stock: medicine.currentStock, status: medicine.status },
+    });
 }
 
 export async function getAllDiagnostics(): Promise<DiagnosticOrder[]> {

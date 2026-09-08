@@ -9,11 +9,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { useAuthStore, StaffRole } from '@/stores/authStore';
 import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 
 export default function StaffLoginPage() {
     const router = useRouter();
+    const login = useAuthStore(s => s.login);
     const [role, setRole] = useState('MO');
     const [facilityId, setFacilityId] = useState('phc-bhamragad');
     const [staffId, setStaffId] = useState('MO-GAD-4412');
@@ -21,7 +23,9 @@ export default function StaffLoginPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success(`Welcome Dr. Suresh Atram (Medical Officer @ PHC Bhamragad)`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
+        // Persist the session so mutations are attributed and role-gated views work.
+        login({ role: role as StaffRole, staffId });
+        toast.success(`Signed in as ${role} (${staffId})`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
         router.push('/staff');
     };
 
