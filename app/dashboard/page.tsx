@@ -49,6 +49,7 @@ export default function DashboardPage() {
     const greenCount = patients.filter(p => p.triageStatus === 'GREEN').length;
 
     const pendingRefs = referrals.filter(r => r.status === 'INITIATED' || r.status === 'ACCEPTED' || r.status === 'IN_TRANSIT').length;
+    const inTransitCount = referrals.filter(r => r.status === 'IN_TRANSIT').length;
     const waitingQueue = queue.filter(q => q.status === 'WAITING').length;
 
     // Collect High Risk Flagged Patients
@@ -117,19 +118,21 @@ export default function DashboardPage() {
         meshConnecting: isEn ? 'Mesh Relay Connecting' : isHi ? 'मेश रिले जुड़ रहा है' : 'मेश रिले जोडत आहे',
 
         // Metrics
-        patientsToday: isEn ? 'Patients Today' : isHi ? 'आज के कुल मरीज' : 'आजचे एकूण रुग्ण',
-        vsTribalAvg: isEn ? 'vs. tribal weekly avg' : isHi ? 'आदिवासी साप्ताहिक औसत की तुलना में' : 'आदिवासी साप्ताहिक सरासरीपेक्षा',
+        patientsToday: isEn ? 'Patients in System' : isHi ? 'सिस्टम में कुल मरीज' : 'प्रणालीतील एकूण रुग्ण',
+        registeredInSystem: isEn ? 'live registered count' : isHi ? 'लाइव पंजीकृत संख्या' : 'थेट नोंदणीकृत संख्या',
         pendingReferrals: isEn ? 'Pending Referrals' : isHi ? 'प्रलंबित रेफरल' : 'प्रलंबित संदर्भ सेवा (रेफरल)',
-        inTransit: isEn ? '2 In-Transit (102/108)' : isHi ? '२ मार्ग में (१०२/१०८)' : '२ मार्गावर (१०२/१०८)',
+        inTransit: isEn ? `${inTransitCount} In-Transit (102/108)` : isHi ? `${inTransitCount} मार्ग में (१०२/१०८)` : `${inTransitCount} मार्गावर (१०२/१०८)`,
         viewLink: isEn ? 'View →' : isHi ? 'देखें →' : 'पहा →',
         queueLength: isEn ? 'Queue Length (PHC)' : isHi ? 'ओपीडी कतार (PHC)' : 'ओपीडी रांग (PHC)',
-        avgWait: isEn ? 'Avg. Wait Time: 16 mins' : isHi ? 'औसत प्रतीक्षा समय: १६ मिनट' : 'सरासरी प्रतीक्षा वेळ: १६ मिनिटे',
+        avgWait: waitSamples.length === 0
+            ? (isEn ? 'Avg. Wait Time: no data yet' : isHi ? 'औसत प्रतीक्षा समय: अभी कोई डेटा नहीं' : 'सरासरी प्रतीक्षा वेळ: अद्याप डेटा नाही')
+            : (isEn ? `Avg. Wait Time: ${avgWaitMinutes} mins` : isHi ? `औसत प्रतीक्षा समय: ${avgWaitMinutes} मिनट` : `सरासरी प्रतीक्षा वेळ: ${avgWaitMinutes} मिनिटे`),
         highRiskAlerts: isEn ? 'High-Risk Alerts' : isHi ? 'उच्च जोखिम अलर्ट' : 'उच्च जोखीम सूचना',
         criticalFollowups: isEn
-            ? `${redCount || 2} Critical • Overdue Follow-ups`
+            ? `${redCount} Critical • Overdue Follow-ups`
             : isHi
-            ? `${redCount || 2} गंभीर • लंबित फॉलो-अप`
-            : `${redCount || 2} अतिगंभीर • प्रलंबित तपासणी`,
+            ? `${redCount} गंभीर • लंबित फॉलो-अप`
+            : `${redCount} अतिगंभीर • प्रलंबित तपासणी`,
 
         // Continuum Tree
         treeTitle: isEn ? 'Maharashtra Health Continuum Tree' : isHi ? 'महाराष्ट्र स्वास्थ्य निरंतरता नेटवर्क' : 'महाराष्ट्र आरोग्य सातत्य वृक्ष (Continuum)',
@@ -235,16 +238,12 @@ export default function DashboardPage() {
         quarterlyTarget: isEn ? 'Quarterly Target: 85%+' : isHi ? 'त्रैमासिक लक्ष्य: ८५%+' : 'त्रैमासिक उद्दिष्ट: ८५%+',
 
         ind1Title: isEn ? 'Referral Completion Rate' : isHi ? 'रेफरल पूर्णता दर' : 'रेफरल पूर्णता दर',
-        ind1Sub: isEn ? 'Target: 90% • +6% vs last month' : isHi ? 'लक्ष्य: ९०% • पिछले माह से +६%' : 'उद्दिष्ट: ९०% • मागील महिन्यापेक्षा +६%',
         
         ind2Title: isEn ? 'Avg. OPD Wait Time' : isHi ? 'औसत ओपीडी प्रतीक्षा समय' : 'सरासरी ओपीडी प्रतीक्षा वेळ',
-        ind2Sub: isEn ? 'Under 30 mins standard' : isHi ? '३० मिनट मानक से कम (उत्कृष्ट)' : '३० मिनिटांच्या मानकाखाली (उत्कृष्ट)',
         
         ind3Title: isEn ? 'IPHS Drug Stock Level' : isHi ? 'IPHS आवश्यक दवा स्टॉक स्तर' : 'IPHS अत्यावश्यक औषध साठा',
-        ind3Sub: isEn ? '4 items low in remote SCs' : isHi ? 'दूरदराज के उपकेंद्रों में ४ दवाएं कम' : 'दुर्गम उपकेंद्रांमध्ये ४ औषधांची कमतरता',
 
         ind4Title: isEn ? 'High-Risk ANC Adherence' : isHi ? 'उच्च जोखिम ANC गृह भेंट अनुपालन' : 'उच्च जोखीम माता ANC तपासणी',
-        ind4Sub: isEn ? 'ASHA home visits active' : isHi ? 'आशा कार्यकर्ताओं की गृह-भेंट सक्रिय' : 'आशा कार्यकर्त्यांच्या गृहभेटी सक्रिय',
     };
 
     // Localized patient illness descriptions
@@ -335,12 +334,11 @@ export default function DashboardPage() {
                                     {txt.patientsToday}
                                 </span>
                                 <div className="text-3xl font-black text-[#1F3A6E] mt-1">
-                                    {patients.length + 142}
+                                    {patients.length}
                                 </div>
                             </div>
                             <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-emerald-700 font-bold">↑ +14%</span>
-                                <span className="text-slate-500 text-[11px]">{txt.vsTribalAvg}</span>
+                                <span className="text-slate-500 text-[11px]">{txt.registeredInSystem}</span>
                             </div>
                         </div>
 
@@ -351,7 +349,7 @@ export default function DashboardPage() {
                                     {txt.pendingReferrals}
                                 </span>
                                 <div className="text-3xl font-black text-[#B45309] mt-1">
-                                    {pendingRefs || 3}
+                                    {pendingRefs}
                                 </div>
                             </div>
                             <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
@@ -367,7 +365,7 @@ export default function DashboardPage() {
                                     {txt.queueLength}
                                 </span>
                                 <div className="text-3xl font-black text-[#1F3A6E] mt-1">
-                                    {waitingQueue || 4}
+                                    {waitingQueue}
                                 </div>
                             </div>
                             <div className="text-xs text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
@@ -382,12 +380,12 @@ export default function DashboardPage() {
                                     {txt.highRiskAlerts}
                                 </span>
                                 <div className="text-3xl font-black text-[#DC2626] mt-1">
-                                    {highRiskPatients.length || 4}
+                                    {highRiskPatients.length}
                                 </div>
                             </div>
                             <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
                                 <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                    {redCount || 2} Critical
+                                    {redCount} Critical
                                 </span>
                                 <span className="text-slate-500 text-[11px]">Overdue Follow-ups</span>
                             </div>
