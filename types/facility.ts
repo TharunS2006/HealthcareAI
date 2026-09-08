@@ -143,7 +143,7 @@ export interface TeleconsultSession {
  */
 export interface AuditLogEntry {
     id: string;
-    entityType: 'PATIENT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE';
+    entityType: 'PATIENT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE' | 'APPOINTMENT';
     entityId: string;
     action: string;              // e.g. "CREATE", "STATUS → IN_TRANSIT", "STOCK_UPDATE"
     actorId: string;             // staff id, or "system" when unattributed

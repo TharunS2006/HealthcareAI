@@ -78,6 +78,16 @@ export default function Sidebar() {
             ),
         },
         {
+            href: '/appointments',
+            label: isEn ? 'Appointments' : isHi ? 'अपॉइंटमेंट' : 'भेटी नियोजन',
+            badge: isEn ? 'Booking' : isHi ? 'बुकिंग' : 'बुकिंग',
+            icon: (
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            ),
+        },
+        {
             section: isEn ? 'Continuity of Care' : isHi ? 'सेवा निरंतरता (Continuity)' : 'आरोग्य सातत्य (Continuity)',
         },
         {

@@ -13,9 +13,18 @@ import MobileMenu from '@/components/shared/MobileMenu';
 import Icon from '@/components/gov/Icon';
 import LoadingSkeleton from '@/components/gov/LoadingSkeleton';
 import { useQueueStore } from '@/stores/queueStore';
+import { useAppointmentStore } from '@/stores/appointmentStore';
+import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import type { Appointment } from '@/types/appointment';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
+
+const queueTodayISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 export default function QueuePage() {
     const {
@@ -30,6 +39,9 @@ export default function QueuePage() {
         setSelectedFacilityId,
     } = useQueueStore();
 
+    const { appointments, loadAppointments, convertToToken } = useAppointmentStore();
+    const { patients, loadPatients } = usePatientStore();
+
     const { language } = useLanguageStore();
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -39,9 +51,22 @@ export default function QueuePage() {
 
     useEffect(() => {
         loadQueue();
+        loadAppointments();
+        loadPatients();
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
-    }, [loadQueue]);
+    }, [loadQueue, loadAppointments, loadPatients]);
+
+    // Confirmed appointments due today at this facility — ready to check in as OPD tokens.
+    const todayConfirmed = appointments.filter(
+        a => a.facilityId === selectedFacilityId && a.status === 'CONFIRMED' && a.requestedDate <= queueTodayISO()
+    );
+
+    const handleCheckIn = async (appt: Appointment) => {
+        const p = patients.find(pt => pt.id === appt.patientId);
+        const tokenNo = await convertToToken(appt, { age: p?.age, gender: p?.gender });
+        if (tokenNo) await loadQueue(); // pull the freshly created token onto the board
+    };
 
     const waitingPatients = queue.filter(q => q.status === 'WAITING');
     const completedPatients = queue.filter(q => q.status === 'COMPLETED');
@@ -221,6 +246,37 @@ export default function QueuePage() {
                             </button>
                         </div>
                     </div>
+
+                    {/* Confirmed appointments due today — pre-registered check-in into the queue */}
+                    {todayConfirmed.length > 0 && (
+                        <div className="surface-card p-4 border-l-4 border-l-indigo-500">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">
+                                    {isEn ? "Today's Confirmed Appointments" : isHi ? 'आज के पुष्ट अपॉइंटमेंट' : 'आजच्या निश्चित भेटी'}
+                                    {` (${todayConfirmed.length})`}
+                                </span>
+                                <Link href="/appointments" className="text-[11px] font-bold text-[#1F3A6E] underline">
+                                    {isEn ? 'Manage →' : isHi ? 'प्रबंधन →' : 'व्यवस्थापन →'}
+                                </Link>
+                            </div>
+                            <div className="space-y-1.5">
+                                {todayConfirmed.map(a => (
+                                    <div key={a.id} className="flex items-center justify-between gap-2 bg-indigo-50/50 border border-indigo-100 rounded-lg px-3 py-2">
+                                        <div className="min-w-0">
+                                            <span className="text-sm font-bold text-[#1F3A6E]">{a.patientName}</span>
+                                            <span className="block text-[11px] text-txt-secondary">{a.department} · {a.slot}</span>
+                                        </div>
+                                        <button
+                                            onClick={() => handleCheckIn(a)}
+                                            className="px-3 py-1.5 bg-indigo-600 text-white text-[11px] font-bold rounded-lg hover:bg-indigo-700 whitespace-nowrap"
+                                        >
+                                            {isEn ? 'Check in → token' : isHi ? 'चेक-इन → टोकन' : 'चेक-इन → टोकन'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Main Area: 2 Columns */}
                     {isLoading && queue.length === 0 ? (

@@ -7,6 +7,7 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { Patient, SyncQueueItem, ReferralRecord } from '@/types/patient';
 import { QueueEntry, MedicineStockItem, DiagnosticOrder, Facility, AuditLogEntry } from '@/types/facility';
+import { Appointment } from '@/types/appointment';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
 import { retry } from '@/lib/utils/retry';
@@ -88,6 +89,16 @@ type NalamMeshDB = {
             'by-actor': string;
         };
     };
+    appointments: {
+        key: string;
+        value: Appointment;
+        indexes: {
+            'by-facility': string;
+            'by-date': string;
+            'by-patient': string;
+            'by-status': string;
+        };
+    };
 };
 
 let dbInstance: IDBPDatabase<NalamMeshDB> | null = null;
@@ -108,7 +119,7 @@ export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
     try {
         dbInstance = await retry(
             async () => {
-                const db = await openDB<NalamMeshDB>('nalammesh-rural-db', 3, {
+                const db = await openDB<NalamMeshDB>('nalammesh-rural-db', 4, {
                     upgrade(db, oldVersion, newVersion, tx) {
                         // 1. Patients store
                         if (!db.objectStoreNames.contains('patients')) {
@@ -170,6 +181,15 @@ export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
                             auditStore.createIndex('by-entity', 'entityType');
                             auditStore.createIndex('by-timestamp', 'timestamp');
                             auditStore.createIndex('by-actor', 'actorId');
+                        }
+
+                        // 9. Appointments (v4) — future-dated booking
+                        if (!db.objectStoreNames.contains('appointments')) {
+                            const apptStore = db.createObjectStore('appointments', { keyPath: 'id' });
+                            apptStore.createIndex('by-facility', 'facilityId');
+                            apptStore.createIndex('by-date', 'requestedDate');
+                            apptStore.createIndex('by-patient', 'patientId');
+                            apptStore.createIndex('by-status', 'status');
                         }
                     },
                 });
@@ -335,6 +355,46 @@ export async function updateReferralStatus(
     await logAudit('REFERRAL', id, `STATUS → ${status}`, {
         before: { status: previousStatus },
         after: { status, ...(opts?.ambulanceVehicleNo ? { vehicle: opts.ambulanceVehicleNo } : {}) },
+    });
+}
+
+// -------------------------------------------------------------
+// Appointment Operations
+// -------------------------------------------------------------
+
+export async function getAppointments(facilityId?: string): Promise<Appointment[]> {
+    const db = await getDB();
+    const all = await db.getAll('appointments');
+    return facilityId ? all.filter(a => a.facilityId === facilityId) : all;
+}
+
+export async function saveAppointment(appt: Appointment): Promise<void> {
+    const db = await getDB();
+    await db.put('appointments', appt);
+    await logAudit('APPOINTMENT', appt.id, 'BOOK', {
+        after: { facility: appt.facilityName, date: appt.requestedDate, slot: appt.slot, dept: appt.department },
+    });
+}
+
+export async function updateAppointmentStatus(
+    id: string,
+    status: Appointment['status'],
+    patch?: { tokenId?: string }
+): Promise<void> {
+    const db = await getDB();
+    const appt = await db.get('appointments', id);
+    // Throw on missing, like the referral/queue mutations: a booking that silently fails
+    // to change must not read as confirmed/checked-in on screen while stored otherwise.
+    if (!appt) {
+        throw new DatabaseError(`Appointment ${id} not found — status not updated to ${status}`);
+    }
+    const previousStatus = appt.status;
+    appt.status = status;
+    if (patch?.tokenId) appt.tokenId = patch.tokenId;
+    await db.put('appointments', appt);
+    await logAudit('APPOINTMENT', id, `STATUS → ${status}`, {
+        before: { status: previousStatus },
+        after: { status, ...(patch?.tokenId ? { token: patch.tokenId } : {}) },
     });
 }
 
