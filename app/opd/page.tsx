@@ -91,10 +91,10 @@ export default function OPDPage() {
             ? 'ओपीडी मरीज पंजीकरण एवं डिजिटल ट्राइएज कक्ष'
             : 'ओपीडी रुग्ण नोंदणी व डिजिटल ट्राइएज कक्ष',
         pageSub: isEn
-            ? 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated'
+            ? 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM-Ready (FHIR R4)'
             : isHi
-            ? 'ओपीडी पंजीयन व नैदानिक जांच • महाराष्ट्र शासन • ABDM प्रमाणित'
-            : 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM Integrated',
+            ? 'ओपीडी पंजीयन व नैदानिक जांच • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)'
+            : 'ओपीडी रुग्ण नोंदणी व नैदानिक तपासणी • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)',
         searchPlaceholder: isEn ? 'Search ABHA ID / Aadhaar / Name...' : isHi ? 'ABHA ID / आधार क्रमांक / नाम खोजें...' : 'ABHA ID / आधार क्रमांक / नाव शोधा...',
         searchBtn: isEn ? 'Search' : isHi ? 'खोजें' : 'शोधा',
         sec1Title: isEn ? '1. Patient Demographics & ABHA' : isHi ? '१. मरीज की प्राथमिक जानकारी (ABHA)' : '१. रुग्णाची प्राथमिक माहिती (Demographics & ABHA)',
@@ -354,7 +354,7 @@ export default function OPDPage() {
                                 <div className="gov-card-header flex items-center justify-between">
                                     <span>{L.sec1Title}</span>
                                     <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-300 px-2 py-0.5 rounded">
-                                        ABDM M1 Ready
+                                        FHIR R4 Ready
                                     </span>
                                 </div>
 

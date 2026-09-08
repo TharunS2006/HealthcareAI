@@ -50,7 +50,7 @@ export default function EmergencyModal() {
         receivingTeam: isEn ? 'Receiving Trauma Team:' : isHi ? 'प्राप्तकर्ता डॉक्टर टीम:' : 'उपचार करणारे वैद्यकीय पथक:',
         teamAlerted: isEn ? 'Dr. Khandate / Dr. Meshram (Alerted via SMS & Web)' : isHi ? 'डॉ. खंदाते / डॉ. मेश्राम (एसएमएस व पोर्टलद्वारे सूचित)' : 'डॉ. खंदाते / डॉ. मेश्राम (SMS व वेबद्वारे पूर्व-सूचित)',
         lhrShared: isEn ? 'Emergency LHR Shared:' : isHi ? 'आपातकालीन डिजिटल रिकॉर्ड:' : 'तातडीचे आरोग्य रेकॉर्ड (LHR):',
-        lhrVal: isEn ? '✓ ABDM FHIR Bundle Transmitted' : isHi ? '✓ ABDM FHIR बंडल प्रेषित' : '✓ ABDM FHIR बंडल यशस्वीरीत्या पाठवले',
+        lhrVal: isEn ? '✓ ABDM FHIR Bundle Generated' : isHi ? '✓ ABDM FHIR बंडल तैयार' : '✓ ABDM FHIR बंडल तयार',
         closeBtn: isEn ? 'Close & Return to Work' : isHi ? 'बंद करें व मुख्य स्क्रीन पर लौटें' : 'बंद करा व डॅशबोर्डवर परत जा',
     };
 

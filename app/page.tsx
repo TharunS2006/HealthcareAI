@@ -175,7 +175,7 @@ export default function Home() {
             : isHi
             ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
             : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
-        abdmBadge: isEn ? '✓ ABDM / FHIR R4 Certified' : isHi ? '✓ ABDM / FHIR R4 प्रमाणित' : '✓ ABDM / FHIR R4 प्रमाणित',
+        abdmBadge: isEn ? '✓ ABDM-Ready • FHIR R4' : isHi ? '✓ ABDM-सज्ज • FHIR R4' : '✓ ABDM-सज्ज • FHIR R4',
         offlineBadge: isEn ? '✓ 100% Offline Mesh Ready' : isHi ? '✓ १००% ऑफलाइन मेश सक्षम' : '✓ १००% ऑफलाइन मेश सक्षम',
         censusTitle: isEn
             ? 'Live District Health Census — Gadchiroli Division'

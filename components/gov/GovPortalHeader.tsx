@@ -83,10 +83,10 @@ export default function GovPortalHeader() {
             ? 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — लोक स्वास्थ्य विभाग'
             : 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — सार्वजनिक आरोग्य विभाग',
         subText: isEn
-            ? 'National Rural Health Digital Public Infrastructure • Government of Maharashtra • NHA-ABDM Certified'
+            ? 'National Rural Health Digital Public Infrastructure • Government of Maharashtra • ABDM-Aligned (FHIR R4)'
             : isHi
-            ? 'राष्ट्रीय ग्रामीण स्वास्थ्य डिजिटल सार्वजनिक अवसंरचना • महाराष्ट्र सरकार • NHA-ABDM प्रमाणित'
-            : 'राष्ट्रीय ग्रामीण आरोग्य डिजिटल सार्वजनिक पायाभूत सुविधा • महाराष्ट्र शासन • NHA-ABDM प्रमाणित',
+            ? 'राष्ट्रीय ग्रामीण स्वास्थ्य डिजिटल सार्वजनिक अवसंरचना • महाराष्ट्र सरकार • ABDM-संरेखित (FHIR R4)'
+            : 'राष्ट्रीय ग्रामीण आरोग्य डिजिटल सार्वजनिक पायाभूत सुविधा • महाराष्ट्र शासन • ABDM-संरेखित (FHIR R4)',
         ambLabel: isEn ? 'Ambulance' : isHi ? 'एम्बुलेंस' : 'रुग्णवाहिका',
         maternalLabel: isEn ? 'Maternal / 102' : isHi ? 'जननी-शिशु / १०२' : 'माता व बाल / १०२',
         helplineLabel: isEn ? 'Health Helpline' : isHi ? 'स्वास्थ्य हेल्पलाइन' : 'आरोग्य हेल्पलाइन',

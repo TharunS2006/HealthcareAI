@@ -337,7 +337,7 @@ export default function TeleconsultPage() {
                                     </button>
 
                                     <button
-                                        onClick={() => toast.success('Teleconsultation record saved to patient profile & ABDM')}
+                                        onClick={() => toast.success('Teleconsultation record saved to patient profile (ABDM-ready export)')}
                                         className="w-full py-2.5 bg-emerald-deep text-white font-bold text-xs rounded-xl hover:bg-emerald-dark"
                                     >
                                         ✓ Save & Finalize e-Prescription

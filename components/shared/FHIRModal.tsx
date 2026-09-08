@@ -1,6 +1,8 @@
 /**
- * ABDM / FHIR R4 Interoperability Inspector & Sandbox Gateway — NalamMesh (SIH PS#26133)
- * Provides live viewing, validation, and JSON export of FHIR R4 compliant bundles for ABDM M1, M2, M3 milestones.
+ * ABDM / FHIR R4 Interoperability Inspector — NalamMesh (SIH PS#26133)
+ * Locally generates, validates, and exports (JSON download) FHIR R4 Document Bundles built
+ * to the NDHM/ABDM profile. This is an ABDM-ready export, not a live gateway integration:
+ * no bundle is transmitted to ABDM here. The milestone tab maps the integration roadmap.
  */
 
 'use client';
@@ -113,7 +115,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                         : 'bg-white text-txt-secondary border border-border-subtle hover:bg-gray-100'
                                 }`}
                             >
-                                <Icon name="government" className="w-3.5 h-3.5 inline -mt-0.5 mr-1" /> ABDM M1/M2/M3 Compliance
+                                <Icon name="government" className="w-3.5 h-3.5 inline -mt-0.5 mr-1" /> ABDM M1/M2/M3 Roadmap
                             </button>
                         </div>
 
@@ -144,7 +146,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                         <strong className="block text-teal-900 font-extrabold text-sm">
                                             Bundle Type: {bundle.type} • ID: {bundle.id}
                                         </strong>
-                                        <span>Target Gateway: NDHM Ayushman Bharat Digital Mission (ABDM) Profile</span>
+                                        <span>Target Profile: NDHM Ayushman Bharat Digital Mission (ABDM) Document Bundle</span>
                                     </div>
                                     <span className="bg-teal-700 text-white font-extrabold px-3 py-1 rounded-full text-xs">
                                         ABHA: {patient.abhaId || 'LINKED'}
@@ -220,10 +222,10 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                             <div className="space-y-4 text-xs text-txt-secondary">
                                 <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
                                     <h4 className="font-extrabold text-emerald-900 text-sm">
-                                        Ayushman Bharat Digital Mission (ABDM) Integration Matrix
+                                        Ayushman Bharat Digital Mission (ABDM) Interoperability Roadmap
                                     </h4>
                                     <p>
-                                        NalamMesh is engineered for zero-friction interoperability with the National Health Authority (NHA) ABDM Ecosystem:
+                                        The exported FHIR R4 bundle is built to the ABDM profile. Live exchange with the National Health Authority (NHA) ABDM ecosystem is the integration roadmap below — not yet wired:
                                     </p>
                                 </div>
 
@@ -247,7 +249,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                                 Milestone 2 (M2): Health Information Provider (HIP)
                                             </strong>
                                             <p className="mt-0.5">
-                                                Bundles local Sub-Centre / PHC clinical encounters, vitals, and e-prescriptions into FHIR R4 Document Bundles and transmits them to ABDM health lockers upon mesh sync.
+                                                Bundles local Sub-Centre / PHC clinical encounters, vitals, and e-prescriptions into FHIR R4 Document Bundles, ready to push to ABDM health lockers once gateway integration is enabled. Bundle generation and export work today; the push to ABDM is not yet wired.
                                             </p>
                                         </div>
                                     </div>
@@ -259,7 +261,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                                 Milestone 3 (M3): Health Information User (HIU)
                                             </strong>
                                             <p className="mt-0.5">
-                                                Allows apex specialists at District Hospital Gadchiroli to pull previous care records across facilities with cryptographic consent verification.
+                                                Roadmap: will let apex specialists at District Hospital Gadchiroli pull previous care records across facilities with cryptographic consent verification once ABDM HIU integration is enabled — not yet live.
                                             </p>
                                         </div>
                                     </div>

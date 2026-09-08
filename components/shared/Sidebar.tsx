@@ -246,7 +246,7 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Official Telemetry & ABDM Certified Footer */}
+            {/* Official Telemetry & ABDM-Aligned Footer */}
             <div className="p-3 bg-[#F8FAFC] border-t border-slate-200 text-[10px] text-slate-600 space-y-1">
                 <div className="flex items-center justify-between" role="status" aria-live="polite">
                     <span className="flex items-center gap-1.5 font-bold text-slate-700">

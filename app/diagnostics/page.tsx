@@ -318,7 +318,7 @@ export default function DiagnosticsPage() {
                                                     {order.resultSummary}
                                                 </span>
                                                 <div className="mt-1 text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                                                    <span>✓ {isEn ? 'Synced to ABDM Longitudinal Health Record (LHR)' : isHi ? 'ABDM हेल्थ रिकॉर्ड (LHR) में दर्ज' : 'ABDM आरोग्य रेकॉर्ड (LHR) ला जोडले गेले'}</span>
+                                                    <span>✓ {isEn ? 'Recorded in local health record (LHR) • ABDM-ready' : isHi ? 'स्थानीय हेल्थ रिकॉर्ड (LHR) में दर्ज • ABDM-सज्ज' : 'स्थानिक आरोग्य रेकॉर्डमध्ये (LHR) नोंद • ABDM-सज्ज'}</span>
                                                 </div>
                                             </div>
                                         ) : (

@@ -57,10 +57,10 @@ export default function Logo({ size = 'md', showText = true, variant = 'dark', c
                     </span>
                     <span className="text-[9px] text-slate-500 font-medium hidden sm:block">
                         {isEn
-                            ? 'National Health Mission • ABDM Certified DPI'
+                            ? 'National Health Mission • ABDM-Aligned DPI'
                             : isHi
-                            ? 'राष्ट्रीय स्वास्थ्य मिशन • ABDM प्रमाणित DPI'
-                            : 'राष्ट्रीय आरोग्य अभियान • ABDM प्रमाणित DPI'}
+                            ? 'राष्ट्रीय स्वास्थ्य मिशन • ABDM-संरेखित DPI'
+                            : 'राष्ट्रीय आरोग्य अभियान • ABDM-संरेखित DPI'}
                     </span>
                 </div>
             )}
