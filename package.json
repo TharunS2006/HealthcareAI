@@ -11,6 +11,7 @@
     "server": "tsx server/mesh-server.ts",
     "verify:triage": "tsx scripts/verify-triage.mts",
     "verify:metrics": "tsx scripts/verify-metrics.mts",
+    "verify:services": "tsx scripts/verify-services.mts",
     "cap:sync": "next build && npx cap sync",
     "cap:open": "npx cap open android"
   },
