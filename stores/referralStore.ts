@@ -15,7 +15,11 @@ interface ReferralStore {
     // Actions
     loadReferrals: () => Promise<void>;
     addReferral: (referral: ReferralRecord) => Promise<void>;
-    changeStatus: (id: string, status: ReferralRecord['status'], notes?: string) => Promise<void>;
+    changeStatus: (
+        id: string,
+        status: ReferralRecord['status'],
+        opts?: { notes?: string; ambulanceVehicleNo?: string; etaMinutes?: number }
+    ) => Promise<void>;
 }
 
 export const useReferralStore = create<ReferralStore>((set, get) => ({
@@ -53,17 +57,31 @@ export const useReferralStore = create<ReferralStore>((set, get) => ({
         }
     },
 
-    changeStatus: async (id: string, status: ReferralRecord['status'], notes?: string) => {
+    changeStatus: async (id, status, opts) => {
         const previous = get().referrals;
+        const now = new Date().toISOString();
 
+        // Optimistic update mirrors exactly what db.updateReferralStatus will persist,
+        // so the board and the stored record never disagree (rolled back on failure).
         set(state => ({
             referrals: state.referrals.map(r =>
-                r.id === id ? { ...r, status, ...(notes && { notes }) } : r
+                r.id === id
+                    ? {
+                        ...r,
+                        status,
+                        lastUpdatedAt: now,
+                        ...(opts?.notes ? { notes: opts.notes } : {}),
+                        ...(opts?.ambulanceVehicleNo ? { ambulanceVehicleNo: opts.ambulanceVehicleNo } : {}),
+                        ...(typeof opts?.etaMinutes === 'number' ? { etaMinutes: opts.etaMinutes } : {}),
+                        ...(status === 'IN_TRANSIT' && !r.inTransitAt ? { inTransitAt: now } : {}),
+                        ...(status === 'COMPLETED' ? { completedAt: now } : {}),
+                    }
+                    : r
             ),
         }));
 
         try {
-            await updateReferralStatus(id, status, notes);
+            await updateReferralStatus(id, status, opts);
             toast.success(`Referral updated to ${status}`);
         } catch (error) {
             // Roll the board back to what is actually stored. Leaving the optimistic

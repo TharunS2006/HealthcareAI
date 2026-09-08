@@ -31,13 +31,52 @@ export default function ReferralsPage() {
     const [priority, setPriority] = useState<TriagePriority>('EMERGENCY');
     const [transportMode, setTransportMode] = useState<ReferralRecord['transportMode']>('AMBULANCE_108');
     const [reason, setReason] = useState('');
-    const [ambulanceVehicleNo, setAmbulanceVehicleNo] = useState('MH-33-E-1081');
+
+    // Per-card dispatch flow: vehicle number is entered when a referral actually goes
+    // in-transit, so no two referrals silently share a placeholder plate.
+    const [transitCardId, setTransitCardId] = useState<string | null>(null);
+    const [transitVehicle, setTransitVehicle] = useState('');
+    const [transitEta, setTransitEta] = useState('');
+
+    // A slow tick so elapsed-transit clocks advance without a manual refresh.
+    const [now, setNow] = useState(() => Date.now());
 
     useEffect(() => {
         loadReferrals();
         loadPatients();
         loadAll();
     }, [loadReferrals, loadPatients, loadAll]);
+
+    useEffect(() => {
+        const t = setInterval(() => setNow(Date.now()), 30_000);
+        return () => clearInterval(t);
+    }, []);
+
+    // Elapsed time since an ISO timestamp, in "Xh Ym" / "Ym" form. Recomputed against
+    // `now` so a referral card shows real transit duration, not a static label.
+    const formatElapsed = (fromISO?: Date | string): string => {
+        if (!fromISO) return '—';
+        const mins = Math.max(0, Math.floor((now - new Date(fromISO).getTime()) / 60_000));
+        if (mins < 60) return `${mins}m`;
+        return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    };
+
+    const confirmDispatch = async (id: string) => {
+        const vehicle = transitVehicle.trim();
+        if (!vehicle) {
+            toast.error('Enter the ambulance vehicle number to dispatch');
+            return;
+        }
+        const etaNum = transitEta.trim() ? Number(transitEta.trim()) : undefined;
+        if (etaNum !== undefined && (!Number.isFinite(etaNum) || etaNum < 0)) {
+            toast.error('ETA must be a positive number of minutes');
+            return;
+        }
+        await changeStatus(id, 'IN_TRANSIT', { ambulanceVehicleNo: vehicle, etaMinutes: etaNum });
+        setTransitCardId(null);
+        setTransitVehicle('');
+        setTransitEta('');
+    };
 
     // Group referrals by status columns
     const columns: Array<{
@@ -82,7 +121,8 @@ export default function ReferralsPage() {
             referredBy: 'Dr. Suresh Atram (MO)',
             referredAt: new Date().toISOString(),
             transportMode,
-            ambulanceVehicleNo: transportMode.includes('AMBULANCE') ? ambulanceVehicleNo : undefined,
+            // Vehicle is assigned at dispatch (the in-transit step), not fabricated here.
+            ambulanceVehicleNo: undefined,
             clinicalSummary: `SpO2: ${patient.vitals.spo2}%, BP: ${patient.vitals.bloodPressure?.systolic || 120}/${patient.vitals.bloodPressure?.diastolic || 80} mmHg. ${patient.vitals.injuryType}`,
         };
 
@@ -194,6 +234,19 @@ export default function ReferralsPage() {
                                                         </div>
                                                     )}
 
+                                                    {/* Live transit telemetry: real elapsed time since dispatch + ETA */}
+                                                    {ref.status === 'IN_TRANSIT' && (
+                                                        <div className="flex items-center justify-between text-[10px] font-bold bg-amber-100/60 text-amber-900 px-2 py-1 rounded">
+                                                            <span className="inline-flex items-center gap-1">
+                                                                <Icon name="record-dot" className="w-2.5 h-2.5 text-rose-600" />
+                                                                In transit {formatElapsed(ref.inTransitAt || ref.referredAt)}
+                                                            </span>
+                                                            {typeof ref.etaMinutes === 'number' && (
+                                                                <span className="text-amber-700">ETA ~{ref.etaMinutes}m</span>
+                                                            )}
+                                                        </div>
+                                                    )}
+
                                                     {/* Action to advance status */}
                                                     <div className="pt-2 border-t border-gray-100 flex justify-between items-center text-[11px]">
                                                         {ref.status === 'INITIATED' && (
@@ -204,13 +257,46 @@ export default function ReferralsPage() {
                                                                 Accept at Higher Facility →
                                                             </button>
                                                         )}
-                                                        {ref.status === 'ACCEPTED' && (
+                                                        {ref.status === 'ACCEPTED' && transitCardId !== ref.id && (
                                                             <button
-                                                                onClick={() => changeStatus(ref.id, 'IN_TRANSIT')}
+                                                                onClick={() => { setTransitCardId(ref.id); setTransitVehicle(''); setTransitEta(''); }}
                                                                 className="w-full py-1 bg-amber-50 text-amber-700 font-bold rounded hover:bg-amber-100 transition-all text-center inline-flex items-center justify-center gap-1"
                                                             >
-                                                                <Icon name="ambulance" className="w-3 h-3" /> Mark In-Transit →
+                                                                <Icon name="ambulance" className="w-3 h-3" /> Dispatch & Mark In-Transit →
                                                             </button>
+                                                        )}
+                                                        {ref.status === 'ACCEPTED' && transitCardId === ref.id && (
+                                                            <div className="w-full space-y-1.5">
+                                                                <input
+                                                                    type="text"
+                                                                    value={transitVehicle}
+                                                                    onChange={(e) => setTransitVehicle(e.target.value)}
+                                                                    placeholder="Ambulance vehicle no. (required)"
+                                                                    className="w-full px-2 py-1 border border-amber-300 rounded text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                                                />
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={transitEta}
+                                                                    onChange={(e) => setTransitEta(e.target.value)}
+                                                                    placeholder="ETA to facility (minutes, optional)"
+                                                                    className="w-full px-2 py-1 border border-amber-300 rounded text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                                                />
+                                                                <div className="flex gap-1.5">
+                                                                    <button
+                                                                        onClick={() => confirmDispatch(ref.id)}
+                                                                        className="flex-1 py-1 bg-amber-600 text-white font-bold rounded hover:bg-amber-700 text-center"
+                                                                    >
+                                                                        Confirm Dispatch
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => setTransitCardId(null)}
+                                                                        className="px-2 py-1 bg-gray-100 text-txt-secondary font-bold rounded"
+                                                                    >
+                                                                        Cancel
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         )}
                                                         {ref.status === 'IN_TRANSIT' && (
                                                             <button

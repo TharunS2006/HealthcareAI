@@ -92,6 +92,11 @@ export interface ReferralRecord {
     ambulanceVehicleNo?: string;
     clinicalSummary?: string;
     notes?: string;
+    // Transport telemetry — set when the referral is dispatched into transit, so the
+    // sending facility sees real elapsed time rather than a static "in transit" label.
+    inTransitAt?: Date | string;   // when status became IN_TRANSIT
+    lastUpdatedAt?: Date | string; // last dispatcher/status update (manual contact point)
+    etaMinutes?: number;           // dispatcher's estimated time to receiving facility
 }
 
 export interface Patient {

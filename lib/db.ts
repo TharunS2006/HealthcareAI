@@ -236,7 +236,7 @@ export async function saveReferral(referral: ReferralRecord): Promise<void> {
 export async function updateReferralStatus(
     id: string,
     status: ReferralRecord['status'],
-    notes?: string
+    opts?: { notes?: string; ambulanceVehicleNo?: string; etaMinutes?: number }
 ): Promise<void> {
     const db = await getDB();
     const ref = await db.get('referrals', id);
@@ -246,9 +246,14 @@ export async function updateReferralStatus(
     if (!ref) {
         throw new DatabaseError(`Referral ${id} not found — status not updated to ${status}`);
     }
+    const now = new Date().toISOString();
     ref.status = status;
-    if (notes) ref.notes = notes;
-    if (status === 'COMPLETED') ref.completedAt = new Date().toISOString();
+    ref.lastUpdatedAt = now;
+    if (opts?.notes) ref.notes = opts.notes;
+    if (opts?.ambulanceVehicleNo) ref.ambulanceVehicleNo = opts.ambulanceVehicleNo;
+    if (typeof opts?.etaMinutes === 'number') ref.etaMinutes = opts.etaMinutes;
+    if (status === 'IN_TRANSIT' && !ref.inTransitAt) ref.inTransitAt = now;
+    if (status === 'COMPLETED') ref.completedAt = now;
     await db.put('referrals', ref);
 }
 
