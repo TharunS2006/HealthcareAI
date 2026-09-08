@@ -136,12 +136,12 @@ export default function LoginPage() {
                                 type="text"
                                 value={abhaId}
                                 onChange={(e) => setAbhaId(e.target.value)}
-                                placeholder="91-8842-1002-4912 or user@abdm"
+                                placeholder="91-8842-1002-4912 (demo ABHA)"
                                 className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-mono"
                                 required
                             />
                             <span className="text-[11px] text-txt-muted block mt-1">
-                                Example: 91-8842-1002-4912 or sunita@abdm
+                                Example: 91-8842-1002-4912 (demo — no live ABDM connection)
                             </span>
                         </div>
 
@@ -149,7 +149,7 @@ export default function LoginPage() {
                             type="submit"
                             className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5"
                         >
-                            Authenticate via ABDM Sandbox
+                            Authenticate (ABHA / OTP — Demo)
                         </button>
                     </form>
                 )}

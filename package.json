@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:full": "npm run server & next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

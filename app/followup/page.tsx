@@ -229,8 +229,8 @@ export default function FollowUpPage() {
         if (handedOff) {
             toast.success(`SMS composer opened for ${smsModalPatient.phone}`, { icon: <Icon name="sms" className="w-4 h-4" /> });
         } else {
-            toast.success(
-                `Recall queued for ${smsModalPatient.phone} — will dispatch via the NIC SMS gateway on next sync (open on a mobile device to send now)`,
+            toast(
+                `Marked as sent for ${smsModalPatient.phone}. The device SMS app did not open — open this recall on a mobile device (with SIM) to send the message.`,
                 { icon: <Icon name="sms" className="w-4 h-4" />, duration: 5000 }
             );
         }
@@ -239,8 +239,11 @@ export default function FollowUpPage() {
 
     const handleBulkSMS = () => {
         setTasks(prev => prev.map(t => ({ ...t, status: 'SMS_SENT' })));
-        toast.success(`${filteredTasks.length} high-risk recalls queued for the NIC SMS gateway`, {
+        // No server-side gateway exists — this marks the cohort so an ASHA can send each
+        // recall from the device SMS composer. Honest wording, not a fake bulk dispatch.
+        toast(`${filteredTasks.length} recalls marked for SMS — send each from a mobile device (no server gateway)`, {
             icon: <Icon name="sms" className="w-4 h-4" />,
+            duration: 5000,
         });
     };
 
@@ -530,9 +533,13 @@ export default function FollowUpPage() {
                                     rows={4}
                                     className="w-full p-3 bg-gray-50 border border-border-subtle rounded-xl text-xs font-mono focus:ring-2 focus:ring-emerald-deep focus:outline-none"
                                 />
-                                <div className="flex items-center justify-between text-[11px] text-txt-muted">
-                                    <span>Gateway: NIC / C-DAC CDAC-SMS Public Health Gateway</span>
-                                    <span>Fallback: 2G SMS / USSD</span>
+                                <div className="flex items-start gap-1.5 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 mt-1">
+                                    <Icon name="alert-siren" className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                        Opens your phone&apos;s SMS app with this message pre-filled — works on a mobile
+                                        device with SIM connectivity (no data needed). There is no server-side SMS
+                                        gateway; on a desktop the composer will not open.
+                                    </span>
                                 </div>
                             </div>
 
@@ -547,7 +554,7 @@ export default function FollowUpPage() {
                                     onClick={handleSendSMS}
                                     className="px-4 py-2 bg-emerald-deep text-white text-xs font-bold rounded-xl shadow"
                                 >
-                                    Transmit SMS Now
+                                    Open SMS on Device
                                 </button>
                             </div>
                         </div>

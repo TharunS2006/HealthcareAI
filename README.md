@@ -15,18 +15,30 @@ Offline-first digital public healthcare platform for rural Maharashtra — built
 
 ```bash
 npm install
+npm run dev:full     # app on :3000 + mesh relay on :3001 → "Mesh Relay Online"
+```
+
+`dev:full` starts both the Next.js app and the Socket.io mesh relay so the
+continuum-of-care sync (SC→PHC→CHC→DH) is live on a single machine without a second
+terminal. The dashboard/sidebar "Mesh Relay" badge shows **ONLINE**.
+
+For the app alone (no relay):
+
+```bash
 npm run dev          # http://localhost:3000
 ```
 
-The app works with no backend running — the sidebar/dashboard "Mesh Relay" badge will show **STANDALONE**, and all data is stored locally in IndexedDB.
+The app works with no backend running — the "Mesh Relay" badge then shows
+**STANDALONE**, and all data is stored locally in IndexedDB.
 
-### Optional: mesh relay server
-
-To see the "Mesh Relay Online" state and cross-facility sync, run the Socket.io relay separately:
+### Optional: mesh relay server on its own
 
 ```bash
 npm run server        # starts server/mesh-server.ts on :3001
 ```
+
+> `dev:full` backgrounds the relay with `&`; stopping `next dev` (Ctrl-C) may leave the
+> relay running — `npm run server` shares its port, or `pkill -f mesh-server` to stop it.
 
 ### Other scripts
 
