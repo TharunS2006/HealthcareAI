@@ -1,5 +1,8 @@
 /**
- * Assisted Teleconsultation Suite — NalamMesh (e-Sanjeevani / ABDM Integration)
+ * Assisted Teleconsultation Suite — NalamMesh (e-Sanjeevani-style)
+ * Structured assisted-consult workspace: shared vitals, clinical notes stream, and
+ * specialist orders. The video panel is a SIMULATED PREVIEW — there is no WebRTC/getUserMedia
+ * capture or live signalling here, and the UI is worded so it does not imply a live A/V call.
  * Connecting Frontline Health Workers (ASHA/CHO) with District Specialists (SIH PS#26133)
  */
 
@@ -24,7 +27,7 @@ export default function TeleconsultPage() {
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [isLowBandwidth, setIsLowBandwidth] = useState(false);
-    const [callDuration, setCallDuration] = useState(745); // seconds (~12m25s)
+    const [callDuration, setCallDuration] = useState(0); // session time from page open; not a live-call duration
     const [specialistNotes, setSpecialistNotes] = useState(
         'Patient presents with impending preeclampsia at 32 weeks gestation. Administer Tab Labetalol 100mg stat and arrange immediate transfer via 102 Janani Shishu Ambulance.'
     );
@@ -99,7 +102,7 @@ export default function TeleconsultPage() {
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
                                 <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">
-                                    LIVE TELECONSULTATION SESSION • e-Sanjeevani ABDM Gateway
+                                    Assisted Teleconsult Workspace • e-Sanjeevani (Structured) • Simulated Preview
                                 </span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
@@ -114,7 +117,7 @@ export default function TeleconsultPage() {
                             <button
                                 onClick={() => {
                                     setIsLowBandwidth(!isLowBandwidth);
-                                    toast(isLowBandwidth ? 'High Definition Video Enabled' : 'Low-Bandwidth 2G/3G Audio Mode Enabled');
+                                    toast(isLowBandwidth ? 'Preview set to High-Definition mode' : 'Preview set to Low-Bandwidth 2G/3G audio mode');
                                 }}
                                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                                     isLowBandwidth
@@ -168,7 +171,10 @@ export default function TeleconsultPage() {
                                             {session.specialistHospital}
                                         </h3>
                                         <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                                            Connected with Frontline Worker <strong>{session.initiatorName}</strong> via NalamMesh Relay
+                                            Assisted consult with Frontline Worker <strong>{session.initiatorName}</strong> over NalamMesh
+                                        </p>
+                                        <p className="text-[10px] text-amber-300/90 max-w-sm mx-auto mt-1 font-semibold">
+                                            Simulated preview — live audio/video requires e-Sanjeevani gateway integration (not wired)
                                         </p>
                                     </div>
                                 </div>
@@ -197,11 +203,11 @@ export default function TeleconsultPage() {
                                             isVideoOff ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-200 hover:bg-slate-700'
                                         }`}
                                     >
-                                        <Icon name={isVideoOff ? 'video-off' : 'video'} className="w-4 h-4" /> {isVideoOff ? 'Start Video' : 'Stop Video'}
+                                        <Icon name={isVideoOff ? 'video-off' : 'video'} className="w-4 h-4" /> {isVideoOff ? 'Show Video' : 'Hide Video'}
                                     </button>
 
                                     <button
-                                        onClick={() => toast.success('Patient Vitals & Ultrasound link shared with Specialist')}
+                                        onClick={() => toast.success('Patient vitals attached to the consult record (preview)')}
                                         className="inline-flex items-center gap-1.5 p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-sm font-bold"
                                     >
                                         <Icon name="upload" className="w-4 h-4" /> Share Screen / Vitals
@@ -213,7 +219,7 @@ export default function TeleconsultPage() {
                                         }}
                                         className="px-5 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full text-sm font-bold shadow-lg"
                                     >
-                                        End Call
+                                        End Session
                                     </button>
                                 </div>
                             </div>
