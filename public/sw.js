@@ -12,7 +12,10 @@
  * 404 cannot abort the whole install (cache.addAll() rejects the install on any failure).
  */
 
-const CACHE_VERSION = 'v3.0.0';
+// Bump on every change to PRECACHE_URLS — the activate handler deletes caches whose
+// key doesn't match, so a stale client would otherwise keep serving the old app shell
+// and never pick up newly added routes.
+const CACHE_VERSION = 'v3.3.0';
 const CACHE_NAME = `nalammesh-${CACHE_VERSION}`;
 
 /**
@@ -28,12 +31,26 @@ const PRECACHE_ROUTES = [
     '/medicine',
     '/referrals',
     '/queue',
+    '/appointments',
     '/teleconsult',
     '/facilities',
+    '/services-info',
     '/emergency',
     '/record',
+    '/audit',
     '/login',
+    '/staff',
+    '/staff/login',
     '/404',
+    // Statutory pages (GIGW): small, and a citizen offline should still be able to
+    // read the privacy and grievance information the footer promises.
+    '/privacy',
+    '/terms',
+    '/accessibility',
+    '/rti',
+    '/feedback',
+    '/hyperlinking',
+    '/copyright',
 ];
 
 const PRECACHE_ASSETS = [
@@ -57,7 +74,24 @@ self.addEventListener('install', (event) => {
             const results = await Promise.allSettled(
                 PRECACHE_URLS.map(async (url) => {
                     // { cache: 'reload' } bypasses the HTTP cache so the shell is genuinely fresh.
-                    const response = await fetch(new Request(url, { cache: 'reload' }));
+                    let response = await fetch(new Request(url, { cache: 'reload' }));
+
+                    // Static-export hosting differs: Next writes a directory (with
+                    // index.html) only for routes that have children, and a bare
+                    // "<route>.html" for leaf routes. Hosts like Vercel/Netlify map the
+                    // extension-less path for you; a plain file server (python -m
+                    // http.server, GitHub Pages without config) returns 404 and the whole
+                    // offline shell would quietly shrink to a handful of routes. Retry with
+                    // the .html form so offline works regardless of how this is served.
+                    if (!response.ok && !url.includes('.') && url !== '/') {
+                        const alt = await fetch(new Request(`${url}.html`, { cache: 'reload' }));
+                        if (alt.ok) {
+                            // Store under the route the app actually navigates to.
+                            await cache.put(url, alt);
+                            return url;
+                        }
+                    }
+
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     await cache.put(url, response);
                     return url;
@@ -154,7 +188,22 @@ async function networkFirst(request) {
         // Only cache real, complete responses (skip opaque/partial/error)
         if (response && response.ok && response.type === 'basic') {
             cache.put(request, response.clone());
+            return response;
         }
+
+        // A 4xx/5xx is a *successful* fetch — it does not throw — so without this the
+        // error page would be served even though the shell is sitting in the cache.
+        // Static hosts that don't map extension-less paths ("/appointments" ->
+        // appointments.html) return 404 for every leaf route; prefer what we cached.
+        if (response && !response.ok) {
+            const url = new URL(request.url);
+            const fallback =
+                (await cache.match(request)) ||
+                (await cache.match(url.pathname)) ||
+                (request.mode === 'navigate' ? await cache.match(OFFLINE_FALLBACK_ROUTE) : null);
+            if (fallback) return fallback;
+        }
+
         return response;
     } catch (err) {
         const cached = await cache.match(request);
