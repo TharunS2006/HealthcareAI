@@ -237,9 +237,14 @@ export default function ReferralsPage() {
                                                     {/* Live transit telemetry: real elapsed time since dispatch + ETA */}
                                                     {ref.status === 'IN_TRANSIT' && (
                                                         <div className="flex items-center justify-between text-[10px] font-bold bg-amber-100/60 text-amber-900 px-2 py-1 rounded">
+                                                            {/* Only a record with a real dispatch stamp gets an "in transit" clock.
+                                                                Older records have no inTransitAt, and timing from referredAt would
+                                                                present the referral time as though it were the dispatch time. */}
                                                             <span className="inline-flex items-center gap-1">
                                                                 <Icon name="record-dot" className="w-2.5 h-2.5 text-rose-600" />
-                                                                In transit {formatElapsed(ref.inTransitAt || ref.referredAt)}
+                                                                {ref.inTransitAt
+                                                                    ? `In transit ${formatElapsed(ref.inTransitAt)}`
+                                                                    : `Referred ${formatElapsed(ref.referredAt)} ago · dispatch time not recorded`}
                                                             </span>
                                                             {typeof ref.etaMinutes === 'number' && (
                                                                 <span className="text-amber-700">ETA ~{ref.etaMinutes}m</span>

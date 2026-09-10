@@ -74,7 +74,8 @@ export default function GovPortalFooter() {
             ? 'राष्ट्रीय सूचना विज्ञान केंद्र (NIC) द्वारा डिज़ाइन, विकसित व होस्ट किया गया। GIGW 3.0 व W3C WCAG 2.1 (AA) प्रमाणित।'
             : 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).',
         lastUpdated: isEn ? `Last Updated: ${today}` : isHi ? `अंतिम अपडेट: ${today}` : `शेवटचा बदल: ${today}`,
-        visitorCount: isEn ? 'Total Visitors: 184,392' : isHi ? 'कुल विजिटर: १,८४,३९२' : 'एकूण भेट संख्या: १,८४,३९२',
+        // No visitor counter: this is a static, offline-first build with no analytics
+        // backend, so any figure shown here would be invented. Removed rather than faked.
     };
 
     return (
@@ -183,9 +184,6 @@ export default function GovPortalFooter() {
                 <div className="flex items-center gap-3 text-center sm:text-right text-[10px]">
                     <div className="bg-slate-800 px-2 py-1 rounded border border-slate-700">
                         <span>{F.lastUpdated}</span>
-                    </div>
-                    <div className="bg-slate-800 px-2 py-1 rounded border border-slate-700">
-                        <span>{F.visitorCount}</span>
                     </div>
                 </div>
             </div>
