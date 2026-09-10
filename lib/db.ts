@@ -433,9 +433,12 @@ export async function updateQueueStatus(
     if (status === 'IN_CONSULTATION') q.calledAt = new Date().toISOString();
     if (status === 'COMPLETED') q.completedAt = new Date().toISOString();
     await db.put('queue', q);
+    // Token number only, never the patient's name: the audit store is a separate,
+    // DHO-readable surface, and entityId already resolves to the queue record that
+    // holds the identity. Copying PII across widens exposure for no added traceability.
     await logAudit('QUEUE', id, `STATUS → ${status}`, {
         before: { status: previousStatus },
-        after: { status, token: q.tokenNumber, patient: q.patientName },
+        after: { status, token: q.tokenNumber },
     });
 }
 
