@@ -12,12 +12,17 @@ import StateEmblem from '@/components/gov/StateEmblem';
 import { useLanguageStore } from '@/stores/languageStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
+import { useFacilityStore } from '@/stores/facilityStore';
+import GovPanel from '@/components/gov/GovPanel';
+import PortalAside from '@/components/gov/PortalAside';
+import Breadcrumb from '@/components/gov/Breadcrumb';
 import { useEffect } from 'react';
 
 export default function Home() {
     const { language } = useLanguageStore();
     const { patients, loadPatients } = usePatientStore();
     const { referrals, loadReferrals } = useReferralStore();
+    const { facilities, loadAll: loadFacilities } = useFacilityStore();
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -25,10 +30,21 @@ export default function Home() {
     useEffect(() => {
         loadPatients();
         loadReferrals();
-    }, [loadPatients, loadReferrals]);
+        loadFacilities();
+    }, [loadPatients, loadReferrals, loadFacilities]);
 
     const activeReferralsCount = referrals.filter(r => r.status === 'INITIATED' || r.status === 'ACCEPTED' || r.status === 'IN_TRANSIT').length;
     const criticalPatientsCount = patients.filter(p => p.triageStatus === 'RED' || (p.highRiskFlags && p.highRiskFlags.length > 0)).length;
+
+    // Bed occupancy is summed from the facility records rather than asserted.
+    // If no facility reports bed capacity, the row says so instead of showing a figure.
+    const bedTotal = facilities.reduce((n, f) => n + (f.beds?.total ?? 0), 0);
+    const bedOccupied = facilities.reduce((n, f) => n + (f.beds?.occupied ?? 0), 0);
+    const icuVacant = facilities.reduce((n, f) => n + ((f.beds?.icu?.total ?? 0) - (f.beds?.icu?.occupied ?? 0)), 0);
+    const matVacant = facilities.reduce((n, f) => n + ((f.beds?.maternity?.total ?? 0) - (f.beds?.maternity?.occupied ?? 0)), 0);
+    const bedPct = bedTotal > 0 ? Math.round((bedOccupied / bedTotal) * 100) : null;
+    const inTransit = referrals.filter(r => r.status === 'IN_TRANSIT').length;
+    const noData = isEn ? 'Not reported' : isHi ? 'सूचित नहीं' : 'नोंद नाही';
 
     const modules = [
         {
@@ -43,7 +59,6 @@ export default function Home() {
             href: '/opd',
             btn: isEn ? 'Launch OPD Intake →' : isHi ? 'ओपीडी शुरू करें →' : 'ओपीडी सुरू करा →',
             tag: isEn ? 'Point of Care' : 'आरोग्य केंद्र',
-            accent: 'border-l-gov-navy',
         },
         {
             code: 'M-02',
@@ -57,7 +72,6 @@ export default function Home() {
             href: '/dashboard',
             btn: isEn ? 'Open Command Center →' : isHi ? 'डैशबोर्ड खोलें →' : 'डॅशबोर्ड उघडा →',
             tag: isEn ? 'Executive Hub' : 'प्रशासन',
-            accent: 'border-l-gov-amber',
         },
         {
             code: 'M-03',
@@ -71,7 +85,6 @@ export default function Home() {
             href: '/followup',
             btn: isEn ? 'View Recall Cohorts →' : isHi ? 'फॉलो-अप सूची देखें →' : 'पाठपुरावा यादी पहा →',
             tag: isEn ? 'Surveillance' : 'निगरानी',
-            accent: 'border-l-gov-red',
         },
         {
             code: 'M-04',
@@ -85,7 +98,6 @@ export default function Home() {
             href: '/diagnostics',
             btn: isEn ? 'Access Lab Network →' : isHi ? 'लैब नेटवर्क खोलें →' : 'लॅब नेटवर्क उघडा →',
             tag: isEn ? 'Lab Network' : 'प्रयोगशाळा',
-            accent: 'border-l-gov-accent-sky',
         },
         {
             code: 'M-05',
@@ -99,7 +111,6 @@ export default function Home() {
             href: '/medicine',
             btn: isEn ? 'Check Medicine Stock →' : isHi ? 'दवा स्टॉक देखें →' : 'औषध साठा तपासा →',
             tag: isEn ? 'Free Pharmacy' : 'औषधालय',
-            accent: 'border-l-gov-success',
         },
         {
             code: 'M-06',
@@ -113,7 +124,6 @@ export default function Home() {
             href: '/referrals',
             btn: isEn ? 'Track Referrals →' : isHi ? 'रेफरल पाइपलाइन देखें →' : 'रेफरल पाइपलाइन →',
             tag: isEn ? 'Emergency Transit' : 'रुग्णवाहिका',
-            accent: 'border-l-gov-accent-crimson',
         },
         {
             code: 'M-07',
@@ -127,7 +137,6 @@ export default function Home() {
             href: '/queue',
             btn: isEn ? 'View Queue Board →' : isHi ? 'कतार बोर्ड देखें →' : 'रांग फलक पहा →',
             tag: isEn ? 'Live Queue' : 'रांग फलक',
-            accent: 'border-l-gov-accent-indigo',
         },
         {
             code: 'M-08',
@@ -141,7 +150,6 @@ export default function Home() {
             href: '/teleconsult',
             btn: isEn ? 'Start Teleconsult →' : isHi ? 'कॉल शुरू करें →' : 'कॉल सुरू करा →',
             tag: isEn ? 'Specialist Hub' : 'तज्ज्ञ डॉक्टर',
-            accent: 'border-l-gov-accent-teal',
         },
         {
             code: 'M-09',
@@ -155,7 +163,6 @@ export default function Home() {
             href: '/facilities',
             btn: isEn ? 'Explore Facilities →' : isHi ? 'संस्था निर्देशिका देखें →' : 'संस्था निर्देशिका →',
             tag: isEn ? 'Directory' : 'मार्गदर्शक',
-            accent: 'border-l-gov-accent-violet',
         },
     ];
 
@@ -175,8 +182,6 @@ export default function Home() {
             : isHi
             ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
             : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
-        abdmBadge: isEn ? '✓ ABDM-Ready • FHIR R4' : isHi ? '✓ ABDM-सज्ज • FHIR R4' : '✓ ABDM-सज्ज • FHIR R4',
-        offlineBadge: isEn ? '✓ 100% Offline Mesh Ready' : isHi ? '✓ १००% ऑफलाइन मेश सक्षम' : '✓ १००% ऑफलाइन मेश सक्षम',
         censusTitle: isEn
             ? 'Live District Health Census — Gadchiroli Division'
             : isHi
@@ -191,13 +196,13 @@ export default function Home() {
             ? 'अद्यतन: लाइव रीयल-टाइम | गढ़चिरौली सुविधा नेटवर्क में सीधा एकत्रीकरण'
             : 'अद्ययावत: थेट रिअल-टाइम | गडचिरोली आरोग्य संस्था नेटवर्कमध्ये थेट एकत्रीकरण',
         stat1Label: isEn ? 'Patients Examined Today (OPD)' : isHi ? 'आज देखे गए मरीज (OPD)' : 'आज तपासलेले रुग्ण (OPD)',
-        stat1Sub: isEn ? '↑ 100% Digital Registration' : isHi ? '↑ १००% डिजिटल पंजीकरण' : '↑ १००% डिजिटल नोंदणी',
+        stat1Sub: isEn ? 'Live registered count' : isHi ? 'सक्रिय पंजीकृत संख्या' : 'सक्रिय नोंदणीकृत संख्या',
         stat2Label: isEn ? '108 / 102 Ambulances in Transit' : isHi ? '१०८ / १०२ एम्बुलेंस ट्रांजिट' : '१०८/१०२ रुग्णवाहिका प्रवास',
-        stat2Sub: isEn ? 'Avg Response Time: 28 min' : isHi ? 'औसत प्रतिक्रिया समय: २८ मिनट' : 'सरासरी प्रतिसाद वेळ: २८ मिनिटे',
+        stat2Sub: isEn ? 'Includes 108 and 102 dispatches' : isHi ? '१०८ व १०२ प्रेषण सम्मिलित' : '१०८ व १०२ प्रेषण समाविष्ट',
         stat3Label: isEn ? 'High-Risk Maternal Cohort (ANC)' : isHi ? 'उच्च जोखिम गर्भवती माताएं (ANC)' : 'उच्च जोखीम गरोदर माता (ANC)',
         stat3Sub: isEn ? 'Urgent follow-ups required' : isHi ? 'तत्काल गृह भेंट आवश्यक' : 'तातडीने भेटी आवश्यक',
         stat4Label: isEn ? 'Bed Occupancy (District)' : isHi ? 'बिस्तरों की उपलब्धता (Bed Status)' : 'खाटांची उपलब्धता (Bed Status)',
-        stat4Sub: isEn ? 'ICU: 4 Vacant | Maternity: 6 Vacant' : isHi ? 'ICU: ४ रिक्त | प्रसूति: ६ रिक्त' : 'ICU: ४ रिक्त | प्रसूती: ६ रिक्त',
+        stat4Sub: isEn ? 'Summed across reporting facilities' : isHi ? 'रिपोर्टिंग केंद्रों का योग' : 'नोंद करणाऱ्या केंद्रांची बेरीज',
         modulesHeading: isEn ? 'Operational Healthcare Modules' : isHi ? 'सार्वजनिक स्वास्थ्य प्रणाली विभाग' : 'सार्वजनिक आरोग्य प्रणाली विभाग',
         modulesSub: isEn
             ? 'Select a clinical workstation or administrative healthcare department.'
@@ -232,7 +237,16 @@ export default function Home() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 font-sans text-slate-800">
+        <>
+        <Breadcrumb
+            trail={[
+                { label: isEn ? 'Home' : isHi ? 'मुख्य पृष्ठ' : 'मुख्य पृष्ठ', href: '/' },
+                { label: isEn ? 'Departmental Services' : isHi ? 'विभागीय सेवाएं' : 'विभागीय सेवा' },
+            ]}
+        />
+        <div className="max-w-[1600px] mx-auto px-3 sm:px-4 py-4 font-sans text-slate-800">
+        <div className="grid grid-cols-12 gap-3 items-start">
+        <div className="col-span-12 lg:col-span-9 min-w-0">
             {/* Government Portal Breadcrumb & Official Seal */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-5 border-b border-slate-300">
                 <div>
@@ -240,77 +254,54 @@ export default function Home() {
                         <StateEmblem size={18} />
                         <span>{pageTexts.deptTag}</span>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gov-navy tracking-tight">
+                    <h1 className="text-[19px] sm:text-[21px] font-bold text-gov-navy">
                         {pageTexts.heroTitle}
                     </h1>
-                    <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-4xl leading-relaxed">
+                    <p className="text-[12.5px] text-slate-600 mt-1 max-w-4xl leading-snug">
                         {pageTexts.heroSub}
                     </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-xs flex-shrink-0">
-                    <span className="px-3 py-1.5 bg-gov-green-bg text-gov-green border border-gov-green-border rounded font-bold">
-                        {pageTexts.abdmBadge}
-                    </span>
-                    <span className="px-3 py-1.5 bg-gov-blue-bg text-gov-blue border border-gov-blue-border rounded font-bold">
-                        {pageTexts.offlineBadge}
-                    </span>
-                </div>
             </div>
 
             {/* Official State & District Live Telemetry Table (NIC Style) */}
-            <div className="my-5 bg-white border border-slate-300 rounded overflow-hidden shadow-sm">
-                <div className="bg-gov-navy text-white px-4 py-2 flex items-center justify-between text-xs font-bold">
-                    <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>{pageTexts.censusTitle}</span>
-                    </div>
-                    <span className="text-[11px] text-slate-300 font-normal">
-                        {pageTexts.censusDate}
-                    </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-200 text-center">
-                    <div className="p-3.5">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            {pageTexts.stat1Label}
-                        </span>
-                        <strong className="text-2xl font-black text-gov-navy">
-                            {patients.length + 152}
-                        </strong>
-                        <span className="text-[10px] text-emerald-700 block font-semibold">{pageTexts.stat1Sub}</span>
-                    </div>
-
-                    <div className="p-3.5">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            {pageTexts.stat2Label}
-                        </span>
-                        <strong className="text-2xl font-black text-amber-700">
-                            {activeReferralsCount > 0 ? activeReferralsCount : '4'} {isEn ? 'Active' : 'सक्रिय'}
-                        </strong>
-                        <span className="text-[10px] text-slate-500 block">{pageTexts.stat2Sub}</span>
-                    </div>
-
-                    <div className="p-3.5">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            {pageTexts.stat3Label}
-                        </span>
-                        <strong className="text-2xl font-black text-red-700">
-                            {criticalPatientsCount > 0 ? criticalPatientsCount : '7'} {isEn ? 'Recalls' : 'पाठपुरावा'}
-                        </strong>
-                        <span className="text-[10px] text-red-600 block font-semibold">{pageTexts.stat3Sub}</span>
-                    </div>
-
-                    <div className="p-3.5">
-                        <span className="text-[11px] text-slate-500 font-bold uppercase block">
-                            {pageTexts.stat4Label}
-                        </span>
-                        <strong className="text-2xl font-black text-slate-800">
-                            78% {isEn ? 'Occupied' : 'पूर्ण'}
-                        </strong>
-                        <span className="text-[10px] text-emerald-700 block font-semibold">{pageTexts.stat4Sub}</span>
-                    </div>
-                </div>
+            <div className="my-5">
+                <GovPanel title={pageTexts.censusTitle} meta={pageTexts.censusDate} flush>
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-[#EDF1F7] text-[#1F3A6E]">
+                                <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6]">
+                                    {isEn ? 'Indicator' : isHi ? 'संकेतक' : 'निर्देशांक'}
+                                </th>
+                                <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6] w-32 text-right">
+                                    {isEn ? 'Value' : isHi ? 'मान' : 'मूल्य'}
+                                </th>
+                                <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6] w-72 hidden sm:table-cell">
+                                    {isEn ? 'Remarks' : isHi ? 'टिप्पणी' : 'शेरा'}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-[12.5px]">
+                            {[
+                                [pageTexts.stat1Label, String(patients.length), pageTexts.stat1Sub],
+                                [pageTexts.stat2Label, String(activeReferralsCount),
+                                    `${inTransit} ${isEn ? 'currently in transit' : isHi ? 'वर्तमान में मार्ग पर' : 'सध्या मार्गावर'}`],
+                                [pageTexts.stat3Label, String(criticalPatientsCount), pageTexts.stat3Sub],
+                                [pageTexts.stat4Label,
+                                    bedPct === null ? noData : `${bedPct}%`,
+                                    bedTotal > 0
+                                        ? `${bedOccupied} / ${bedTotal} ${isEn ? 'occupied' : isHi ? 'भरे' : 'भरलेले'} · ICU ${icuVacant} · ${isEn ? 'Maternity' : isHi ? 'प्रसूति' : 'प्रसूती'} ${matVacant} ${isEn ? 'vacant' : isHi ? 'रिक्त' : 'रिक्त'}`
+                                        : noData],
+                            ].map((row, i) => (
+                                <tr key={row[0]} className={`border-b border-[#E2E8F1] ${i % 2 === 1 ? 'bg-[#F6F8FB]' : 'bg-white'}`}>
+                                    <td className="px-3 py-2 text-[#243449]">{row[0]}</td>
+                                    <td className="px-3 py-2 text-right font-bold text-[#1F3A6E] tabular-nums">{row[1]}</td>
+                                    <td className="px-3 py-2 text-[11.5px] text-[#4A5A73] hidden sm:table-cell">{row[2]}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </GovPanel>
             </div>
 
             {/* Public Healthcare Operational Modules Grid */}
@@ -329,49 +320,54 @@ export default function Home() {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {modules.map((m) => (
-                        <div
-                            key={m.code}
-                            className={`bg-white border border-slate-300 rounded border-l-4 ${m.accent} flex flex-col justify-between hover:border-slate-400 transition-colors shadow-sm`}
-                        >
-                            <div className="p-4">
-                                <div className="flex items-center justify-between gap-2 mb-1.5">
-                                    <span className="text-[10px] font-mono font-bold text-slate-400">
-                                        {m.code} • {m.dept}
-                                    </span>
-                                    <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 border border-slate-300 text-slate-700 rounded">
-                                        {m.tag}
-                                    </span>
-                                </div>
-                                <h3 className="text-sm font-bold text-gov-navy mb-1 leading-snug">
-                                    {m.title}
-                                </h3>
-                                <p className="text-xs text-slate-600 leading-relaxed">
-                                    {m.desc}
-                                </p>
-                            </div>
-
-                            <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs">
-                                <span className="text-[11px] text-slate-500 font-medium">
-                                    {pageTexts.portalTag}
-                                </span>
-                                <Link
-                                    href={m.href}
-                                    className="font-bold text-gov-navy hover:text-gov-navy-hover hover:underline"
+                <div className="border border-[#B9C5D6] bg-white overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[640px]">
+                        <thead>
+                            <tr className="bg-[#1F3A6E] text-white">
+                                <th scope="col" className="px-3 py-2 text-[11.5px] font-bold w-14">
+                                    {isEn ? 'Sr. No.' : isHi ? 'क्र.' : 'अ.क्र.'}
+                                </th>
+                                <th scope="col" className="px-3 py-2 text-[11.5px] font-bold">
+                                    {isEn ? 'Service / Module' : isHi ? 'सेवा / मॉड्यूल' : 'सेवा / विभाग'}
+                                </th>
+                                <th scope="col" className="px-3 py-2 text-[11.5px] font-bold w-52 hidden md:table-cell">
+                                    {isEn ? 'Administering Section' : isHi ? 'प्रशासनिक अनुभाग' : 'प्रशासकीय विभाग'}
+                                </th>
+                                <th scope="col" className="px-3 py-2 text-[11.5px] font-bold w-44 text-right">
+                                    {isEn ? 'Access' : isHi ? 'प्रवेश' : 'प्रवेश'}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {modules.map((m, i) => (
+                                <tr
+                                    key={m.code}
+                                    className={`border-t border-[#D5DDE8] align-top ${i % 2 === 1 ? 'bg-[#F6F8FB]' : 'bg-white'}`}
                                 >
-                                    {m.btn}
-                                </Link>
-                            </div>
-                        </div>
-                    ))}
+                                    <td className="px-3 py-2.5 text-[12px] text-[#4A5A73] tabular-nums">{i + 1}.</td>
+                                    <td className="px-3 py-2.5">
+                                        <Link href={m.href} className="text-[13px] font-bold text-[#1F3A6E] hover:underline">
+                                            {m.title}
+                                        </Link>
+                                        <p className="text-[11.5px] text-[#4A5A73] leading-snug mt-0.5 max-w-3xl">{m.desc}</p>
+                                    </td>
+                                    <td className="px-3 py-2.5 text-[11.5px] text-[#4A5A73] hidden md:table-cell">{m.dept}</td>
+                                    <td className="px-3 py-2.5 text-right">
+                                        <Link href={m.href} className="text-[11.5px] font-semibold text-[#1F3A6E] hover:underline whitespace-nowrap">
+                                            {m.btn}
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             {/* Official Citizen and Staff Cadre Portals (NIC Gateways) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
                 {/* Citizen Services Box */}
-                <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-emerald-600 shadow-sm flex flex-col justify-between">
+                <div className="bg-white border border-[#B9C5D6] p-4 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-sm font-bold text-gov-navy uppercase tracking-wide">
@@ -396,7 +392,7 @@ export default function Home() {
                 </div>
 
                 {/* Staff & Medical Cadre Box */}
-                <div className="bg-white border border-slate-300 rounded p-5 border-l-4 border-l-gov-navy shadow-sm flex flex-col justify-between">
+                <div className="bg-white border border-[#B9C5D6] p-4 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-sm font-bold text-gov-navy uppercase tracking-wide">
@@ -434,5 +430,12 @@ export default function Home() {
                 </p>
             </div>
         </div>
+
+        <div className="col-span-12 lg:col-span-3 min-w-0">
+            <PortalAside tier="PHC" />
+        </div>
+        </div>
+        </div>
+        </>
     );
 }

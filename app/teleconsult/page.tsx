@@ -244,7 +244,7 @@ export default function TeleconsultPage() {
                         <div className="lg:col-span-5 space-y-6">
 
                             {/* Patient Demographics & Live Vitals */}
-                            <div className="surface-card p-5 border-l-4 border-l-rose-500 space-y-4">
+                            <div className="surface-card p-5 space-y-4">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <span className="text-[10px] bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded-full">

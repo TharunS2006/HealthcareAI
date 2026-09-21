@@ -21,7 +21,7 @@ export default function HospitalCard({ hospital }: HospitalCardProps) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="surface-card p-6 border-l-4 border-l-emerald-500 relative overflow-hidden flex flex-col justify-between"
+            className="surface-card p-6 relative overflow-hidden flex flex-col justify-between"
         >
             <div className="flex justify-between items-start mb-4">
                 <div>

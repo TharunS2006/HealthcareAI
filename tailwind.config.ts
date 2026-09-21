@@ -83,19 +83,31 @@ const config: Config = {
                 mono: ['JetBrains Mono', 'Courier New', 'monospace'],
             },
             borderRadius: {
-                DEFAULT: '4px',
-                'sm': '2px',
-                'md': '6px',
-                'lg': '8px',
-                'xl': '8px',
-                '2xl': '8px',
-                '3xl': '8px',
+                // NIC/GIGW portals are built from square bordered boxes. Anything
+                // above ~2px starts reading as a modern SaaS card rather than a
+                // government panel. 'full' is kept for genuine pills and avatars.
+                DEFAULT: '0px',
+                'none': '0px',
+                'sm': '0px',
+                'md': '2px',
+                'lg': '2px',
+                'xl': '2px',
+                '2xl': '2px',
+                '3xl': '2px',
                 'full': '9999px',
             },
             boxShadow: {
-                'soft': '0 1px 3px rgba(0, 0, 0, 0.05)',
-                'card': '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)',
-                'elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                // Elevation is not a government-portal idiom — separation comes from
+                // a 1px rule. These stay defined (many files reference them) but are
+                // reduced to nothing so the whole app flattens at once.
+                'soft': 'none',
+                'card': 'none',
+                'elevated': 'none',
+                'sm': 'none',
+                DEFAULT: 'none',
+                'md': 'none',
+                'lg': 'none',
+                'xl': 'none',
             },
         },
     },

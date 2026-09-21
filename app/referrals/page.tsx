@@ -190,7 +190,7 @@ export default function ReferralsPage() {
                                             items.map((ref) => (
                                                 <div
                                                     key={ref.id}
-                                                    className="p-3.5 bg-white border border-gray-200/90 rounded-xl shadow-sm hover:shadow-md transition-all space-y-2 text-xs"
+                                                    className="p-3.5 bg-white border border-gray-200/90 rounded-xl shadow-sm transition-all space-y-2 text-xs"
                                                 >
                                                     <div className="flex justify-between items-start">
                                                         <span className="font-mono text-[10px] font-bold text-txt-muted">

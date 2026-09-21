@@ -159,7 +159,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                         return (
                                             <div
                                                 key={idx}
-                                                className="p-4 bg-white border border-border-subtle rounded-2xl hover:border-emerald-300 hover:shadow-md transition-all space-y-2"
+                                                className="p-4 bg-white border border-border-subtle rounded-2xl hover:border-emerald-300 transition-all space-y-2"
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">

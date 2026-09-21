@@ -49,7 +49,7 @@ export default function StaffHome() {
             {/* Today's Operational Summary */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {todaysTasks.map((stat) => (
-                    <div key={stat.label} className={`surface-card p-4 border-l-4 ${stat.color} flex items-center justify-between`}>
+                    <div key={stat.label} className={`surface-card p-4 ${stat.color} flex items-center justify-between`}>
                         <div>
                             <span className="text-[10px] font-black text-txt-muted uppercase tracking-wider block">
                                 {stat.label}
@@ -71,7 +71,7 @@ export default function StaffHome() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {quickLinks.map((link) => (
                         <Link key={link.href} href={link.href} className="group block">
-                            <div className="surface-card p-4.5 hover:shadow-card transition-all h-full flex items-start gap-3 bg-white">
+                            <div className="surface-card p-4.5 transition-all h-full flex items-start gap-3 bg-white">
                                 <Icon name={link.icon} className="w-6 h-6 flex-shrink-0 text-emerald-deep" />
                                 <div>
                                     <h3 className="text-sm font-bold text-emerald-deep group-hover:text-teal-700 transition-colors">
@@ -86,7 +86,7 @@ export default function StaffHome() {
             </div>
 
             {/* Active Clinical Alerts */}
-            <div className="surface-card border-l-4 border-l-rose-600 bg-rose-50/30 p-5">
+            <div className="surface-card bg-rose-50/30 p-5">
                 <div className="flex items-center gap-2 mb-2">
                     <Icon name="warning" className="w-5 h-5 text-rose-700" />
                     <h3 className="text-sm font-bold text-rose-900">Priority Clinical & Supply Alerts</h3>

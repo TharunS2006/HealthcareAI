@@ -9,7 +9,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import Sidebar from '@/components/shared/Sidebar';
+import PortalShell from '@/components/gov/PortalShell';
+import GovPanel from '@/components/gov/GovPanel';
 import MobileMenu from '@/components/shared/MobileMenu';
 import DemoModeToggle from '@/components/shared/DemoModeToggle';
 import { usePatientStore } from '@/stores/patientStore';
@@ -280,13 +281,17 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
-            <Sidebar />
-
-            <main className="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
+        <PortalShell
+            trail={[
+                { label: isEn ? 'Home' : 'मुख्य पृष्ठ', href: '/' },
+                { label: isEn ? 'District Administration' : 'जिल्हा प्रशासन' },
+                { label: isEn ? 'Command Centre' : 'कमांड केंद्र' },
+            ]}
+        >
+            <div className="font-sans text-txt-primary">
                 <MobileMenu />
 
-                <div className="max-w-6xl mx-auto space-y-6">
+                <div className="space-y-4">
 
                     {/* Top Header */}
                     <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -326,71 +331,49 @@ export default function DashboardPage() {
                     </header>
 
                     {/* Row 1: Key Performance Metrics — Sober Government Administrative KPI Grid */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        {/* 1. Total Census */}
-                        <div className="bg-white p-4 rounded border border-slate-300 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                                    {txt.patientsToday}
-                                </span>
-                                <div className="text-3xl font-black text-[#1F3A6E] mt-1">
-                                    {patients.length}
-                                </div>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-slate-500 text-[11px]">{txt.registeredInSystem}</span>
-                            </div>
-                        </div>
-
-                        {/* 2. Pending Referrals */}
-                        <div className="bg-white p-4 rounded border border-slate-300 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                                    {txt.pendingReferrals}
-                                </span>
-                                <div className="text-3xl font-black text-[#B45309] mt-1">
-                                    {pendingRefs}
-                                </div>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-amber-800 font-semibold">{txt.inTransit}</span>
-                                <Link href="/referrals" className="underline text-[#1F3A6E] font-bold text-xs">{txt.viewLink}</Link>
-                            </div>
-                        </div>
-
-                        {/* 3. Live OPD Queue */}
-                        <div className="bg-white p-4 rounded border border-slate-300 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                                    {txt.queueLength}
-                                </span>
-                                <div className="text-3xl font-black text-[#1F3A6E] mt-1">
-                                    {waitingQueue}
-                                </div>
-                            </div>
-                            <div className="text-xs text-slate-500 mt-3 pt-2.5 border-t border-slate-100">
-                                {txt.avgWait}
-                            </div>
-                        </div>
-
-                        {/* 4. High-Risk Maternal & NCD */}
-                        <div className="bg-white p-4 rounded border border-slate-300 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
-                                    {txt.highRiskAlerts}
-                                </span>
-                                <div className="text-3xl font-black text-[#DC2626] mt-1">
-                                    {highRiskPatients.length}
-                                </div>
-                            </div>
-                            <div className="text-xs text-slate-600 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                                <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded text-[10px] font-bold">
-                                    {redCount} Critical
-                                </span>
-                                <span className="text-slate-500 text-[11px]">Overdue Follow-ups</span>
-                            </div>
-                        </div>
-                    </div>
+                    {/* District indicators — a bordered register, not KPI tiles.
+                        Large display numbers in a card grid read as a product dashboard;
+                        a department portal states the same figures in a table. */}
+                    <GovPanel
+                        title={isEn ? 'District Health Indicators' : isHi ? 'जिला स्वास्थ्य संकेतक' : 'जिल्हा आरोग्य निर्देशांक'}
+                        meta={txt.registeredInSystem}
+                        flush
+                    >
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#EDF1F7] text-[#1F3A6E]">
+                                    <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6]">
+                                        {isEn ? 'Indicator' : isHi ? 'संकेतक' : 'निर्देशांक'}
+                                    </th>
+                                    <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6] w-28 text-right">
+                                        {isEn ? 'Value' : isHi ? 'मान' : 'मूल्य'}
+                                    </th>
+                                    <th scope="col" className="px-3 py-1.5 text-[11.5px] font-bold border-b border-[#B9C5D6] w-80 hidden sm:table-cell">
+                                        {isEn ? 'Remarks' : isHi ? 'टिप्पणी' : 'शेरा'}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-[12.5px]">
+                                {([
+                                    [txt.patientsToday, patients.length, txt.registeredInSystem, null],
+                                    [txt.pendingReferrals, pendingRefs, txt.inTransit, '/referrals'],
+                                    [txt.queueLength, waitingQueue, txt.avgWait, '/queue'],
+                                    [txt.highRiskAlerts, highRiskPatients.length,
+                                        `${redCount} ${isEn ? 'critical' : isHi ? 'गंभीर' : 'गंभीर'}`, '/followup'],
+                                ] as Array<[string, number, string, string | null]>).map((row, i) => (
+                                    <tr key={row[0]} className={`border-b border-[#E2E8F1] ${i % 2 === 1 ? 'bg-[#F6F8FB]' : 'bg-white'}`}>
+                                        <td className="px-3 py-2 text-[#243449]">
+                                            {row[3] ? (
+                                                <Link href={row[3]} className="text-[#1F3A6E] hover:underline">{row[0]}</Link>
+                                            ) : row[0]}
+                                        </td>
+                                        <td className="px-3 py-2 text-right font-bold text-[#1F3A6E] tabular-nums">{row[1]}</td>
+                                        <td className="px-3 py-2 text-[11.5px] text-[#4A5A73] hidden sm:table-cell">{row[2]}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </GovPanel>
 
                     {/* Row 2: Facility Hierarchy Tree (Left) & High-Risk Alerts (Right) */}
                     <div className="grid lg:grid-cols-12 gap-6">
@@ -814,7 +797,7 @@ export default function DashboardPage() {
                     </div>
 
                 </div>
-            </main>
-        </div>
+            </div>
+        </PortalShell>
     );
 }

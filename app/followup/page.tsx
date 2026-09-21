@@ -288,8 +288,8 @@ export default function FollowUpPage() {
                         {/* 1. Maternal Pathway */}
                         <div
                             onClick={() => setActiveTab('MATERNAL')}
-                            className={`surface-card p-4 border-l-4 border-l-rose-500 cursor-pointer transition-all ${
-                                activeTab === 'MATERNAL' ? 'ring-2 ring-rose-400 shadow-md bg-rose-50/30' : 'hover:shadow-md'
+                            className={`surface-card p-4 cursor-pointer transition-all ${
+                                activeTab === 'MATERNAL' ? 'ring-2 ring-rose-400 shadow-md bg-rose-50/30' : ''
                             }`}
                         >
                             <div className="flex justify-between items-start">
@@ -309,8 +309,8 @@ export default function FollowUpPage() {
                         {/* 2. Child / Immunization Pathway */}
                         <div
                             onClick={() => setActiveTab('CHILD')}
-                            className={`surface-card p-4 border-l-4 border-l-amber-500 cursor-pointer transition-all ${
-                                activeTab === 'CHILD' ? 'ring-2 ring-amber-400 shadow-md bg-amber-50/30' : 'hover:shadow-md'
+                            className={`surface-card p-4 cursor-pointer transition-all ${
+                                activeTab === 'CHILD' ? 'ring-2 ring-amber-400 shadow-md bg-amber-50/30' : ''
                             }`}
                         >
                             <div className="flex justify-between items-start">
@@ -330,8 +330,8 @@ export default function FollowUpPage() {
                         {/* 3. Chronic NCD Pathway */}
                         <div
                             onClick={() => setActiveTab('CHRONIC')}
-                            className={`surface-card p-4 border-l-4 border-l-blue-500 cursor-pointer transition-all ${
-                                activeTab === 'CHRONIC' ? 'ring-2 ring-blue-400 shadow-md bg-blue-50/30' : 'hover:shadow-md'
+                            className={`surface-card p-4 cursor-pointer transition-all ${
+                                activeTab === 'CHRONIC' ? 'ring-2 ring-blue-400 shadow-md bg-blue-50/30' : ''
                             }`}
                         >
                             <div className="flex justify-between items-start">
@@ -349,7 +349,7 @@ export default function FollowUpPage() {
                         </div>
 
                         {/* 4. Overall Compliance */}
-                        <div className="surface-card p-4 border-l-4 border-l-emerald-600">
+                        <div className="surface-card p-4">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <span className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider block">
@@ -416,7 +416,7 @@ export default function FollowUpPage() {
                                     key={task.id}
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`surface-card p-5 border-l-4 transition-all hover:shadow-md ${
+                                    className={`surface-card p-5 transition-all ${
                                         task.priority === 'CRITICAL'
                                             ? 'border-l-red-600 bg-red-50/20'
                                             : task.priority === 'HIGH'

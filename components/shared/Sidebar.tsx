@@ -188,7 +188,7 @@ export default function Sidebar() {
 
     return (
         <aside
-            className="w-64 bg-white border-r border-slate-300 flex flex-col flex-shrink-0 min-h-[calc(100vh-160px)] hidden md:flex font-sans select-none"
+            className="w-64 flex-shrink-0 bg-white border border-[#B9C5D6] flex flex-col font-sans select-none hidden md:flex"
             role="navigation"
             aria-label="Clinical Workstation Navigation"
         >
@@ -246,12 +246,12 @@ export default function Sidebar() {
                                 <span className={`${isActive ? 'text-white' : item.isAlert ? 'text-red-700' : 'text-slate-500'}`} aria-hidden="true">
                                     {item.icon}
                                 </span>
-                                <span className="truncate max-w-[145px]">
+                                <span className="truncate text-[12px]">
                                     {item.label}
                                 </span>
                             </div>
                             {item.badge && (
-                                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded font-mono ${
+                                <span className={`hidden xl:inline-block shrink-0 text-[9px] font-bold px-1.5 py-0.5 font-mono ${
                                     isActive
                                         ? 'bg-white/20 text-white'
                                         : item.isAlert

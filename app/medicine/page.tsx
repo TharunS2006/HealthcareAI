@@ -255,7 +255,7 @@ export default function MedicinePage() {
                                 {diagnostics.map((diag) => (
                                     <div
                                         key={diag.id}
-                                        className="p-3 bg-white border border-gray-200 rounded-xl hover:shadow-sm transition-all space-y-2"
+                                        className="p-3 bg-white border border-gray-200 rounded-xl transition-all space-y-2"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>

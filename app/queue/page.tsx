@@ -249,7 +249,7 @@ export default function QueuePage() {
 
                     {/* Confirmed appointments due today — pre-registered check-in into the queue */}
                     {todayConfirmed.length > 0 && (
-                        <div className="surface-card p-4 border-l-4 border-l-indigo-500">
+                        <div className="surface-card p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">
                                     {isEn ? "Today's Confirmed Appointments" : isHi ? 'आज के पुष्ट अपॉइंटमेंट' : 'आजच्या निश्चित भेटी'}
@@ -288,7 +288,7 @@ export default function QueuePage() {
                         <div className="lg:col-span-7 space-y-6">
 
                             {/* Now Serving Big Card */}
-                            <div className="surface-card p-6 border-l-4 border-l-emerald-deep bg-emerald-50/40">
+                            <div className="surface-card p-6 bg-emerald-50/40">
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
                                         ● {txt.nowServing}

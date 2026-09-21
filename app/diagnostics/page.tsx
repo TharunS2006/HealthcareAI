@@ -266,7 +266,7 @@ export default function DiagnosticsPage() {
                                     key={order.id}
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className={`surface-card p-5 border-l-4 transition-all ${
+                                    className={`surface-card p-5 transition-all ${
                                         order.isAbnormal ? 'border-l-rose-500 bg-rose-50/20' :
                                         order.status === 'COMPLETED' ? 'border-l-emerald-500' :
                                         'border-l-teal-500'
