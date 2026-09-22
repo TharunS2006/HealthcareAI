@@ -31,3 +31,4 @@ android/build
 android/app/build
 android/.idea
 deck/
+android/local.properties

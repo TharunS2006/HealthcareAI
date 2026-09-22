@@ -14,7 +14,7 @@
 // Bump on every change to PRECACHE_URLS — the activate handler deletes caches whose
 // key doesn't match, so a stale client would otherwise keep serving the old app shell
 // and never pick up newly added routes.
-const CACHE_VERSION = 'v3.3.0';
+const CACHE_VERSION = 'v4.0.0';
 const CACHE_NAME = `nalammesh-${CACHE_VERSION}`;
 
 /**
