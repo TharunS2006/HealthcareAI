@@ -276,6 +276,25 @@ app.get('/metrics', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 
+/**
+ * A relay left running from an earlier session is the usual reason this port is
+ * taken. Node's default here is an unhandled 'error' event and a stack trace,
+ * which is alarming and says nothing useful — print the fix instead.
+ */
+httpServer.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(
+            `\nMesh relay: port ${PORT} is already in use.\n\n` +
+            `Another relay is probably still running. Either use it as-is, or stop it:\n` +
+            `    lsof -ti :${PORT} | xargs kill\n\n` +
+            `To run on a different port instead:\n` +
+            `    PORT=3002 npm run server\n`
+        );
+        process.exit(1);
+    }
+    throw err;
+});
+
 httpServer.listen(PORT, () => {
     log(`Mesh network server running on port ${PORT}`);
 });
