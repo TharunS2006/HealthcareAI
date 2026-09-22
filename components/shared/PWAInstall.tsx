@@ -1,10 +1,9 @@
 /**
  * PWAInstall — Service Worker registration + "Install App" prompt
- * Government of Maharashtra • Public Health Department • NHM
+ * Government of India • Public Health Department • NHM
  *
  * This component is the ONLY place navigator.serviceWorker.register() is called.
- * It must stay mounted in app/layout.tsx or offline support silently stops working.
- */
+ * It must stay mounted in app/layout.tsx or offline support silently stops working. */
 
 'use client';
 

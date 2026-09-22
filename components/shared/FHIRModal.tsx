@@ -1,9 +1,8 @@
 /**
- * ABDM / FHIR R4 Interoperability Inspector — NalamMesh (SIH PS#26133)
+ * ABDM / FHIR R4 Interoperability Inspector — NalamMesh
  * Locally generates, validates, and exports (JSON download) FHIR R4 Document Bundles built
  * to the NDHM/ABDM profile. This is an ABDM-ready export, not a live gateway integration:
- * no bundle is transmitted to ABDM here. The milestone tab maps the integration roadmap.
- */
+ * no bundle is transmitted to ABDM here. The milestone tab maps the integration roadmap. */
 
 'use client';
 
@@ -261,7 +260,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                                 Milestone 3 (M3): Health Information User (HIU)
                                             </strong>
                                             <p className="mt-0.5">
-                                                Roadmap: will let apex specialists at District Hospital Gadchiroli pull previous care records across facilities with cryptographic consent verification once ABDM HIU integration is enabled — not yet live.
+                                                Roadmap: will let apex specialists at District Hospital  pull previous care records across facilities with cryptographic consent verification once ABDM HIU integration is enabled — not yet live.
                                             </p>
                                         </div>
                                     </div>

@@ -1,10 +1,9 @@
 /**
- * Legacy compatibility adapter redirecting to Maharashtra Rural Healthcare Facilities
- * @module lib/data/hospitals
- */
+ * Legacy compatibility adapter redirecting to Rural Healthcare Facilities
+ * @module lib/data/hospitals */
 
 export * from './facilities';
-export { MAHARASHTRA_FACILITIES as HOSPITALS } from './facilities';
+export { FACILITY_NETWORK as HOSPITALS } from './facilities';
 export { getRecommendedFacility as getRecommendedHospital } from './facilities';
 
 export function getResourceChecklist(injuryType: string): string[] {

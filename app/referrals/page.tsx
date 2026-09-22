@@ -1,7 +1,6 @@
 /**
  * Referral Pipeline & Continuum of Care Tracker — NalamMesh
- * Multi-tier referral tracking across Maharashtra public health system (SIH PS#26133)
- */
+ * Multi-tier referral tracking across India public health system */
 
 'use client';
 
@@ -14,7 +13,7 @@ import { useReferralStore } from '@/stores/referralStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { ReferralRecord, FacilityType, TriagePriority } from '@/types/patient';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
@@ -55,7 +54,7 @@ export default function ReferralsPage() {
     // Elapsed time since an ISO timestamp, in "Xh Ym" / "Ym" form. Recomputed against
     // `now` so a referral card shows real transit duration, not a static label.
     const formatElapsed = (fromISO?: Date | string): string => {
-        if (!fromISO) return '—';
+        if (!fromISO) return '';
         const mins = Math.max(0, Math.floor((now - new Date(fromISO).getTime()) / 60_000));
         if (mins < 60) return `${mins}m`;
         return `${Math.floor(mins / 60)}h ${mins % 60}m`;
@@ -95,8 +94,8 @@ export default function ReferralsPage() {
     const handleCreateReferral = async (e: React.FormEvent) => {
         e.preventDefault();
         const patient = patients.find(p => p.id === selectedPatientId) || patients[0];
-        const fromFac = MAHARASHTRA_FACILITIES.find(f => f.id === fromFacilityId) || MAHARASHTRA_FACILITIES[3];
-        const toFac = MAHARASHTRA_FACILITIES.find(f => f.id === toFacilityId) || MAHARASHTRA_FACILITIES[2];
+        const fromFac = FACILITY_NETWORK.find(f => f.id === fromFacilityId) || FACILITY_NETWORK[3];
+        const toFac = FACILITY_NETWORK.find(f => f.id === toFacilityId) || FACILITY_NETWORK[2];
 
         if (!reason.trim()) {
             toast.error('Please enter clinical reason for referral');
@@ -363,7 +362,7 @@ export default function ReferralsPage() {
                                                 onChange={(e) => setFromFacilityId(e.target.value)}
                                                 className="w-full p-2.5 bg-gray-50 border rounded-xl font-medium outline-none"
                                             >
-                                                {MAHARASHTRA_FACILITIES.map(f => (
+                                                {FACILITY_NETWORK.map(f => (
                                                     <option key={f.id} value={f.id}>{f.name} ({f.type})</option>
                                                 ))}
                                             </select>
@@ -375,7 +374,7 @@ export default function ReferralsPage() {
                                                 onChange={(e) => setToFacilityId(e.target.value)}
                                                 className="w-full p-2.5 bg-gray-50 border rounded-xl font-medium outline-none"
                                             >
-                                                {MAHARASHTRA_FACILITIES.map(f => (
+                                                {FACILITY_NETWORK.map(f => (
                                                     <option key={f.id} value={f.id}>{f.name} ({f.type})</option>
                                                 ))}
                                             </select>

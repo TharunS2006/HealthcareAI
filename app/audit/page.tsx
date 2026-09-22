@@ -1,11 +1,10 @@
 /**
- * Accountability Audit Trail — NalamMesh (SIH PS#26133, Module: Accountability)
+ * Accountability Audit Trail — NalamMesh (the rural healthcare access problem, Module: Accountability)
  *
  * Read-only view of every recorded mutation (referral status, queue movement, medicine
  * stock, patient records) with who acted, when, and the before→after change. Role-gated:
  * visible only to Medical Officer / Specialist / DHO, never to ASHA/ANM field roles.
- * Data is local (IndexedDB auditLog store); no network.
- */
+ * Data is local (IndexedDB auditLog store); no network. */
 
 'use client';
 
@@ -46,7 +45,7 @@ export default function AuditPage() {
     });
 
     const summarise = (json?: string): string => {
-        if (!json) return '—';
+        if (!json) return '';
         try {
             const obj = JSON.parse(json);
             return Object.entries(obj).map(([k, v]) => `${k}: ${v}`).join(', ');
@@ -71,7 +70,7 @@ export default function AuditPage() {
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-2.5 h-2.5 rounded-full bg-[#1F3A6E]" />
                             <span className="text-xs font-bold text-[#1F3A6E] uppercase tracking-wider">
-                                Government of Maharashtra • Public Health — Accountability
+                                Government of India • Public Health — Accountability
                             </span>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">

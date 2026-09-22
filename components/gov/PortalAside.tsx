@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 import { TIER_SERVICE_SCHEDULE, nextOccurrence } from '@/lib/data/patientServices';
 import { useLanguageStore } from '@/stores/languageStore';
 import type { FacilityType } from '@/types/facility';
+import { dep } from '@/lib/config/deployment';
 
 const HELPLINES: Array<[string, string]> = [
     ['Emergency Ambulance', '108'],
@@ -93,7 +94,7 @@ export default function PortalAside({ tier = 'PHC' }: { tier?: FacilityType }) {
                         ))}
                         {schedule.length === 0 && (
                             <li className="py-1.5 text-[11px] text-[#5A6B80]">
-                                {isEn ? 'No recurring service days recorded for this tier.' : '—'}
+                                {isEn ? 'No recurring service days recorded for this tier.' : ''}
                             </li>
                         )}
                     </ul>
@@ -138,11 +139,7 @@ export default function PortalAside({ tier = 'PHC' }: { tier?: FacilityType }) {
             <div className="border border-[#B9C5D6] bg-white px-2.5 py-2">
                 <span className="block text-[11.5px] font-bold text-[#1F3A6E] mb-0.5">{t.nodal}</span>
                 <p className="text-[11px] text-[#4A5A73] leading-snug">
-                    {isEn
-                        ? 'Chief Medical Officer, District Health Office, Gadchiroli.'
-                        : lang === 'hi'
-                        ? 'मुख्य चिकित्सा अधिकारी, जिला स्वास्थ्य कार्यालय, गडचिरोली।'
-                        : 'मुख्य वैद्यकीय अधिकारी, जिल्हा आरोग्य कार्यालय, गडचिरोली.'}
+                    {dep('nodalOfficer', lang)}
                 </p>
                 <Link href="/feedback" className="text-[11px] text-[#1F3A6E] hover:underline">
                     {isEn ? 'Raise a grievance' : lang === 'hi' ? 'शिकायत दर्ज करें' : 'तक्रार नोंदवा'} &raquo;

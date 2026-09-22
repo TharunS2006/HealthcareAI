@@ -1,12 +1,11 @@
 /**
- * Application-wide constants — NalamMesh Rural Healthcare (SIH PS#26133)
- * @module constants/app
- */
+ * Application-wide constants — NalamMesh Rural Healthcare
+ * @module constants/app */
 
 export const APP_CONFIG = {
     NAME: 'NalamMesh — Rural Healthcare Access Platform',
-    STATE: 'Maharashtra',
-    DISTRICT: 'Gadchiroli',
+    STATE: 'India',
+    DISTRICT: '',
     VERSION: '2.0.0',
     ENVIRONMENT: process.env.NODE_ENV || 'development',
 } as const;

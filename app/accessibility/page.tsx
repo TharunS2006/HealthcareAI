@@ -3,7 +3,7 @@ import PolicyPage from '@/components/gov/PolicyPage';
 
 export const metadata: Metadata = {
     title: 'Accessibility Statement | NalamMesh',
-    description: 'Accessibility Statement — Department of Public Health, Government of Maharashtra.',
+    description: 'Accessibility Statement — Department of Public Health, Government of India.',
 };
 
 export default function Page() {

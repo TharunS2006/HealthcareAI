@@ -1,7 +1,6 @@
 /**
  * Staff Command Center — NalamMesh Rural Public Healthcare Platform
- * Role-Based Healthcare Cadre Workspace — Government of Maharashtra
- */
+ * Role-Based Healthcare Cadre Workspace — Government of India */
 
 'use client';
 
@@ -35,14 +34,14 @@ export default function StaffHome() {
                 <div className="flex items-center gap-2 mb-1">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-deep animate-pulse" />
                     <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                        Government of Maharashtra • Public Health Department | Medical Officer Workspace
+                        Government of India • Public Health Department | Medical Officer Workspace
                     </span>
                 </div>
                 <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
                     NalamMesh Staff Command Center
                 </h1>
                 <p className="text-xs text-txt-secondary mt-0.5">
-                    Dr. Suresh Atram (Medical Officer In-Charge) • Primary Health Centre, Bhamragad (Aheri Division, Gadchiroli)
+                    Dr. Suresh Atram (Medical Officer In-Charge) • Primary Health Centre — Block A (Sub-Division Division, )
                 </p>
             </div>
 
@@ -94,7 +93,7 @@ export default function StaffHome() {
                 <ul className="space-y-1.5 text-xs text-txt-secondary">
                     <li>• <strong>3 referrals</strong> unacknowledged &gt; 24 hours — auto-escalated to District Health Officer (DHO).</li>
                     <li>• <strong>Paracetamol 500mg IP</strong> low stock (42 tabs remaining, threshold: 100) — requisition auto-drafted.</li>
-                    <li>• <strong>2 High-Risk ANC Mothers</strong> overdue for blood pressure monitoring in Kothi sub-centre.</li>
+                    <li>• <strong>2 High-Risk ANC Mothers</strong> overdue for blood pressure monitoring in Village 1 sub-centre.</li>
                 </ul>
             </div>
         </div>

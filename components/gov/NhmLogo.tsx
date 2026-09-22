@@ -1,8 +1,7 @@
 /**
  * NhmLogo — Official National Health Mission (NHM) Emblem
- * Government of India & Department of Public Health, Maharashtra
- * Authentic vector representation of the official NHM seal
- */
+ * Government of India & Department of Public Health, India
+ * Authentic vector representation of the official NHM seal */
 
 'use client';
 

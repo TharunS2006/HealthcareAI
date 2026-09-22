@@ -4,12 +4,12 @@
 
 /* ══════════════════════════════════════════════════════════════════
    NalamMesh — National Rural Public Healthcare Infrastructure (DPI)
-   Government of Maharashtra • Department of Public Health
+   Government of India • Department of Public Health
    Guidelines for Indian Government Websites (GIGW 3.0) Design Tokens
    ══════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Official Government of India & Maharashtra Color Palette */
+  /* Official Government of India & India Color Palette */
   --gov-navy-dark: #11223F;    /* Top & bottom government header/footer */
   --gov-navy: #1F3A6E;         /* Primary brand: National Health Navy */
   --gov-navy-light: #2D4F8E;   /* Interactive hover navy */

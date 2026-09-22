@@ -1,7 +1,7 @@
 /**
- * Patient-facing service awareness & entitlement data — NalamMesh (SIH PS#26133).
+ * Patient-facing service awareness & entitlement data — NalamMesh.
  *
- * PS#26133 names "limited awareness of available services" and "affordability" as root
+ * the problem statement names "limited awareness of available services" and "affordability" as root
  * causes of poor rural access. This module supplies, per facility tier, the two things a
  * patient or ASHA worker actually needs and the app did not previously surface anywhere:
  *
@@ -13,8 +13,7 @@
  *      Bharat PMJAY cover). This is DISPLAY-ONLY awareness content: it performs no scheme
  *      verification and calls no payment or eligibility API, by design.
  *
- * All data here is static seed content, so the screen works fully offline.
- */
+ * All data here is static seed content, so the screen works fully offline. */
 
 import { FacilityType, MedicineStockItem } from '@/types/facility';
 import { SEED_MEDICINES } from '@/lib/data/facilities';
@@ -40,8 +39,7 @@ export interface ServiceScheduleEntry {
  * Deliberately tier-keyed rather than per-facility: these are the standard service days
  * a patient can rely on at that tier, and keeping one table avoids inventing distinct
  * fake calendars for seven facilities. A facility's real operating hours still come from
- * its own `operatingHours` field; this table is the "which day is which clinic" layer.
- */
+ * its own `operatingHours` field; this table is the "which day is which clinic" layer. */
 export const TIER_SERVICE_SCHEDULE: Record<FacilityType, ServiceScheduleEntry[]> = {
     SC: [
         { key: 'sc-anc', weekday: 3, time: '9:00 AM – 12:00 PM',
@@ -82,8 +80,7 @@ export const TIER_SERVICE_SCHEDULE: Record<FacilityType, ServiceScheduleEntry[]>
 /**
  * The next calendar date on or after `from` that falls on `weekday`.
  * If `from` is already that weekday, `from` itself is returned (today's clinic still counts).
- * Returned date is normalised to local midnight so downstream formatting is stable.
- */
+ * Returned date is normalised to local midnight so downstream formatting is stable. */
 export function nextOccurrence(weekday: number, from: Date = new Date()): Date {
     const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
     const delta = (weekday - d.getDay() + 7) % 7; // 0 when today matches
@@ -102,8 +99,7 @@ export interface EntitlementFacts {
  * Entitlement facts by tier. Public-facility OPD, drugs on the essential list, ANC, and
  * immunisation are free of charge under the National Health Mission at every tier; PMJAY
  * cover for admission/secondary care becomes relevant from CHC upward. These are factual
- * awareness statements, not a coverage determination for any individual.
- */
+ * awareness statements, not a coverage determination for any individual. */
 export function getEntitlements(tier: FacilityType): EntitlementFacts {
     const freeCore: Localized[] = [
         { en: 'OPD consultation is free of charge at this public facility (NHM).',
@@ -145,8 +141,7 @@ export interface FreeMedicineSummary {
 /**
  * Free IPHS-essential medicines available at a facility, from the live stock seed.
  * `inStock` counts those not out of stock; `sample` lists a few for display. No invented
- * counts — everything derives from SEED_MEDICINES filtered by facility.
- */
+ * counts — everything derives from SEED_MEDICINES filtered by facility. */
 export function freeEssentialMedicinesAt(
     facilityId: string,
     medicines: MedicineStockItem[] = SEED_MEDICINES

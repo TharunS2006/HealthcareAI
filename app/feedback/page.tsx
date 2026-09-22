@@ -3,7 +3,7 @@ import PolicyPage from '@/components/gov/PolicyPage';
 
 export const metadata: Metadata = {
     title: 'Grievance Redressal | NalamMesh',
-    description: 'Grievance Redressal — Department of Public Health, Government of Maharashtra.',
+    description: 'Grievance Redressal — Department of Public Health, Government of India.',
 };
 
 export default function Page() {

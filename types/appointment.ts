@@ -1,11 +1,10 @@
 /**
- * Appointment scheduling model — NalamMesh (SIH PS#26133).
+ * Appointment scheduling model — NalamMesh.
  *
- * PS#26133 asks for "appointment AND queue management." The walk-in token queue was the
+ * the problem statement asks for "appointment AND queue management." The walk-in token queue was the
  * only path; this adds future-dated booking against a facility's daily slot capacity, and
  * a hand-off into the live queue on the appointment day (see appointmentStore.convertToToken).
- * All local (IndexedDB) — works fully offline.
- */
+ * All local (IndexedDB) — works fully offline. */
 
 export type AppointmentStatus = 'REQUESTED' | 'CONFIRMED' | 'CANCELLED' | 'CONVERTED_TO_TOKEN';
 export type AppointmentSource = 'ASHA_BOOKED' | 'SELF_REQUESTED';

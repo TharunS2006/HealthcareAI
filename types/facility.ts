@@ -1,7 +1,6 @@
 /**
  * Facility, Queue, Teleconsult & Inventory Data Models
- * Supporting Maharashtra Public Healthcare Hierarchy (SC -> PHC -> CHC -> SDH -> DH)
- */
+ * Supporting India Public Healthcare Hierarchy (SC -> PHC -> CHC -> SDH -> DH) */
 
 import { FacilityType, GPSLocation, TriagePriority, Vitals } from './patient';
 
@@ -139,8 +138,7 @@ export interface TeleconsultSession {
 /**
  * Accountability audit entry. Every mutation a clinician acts on (referral status,
  * queue movement, medicine stock) writes one of these, so the public system can answer
- * "who changed this, when, and from what to what." Snapshots are small JSON strings.
- */
+ * "who changed this, when, and from what to what." Snapshots are small JSON strings. */
 export interface AuditLogEntry {
     id: string;
     entityType: 'PATIENT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE' | 'APPOINTMENT';

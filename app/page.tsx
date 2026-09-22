@@ -1,9 +1,8 @@
 /**
  * NalamMesh — National Rural Public Healthcare Infrastructure (DPI)
- * Government of Maharashtra • Department of Public Health
+ * Government of India • Department of Public Health
  * Official NIC / GIGW 3.0 Portal Gateway
- * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
- */
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
@@ -65,7 +64,7 @@ export default function Home() {
             title: isEn ? 'District Health Command (DHO)' : isHi ? 'जिला स्वास्थ्य आदेश कक्ष (DHO)' : 'जिल्हा आरोग्य आदेश कक्ष (DHO)',
             dept: isEn ? 'Public Health Command' : isHi ? 'स्वास्थ्य निगरानी' : 'आरोग्य संनियंत्रण',
             desc: isEn
-                ? 'Real-time census, IPHS facility scorecards, travel burden avoided, referral audits, and danger-sign escalation telemetry across the Gadchiroli facility network.'
+                ? 'Real-time census, IPHS facility scorecards, travel burden avoided, referral audits, and danger-sign escalation telemetry across the facility network.'
                 : isHi
                 ? 'जिले के सभी उपकेंद्र, प्राथमिक स्वास्थ्य केंद्र व ग्रामीण अस्पतालों का सीधा सांख्यिकी एवं गुणवत्ता मूल्यांकन।'
                 : 'जिल्ह्यातील सर्व उपकेंद्र, प्राथमिक आरोग्य केंद्र व ग्रामीण रुग्णालयांचे थेट संख्याशास्त्रीय व गुणवत्ता मूल्यमापन.',
@@ -168,33 +167,33 @@ export default function Home() {
 
     const pageTexts = {
         deptTag: isEn
-            ? 'Department of Public Health, Government of Maharashtra • National Health Mission'
+            ? 'Department of Public Health, Government of India • National Health Mission'
             : isHi
-            ? 'सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार • राष्ट्रीय स्वास्थ्य मिशन'
-            : 'सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन • राष्ट्रीय आरोग्य अभियान',
+            ? 'सार्वजनिक स्वास्थ्य विभाग, भारत सरकार • राष्ट्रीय स्वास्थ्य मिशन'
+            : 'सार्वजनिक आरोग्य विभाग, भारत सरकार • राष्ट्रीय आरोग्य अभियान',
         heroTitle: isEn
             ? 'NalamMesh — Integrated Rural Public Healthcare Platform'
             : isHi
             ? 'नलममेश — ग्रामीण सार्वजनिक स्वास्थ्य सेवा एवं गुणवत्ता एकीकृत मंच'
             : 'नलममेश — एकात्मिक ग्रामीण सार्वजनिक आरोग्य सेवा व गुणवत्ता मंच',
         heroSub: isEn
-            ? 'Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs, and District Hospital in Gadchiroli.'
+            ? 'Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs and the District Hospital.'
             : isHi
             ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
-            : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
+            : ' व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
         censusTitle: isEn
-            ? 'Live District Health Census — Gadchiroli Division'
+            ? 'Live District Health Census'
             : isHi
             ? 'थेट स्वास्थ्य सांख्यिकी फलक — गढ़चिरौली मंडल'
-            : 'थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census — Gadchiroli Division)',
+            : 'थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census)',
         // No hardcoded date here: a "live" census stamped with a fixed calendar date
         // reads as stale the day after it is written, and it disagreed with the English
         // string beside it.
         censusDate: isEn
-            ? 'Updated: Live Real-time • Synchronized across the Gadchiroli facility network'
+            ? 'Updated: Live Real-time • Synchronized across the facility network'
             : isHi
             ? 'अद्यतन: लाइव रीयल-टाइम | गढ़चिरौली सुविधा नेटवर्क में सीधा एकत्रीकरण'
-            : 'अद्ययावत: थेट रिअल-टाइम | गडचिरोली आरोग्य संस्था नेटवर्कमध्ये थेट एकत्रीकरण',
+            : 'अद्ययावत: थेट रिअल-टाइम | आरोग्य संस्था नेटवर्कमध्ये थेट एकत्रीकरण',
         stat1Label: isEn ? 'Patients Examined Today (OPD)' : isHi ? 'आज देखे गए मरीज (OPD)' : 'आज तपासलेले रुग्ण (OPD)',
         stat1Sub: isEn ? 'Live registered count' : isHi ? 'सक्रिय पंजीकृत संख्या' : 'सक्रिय नोंदणीकृत संख्या',
         stat2Label: isEn ? '108 / 102 Ambulances in Transit' : isHi ? '१०८ / १०२ एम्बुलेंस ट्रांजिट' : '१०८/१०२ रुग्णवाहिका प्रवास',
@@ -230,10 +229,10 @@ export default function Home() {
         refServicesBtn: isEn ? '108 Referral Pipeline' : isHi ? '१०८ रेफरल सेवा' : '१०८ रेफरल सेवा',
         staffLoginBtn: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
         disclaimer: isEn
-            ? 'All information on this portal is compliant with National Health Policy (NHP) and Govt. of Maharashtra guidelines. Consultations and essential drugs are 100% FREE at all government facilities.'
+            ? 'All information on this portal is compliant with National Health Policy (NHP) and Govt. of India guidelines. Consultations and essential drugs are 100% FREE at all government facilities.'
             : isHi
-            ? 'इस पोर्टल की समस्त जानकारी राष्ट्रीय स्वास्थ्य नीति (NHP) एवं महाराष्ट्र सरकार के दिशा-निर्देशों के अनुरूप है। सभी सरकारी स्वास्थ्य केंद्रों पर उपचार व दवाएं पूर्णतः निःशुल्क हैं।'
-            : 'या पोर्टलवरील सर्व माहिती महाराष्ट्र शासनाच्या सार्वजनिक आरोग्य विभागाच्या अधिकृत मार्गदर्शक तत्त्वांवर आधारित आहे. सर्व सरकारी आरोग्य केंद्रांवर उपचार व औषधे मोफत आहेत.',
+            ? 'इस पोर्टल की समस्त जानकारी राष्ट्रीय स्वास्थ्य नीति (NHP) एवं भारत सरकार के दिशा-निर्देशों के अनुरूप है। सभी सरकारी स्वास्थ्य केंद्रों पर उपचार व दवाएं पूर्णतः निःशुल्क हैं।'
+            : 'या पोर्टलवरील सर्व माहिती भारत सरकाराच्या सार्वजनिक आरोग्य विभागाच्या अधिकृत मार्गदर्शक तत्त्वांवर आधारित आहे. सर्व सरकारी आरोग्य केंद्रांवर उपचार व औषधे मोफत आहेत.',
     };
 
     return (

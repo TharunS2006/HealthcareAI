@@ -1,11 +1,10 @@
 /**
- * Appointment Scheduling — NalamMesh (SIH PS#26133)
+ * Appointment Scheduling — NalamMesh
  *
  * Future-dated OPD booking against a facility's daily slot capacity, with a facility-scoped
  * upcoming list and a check-in that hands the booking to the live OPD queue on the day.
  * Trilingual (en/hi/mr); fully offline (IndexedDB). Complements the walk-in queue so the
- * platform covers "appointment AND queue management".
- */
+ * platform covers "appointment AND queue management". */
 
 'use client';
 
@@ -13,7 +12,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { usePatientStore } from '@/stores/patientStore';
 import { useAppointmentStore } from '@/stores/appointmentStore';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -48,7 +47,7 @@ export default function AppointmentsPage() {
         loadAppointments();
     }, [loadPatients, loadAppointments]);
 
-    const facility = MAHARASHTRA_FACILITIES.find(f => f.id === facilityId) ?? MAHARASHTRA_FACILITIES[0];
+    const facility = FACILITY_NETWORK.find(f => f.id === facilityId) ?? FACILITY_NETWORK[0];
     // Per-slot capacity derived from staffing (min 2), so a busy PHC books more than a Sub-Centre.
     const slotCapacity = Math.max(2, facility.staff.doctors * 2);
 
@@ -71,9 +70,9 @@ export default function AppointmentsPage() {
     const patientById = (id: string) => patients.find(p => p.id === id);
 
     const t = {
-        deptTag: isEn ? 'Government of Maharashtra • Public Health — OPD Scheduling'
-            : isHi ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य — ओपीडी अनुसूची'
-            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य — ओपीडी नियोजन',
+        deptTag: isEn ? 'Government of India • Public Health — OPD Scheduling'
+            : isHi ? 'भारत सरकार • सार्वजनिक स्वास्थ्य — ओपीडी अनुसूची'
+            : 'भारत सरकार • सार्वजनिक आरोग्य — ओपीडी नियोजन',
         title: isEn ? 'Appointment Scheduling' : isHi ? 'अपॉइंटमेंट अनुसूची' : 'भेटीचे नियोजन',
         subtitle: isEn ? 'Book a future OPD slot; walk-ins still use the live token queue'
             : isHi ? 'भविष्य का ओपीडी स्लॉट बुक करें; वॉक-इन के लिए लाइव टोकन कतार'
@@ -166,7 +165,7 @@ export default function AppointmentsPage() {
                                 <span className="text-[11px] font-bold text-txt-muted uppercase">{t.facility}</span>
                                 <select value={facilityId} onChange={e => setFacilityId(e.target.value)}
                                     className="w-full mt-1 p-2 bg-gray-50 border border-border-subtle rounded-xl">
-                                    {MAHARASHTRA_FACILITIES.map(f => <option key={f.id} value={f.id}>{f.type} — {f.name}</option>)}
+                                    {FACILITY_NETWORK.map(f => <option key={f.id} value={f.id}>{f.type} — {f.name}</option>)}
                                 </select>
                             </label>
 

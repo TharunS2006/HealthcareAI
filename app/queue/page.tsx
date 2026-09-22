@@ -1,8 +1,7 @@
 /**
  * Queue & Token Management Suite — NalamMesh
- * OPD Waiting Time Reduction & Priority Calling (SIH PS#26133)
- * Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
- */
+ * OPD Waiting Time Reduction & Priority Calling
+ * Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
@@ -16,7 +15,7 @@ import { useQueueStore } from '@/stores/queueStore';
 import { useAppointmentStore } from '@/stores/appointmentStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import type { Appointment } from '@/types/appointment';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -73,7 +72,7 @@ export default function QueuePage() {
 
     const txt = {
         deptTag: isEn ? 'Smart Queue & Token Calling Engine' : isHi ? 'स्मार्ट ओपीडी कतार व टोकन इंजन' : 'स्मार्ट ओपीडी रांग व टोकन प्रणाली',
-        title: isEn ? 'Queue Management — PHC Bhamragad' : isHi ? 'ओपीडी कतार प्रबंधन — प्रा. स्वा. केंद्र भामरागढ़' : 'ओपीडी रांग व्यवस्थापन — प्रा. आ. केंद्र भामरागड',
+        title: isEn ? 'Queue Management — PHC Block A' : isHi ? 'ओपीडी कतार प्रबंधन — प्रा. स्वा. केंद्र ब्लॉक अ' : 'ओपीडी रांग व्यवस्थापन — प्रा. आ. केंद्र ब्लॉक अ',
         subTitle: isEn
             ? 'Prioritize critical triage patients, track waiting times, and streamline doctor consultation'
             : isHi
@@ -116,10 +115,10 @@ export default function QueuePage() {
                         <div className="w-4 h-4 rounded-full bg-emerald-500 animate-pulse" />
                         <div>
                             <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide text-emerald-400 uppercase">
-                                {isEn ? 'PHC Bhamragad — OPD Token Calling Display' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र भामरागढ़ — ओपीडी टोकन डिस्प्ले' : 'प्राथमिक आरोग्य केंद्र भामरागड — ओपीडी टोकन डिस्प्ले'}
+                                {isEn ? 'PHC Block A — OPD Token Calling Display' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र ब्लॉक अ — ओपीडी टोकन डिस्प्ले' : 'प्राथमिक आरोग्य केंद्र ब्लॉक अ — ओपीडी टोकन डिस्प्ले'}
                             </h1>
                             <p className="text-sm text-slate-400">
-                                {isEn ? 'Department of Public Health • Government of Maharashtra' : isHi ? 'लोक स्वास्थ्य विभाग • महाराष्ट्र सरकार' : 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन'}
+                                {isEn ? 'Department of Public Health • Government of India' : isHi ? 'लोक स्वास्थ्य विभाग • भारत सरकार' : 'सार्वजनिक आरोग्य विभाग • भारत सरकार'}
                             </p>
                         </div>
                     </div>
@@ -205,7 +204,7 @@ export default function QueuePage() {
 
                 {/* TV Footer */}
                 <footer className="text-center text-xs text-slate-500 border-t border-slate-800 pt-3">
-                    NalamMesh Digital Public Infrastructure • Government of Maharashtra
+                    NalamMesh Digital Public Infrastructure • Government of India
                 </footer>
             </div>
         );

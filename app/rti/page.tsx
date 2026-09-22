@@ -3,7 +3,7 @@ import PolicyPage from '@/components/gov/PolicyPage';
 
 export const metadata: Metadata = {
     title: 'Right to Information (RTI 2005) | NalamMesh',
-    description: 'Right to Information (RTI 2005) — Department of Public Health, Government of Maharashtra.',
+    description: 'Right to Information (RTI 2005) — Department of Public Health, Government of India.',
 };
 
 export default function Page() {

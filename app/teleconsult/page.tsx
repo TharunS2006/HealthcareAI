@@ -3,8 +3,7 @@
  * Structured assisted-consult workspace: shared vitals, clinical notes stream, and
  * specialist orders. The video panel is a SIMULATED PREVIEW — there is no WebRTC/getUserMedia
  * capture or live signalling here, and the UI is worded so it does not imply a live A/V call.
- * Connecting Frontline Health Workers (ASHA/CHO) with District Specialists (SIH PS#26133)
- */
+ * Connecting Frontline Health Workers (ASHA/CHO) with District Specialists */
 
 'use client';
 
@@ -13,7 +12,7 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import Icon from '@/components/gov/Icon';
-import { SEED_TELECONSULT, MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { SEED_TELECONSULT, FACILITY_NETWORK } from '@/lib/data/facilities';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
 import { TeleconsultSession } from '@/types/facility';
@@ -72,8 +71,8 @@ export default function TeleconsultPage() {
             fromFacilityId: session.initiatingFacilityId,
             fromFacilityName: session.initiatingFacilityName,
             fromFacilityType: 'SC' as const,
-            toFacilityId: 'dh-gadchiroli',
-            toFacilityName: 'District Hospital, Gadchiroli',
+            toFacilityId: 'dh-district',
+            toFacilityName: 'District Hospital',
             toFacilityType: 'DH' as const,
             reason: `Teleconsultation Decision: ${session.reasonForConsult}`,
             priority: 'EMERGENCY' as const,
@@ -148,7 +147,7 @@ export default function TeleconsultPage() {
                                     </div>
 
                                     <div className="bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-full border border-slate-700 text-[10px] text-teal-300 font-mono">
-                                        Sub-Centre Kothi ↔ DH Gadchiroli
+                                        Sub-Centre Village 1 ↔ District Hospital
                                     </div>
                                 </div>
 
@@ -234,7 +233,7 @@ export default function TeleconsultPage() {
                                         <strong className="text-emerald-deep">Dr. Priya Sharma:</strong> "Check fetal heart sounds with Doppler. Is patient experiencing visual disturbance or epigastric pain?"
                                     </div>
                                     <div className="p-2 bg-teal-50 rounded-lg">
-                                        <strong className="text-teal-800">CHO Sunita (Kothi):</strong> "Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours."
+                                        <strong className="text-teal-800">CHO Sunita (Village 1):</strong> "Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours."
                                     </div>
                                 </div>
                             </div>
@@ -254,7 +253,7 @@ export default function TeleconsultPage() {
                                             {session.patientName}
                                         </h3>
                                         <p className="text-xs text-txt-muted">
-                                            Age: {session.patientAge} • Sub-Centre Kothi • 32 Weeks ANC
+                                            Age: {session.patientAge} • Sub-Centre Village 1 • 32 Weeks ANC
                                         </p>
                                     </div>
                                     <span className="font-mono text-xs text-txt-muted">
@@ -339,7 +338,7 @@ export default function TeleconsultPage() {
                                         onClick={handleDispatchReferral}
                                         className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2"
                                     >
-                                        <Icon name="ambulance" className="w-4 h-4" /> Authorize Immediate Referral to DH Gadchiroli
+                                        <Icon name="ambulance" className="w-4 h-4" /> Authorize Immediate Referral to District Hospital
                                     </button>
 
                                     <button

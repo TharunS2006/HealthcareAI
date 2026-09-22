@@ -1,7 +1,7 @@
 /**
  * GovPanel — the standard content unit of an Indian government portal.
  *
- * NIC-built department sites (mohfw.gov.in, nhm.gov.in, arogya.maharashtra.gov.in)
+ * NIC-built department sites (mohfw.gov.in, nhm.gov.in, arogya.<state>.gov.in)
  * do not use floating cards. Content sits in a square, 1px-bordered box under a
  * solid heading bar. Separation comes from the rule, never from elevation.
  *

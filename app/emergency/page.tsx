@@ -1,7 +1,6 @@
 /**
- * Emergency Escalation Portal — Module 13 (SIH PS#26133)
- * Provides 1-tap 108 / 102 emergency ambulance dispatch with Longitudinal Health Record sharing.
- */
+ * Emergency Escalation Portal — Module 13
+ * Provides 1-tap 108 / 102 emergency ambulance dispatch with Longitudinal Health Record sharing. */
 
 'use client';
 
@@ -12,7 +11,7 @@ import MobileMenu from '@/components/shared/MobileMenu';
 import Icon from '@/components/gov/Icon';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { ReferralRecord } from '@/types/patient';
 import toast from 'react-hot-toast';
 
@@ -30,7 +29,7 @@ export default function EmergencyPage() {
         name: 'Emergency Unknown Patient',
         age: 30,
         gender: 'F',
-        village: 'Bhamragad Tribal Sub-Centre',
+        village: 'Block A Tribal Sub-Centre',
         vitals: { spo2: 88, heartRate: 124, bloodPressure: { systolic: 168, diastolic: 104 }, injuryType: 'Acute Shock / Obstetric Crisis' },
         triageStatus: 'RED' as const,
         triagePriority: 'EMERGENCY' as const,
@@ -39,8 +38,8 @@ export default function EmergencyPage() {
 
     const handleTriggerEmergency = async () => {
         const targetFacility = selectedType === '102_MATERNAL'
-            ? MAHARASHTRA_FACILITIES[1]
-            : MAHARASHTRA_FACILITIES[0];
+            ? FACILITY_NETWORK[1]
+            : FACILITY_NETWORK[0];
 
         const emergencyRecord: ReferralRecord = {
             id: `SOS-${Date.now().toString().slice(-6)}`,
@@ -49,7 +48,7 @@ export default function EmergencyPage() {
             patientAge: activePatient.age,
             patientGender: activePatient.gender,
             fromFacilityId: 'sc-kothi',
-            fromFacilityName: 'Sub-Centre Kothi (Field Station)',
+            fromFacilityName: 'Sub-Centre Village 1 (Field Station)',
             fromFacilityType: 'SC',
             toFacilityId: targetFacility.id,
             toFacilityName: targetFacility.name,
@@ -62,7 +61,7 @@ export default function EmergencyPage() {
             referredBy: 'Frontline Worker / Universal Emergency SOS',
             referredAt: new Date().toISOString(),
             transportMode: selectedType === '102_MATERNAL' ? 'AMBULANCE_102' : 'AMBULANCE_108',
-            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'MH-33-T-1021 (Janani Shishu 102)' : 'MH-33-G-1088 (MEMS ALS Ambulance 108)',
+            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'AMB-T-1021 (Janani Shishu 102)' : 'AMB-G-1088 (MEMS ALS Ambulance 108)',
             clinicalSummary: `CRITICAL ALERT: SpO2 ${activePatient.vitals?.spo2 || 88}%, BP ${activePatient.vitals?.bloodPressure?.systolic || 160}/${activePatient.vitals?.bloodPressure?.diastolic || 100}, HR ${activePatient.vitals?.heartRate || 120} BPM. Condition: ${activePatient.vitals?.injuryType || 'Acute Emergency'}. ABHA: ${activePatient.abhaId || 'ABHA-LINKED'}. Immediate team mobilization requested.`,
             notes: selectedType === '102_MATERNAL' ? 'Obstetrics & Gynecology (CEmONC)' : 'Trauma & Emergency Care (ICU)',
         };
@@ -83,7 +82,7 @@ export default function EmergencyPage() {
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 rounded-full text-xs font-bold text-red-800 mb-2">
                                 <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                                <span>Government of Maharashtra • Universal Emergency Escalation Protocol</span>
+                                <span>Government of India • Universal Emergency Escalation Protocol</span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
                                 Emergency Medical Response & 108/102 Dispatch
@@ -228,7 +227,7 @@ export default function EmergencyPage() {
                                     <div>
                                         <span className="text-txt-muted block text-[10px] font-bold uppercase">Auto-Routed Receiving Centre</span>
                                         <strong className="text-emerald-deep font-bold">
-                                            {selectedType === '102_MATERNAL' ? 'SDH Aheri (First Referral Unit - CEmONC)' : 'District Hospital Gadchiroli (Apex ICU/Trauma)'}
+                                            {selectedType === '102_MATERNAL' ? 'Sub-District Hospital (First Referral Unit - CEmONC)' : 'District Hospital (Apex ICU/Trauma)'}
                                         </strong>
                                     </div>
                                     <span className="badge-green font-bold px-2 py-1 rounded">

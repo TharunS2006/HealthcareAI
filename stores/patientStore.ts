@@ -1,7 +1,6 @@
 /**
  * Zustand state management for longitudinal patient records
- * Optimistic UI updates, offline-first IndexedDB persistence & mesh sync
- */
+ * Optimistic UI updates, offline-first IndexedDB persistence & mesh sync */
 
 import { create } from 'zustand';
 import { Patient } from '@/types/patient';
@@ -75,7 +74,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket reset emit failed:', err);
             }
-            toast.success('Reset to Maharashtra Rural Benchmark Data');
+            toast.success('Reset to Rural Benchmark Data');
         } catch (error) {
             console.error('Failed to reset data:', error);
         }

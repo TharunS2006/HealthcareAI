@@ -1,8 +1,7 @@
 /**
  * StateEmblem — Authentic State Emblem of India (Lion Capital of Ashoka)
- * Government of India & Government of Maharashtra Official Emblem
- * Official authentic vector representation
- */
+ * Government of India & Government of India Official Emblem
+ * Official authentic vector representation */
 
 'use client';
 

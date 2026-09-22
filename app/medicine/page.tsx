@@ -1,8 +1,7 @@
 /**
  * Essential Medicine Inventory & Diagnostic Coordination — NalamMesh
- * Indian Public Health Standards (IPHS) Compliance (SIH PS#26133)
- * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
- */
+ * Indian Public Health Standards (IPHS) Compliance
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
@@ -60,10 +59,10 @@ export default function MedicinePage() {
         deptTag: isEn ? 'Indian Public Health Standards (IPHS) Drug & Diagnostic Portal' : isHi ? 'भारतीय सार्वजनिक स्वास्थ्य मानक (IPHS) दवा व निदान पोर्टल' : 'भारतीय सार्वजनिक आरोग्य मानक (IPHS) औषध व निदान पोर्टल',
         title: isEn ? 'Medicine Inventory & Diagnostic Coordination' : isHi ? 'आवश्यक दवा स्टॉक एवं निदान समन्वय' : 'अत्यावश्यक औषध साठा व निदान समन्वय',
         subTitle: isEn
-            ? 'Stock visibility, emergency reorder alerts, and cross-tier lab test tracking for Gadchiroli'
+            ? 'Stock visibility, emergency reorder alerts, and cross-tier lab test tracking for '
             : isHi
             ? 'गढ़चिरौली जिले में दवा स्टॉक, आपातकालीन पुनः आपूर्ति व बहु-स्तरीय परीक्षण ट्रैकिंग'
-            : 'गडचिरोली जिल्ह्यातील औषध साठा, तातडीची मागणी सूचना आणि सर्व स्तरीय लॅब चाचण्यांची स्थिती',
+            : ' जिल्ह्यातील औषध साठा, तातडीची मागणी सूचना आणि सर्व स्तरीय लॅब चाचण्यांची स्थिती',
         emergencyReqBtn: isEn ? 'Emergency Supply Request' : isHi ? 'आपातकालीन आपूर्ति मांग' : 'आपत्कालीन औषध मागणी',
         criticalAlert: isEn
             ? `Critical Stock Alert: ${outOfStockMeds.length} items Out-of-Stock, ${lowStockMeds.length} items Low`
@@ -121,7 +120,7 @@ export default function MedicinePage() {
                         </div>
 
                         <button
-                            onClick={() => toast.success(isEn ? 'Emergency Drug Requisition sent to District Warehouse Gadchiroli' : isHi ? 'जिला गोदाम गढ़चिरौली को आपातकालीन दवा मांग भेजी गई' : 'जिल्हा गोदाम गडचिरोलीकडे आपत्कालीन औषध मागणी नोंदवली')}
+                            onClick={() => toast.success(isEn ? 'Emergency Drug Requisition sent to District Warehouse ' : isHi ? 'जिला गोदाम गढ़चिरौली को आपातकालीन दवा मांग भेजी गई' : 'जिल्हा गोदाम कडे आपत्कालीन औषध मागणी नोंदवली')}
                             className="gov-btn gov-btn-danger text-xs"
                         >
                             <Icon name="alert-siren" className="w-3.5 h-3.5" /> {txt.emergencyReqBtn}

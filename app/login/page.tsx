@@ -1,7 +1,6 @@
 /**
- * Citizen Authentication & Consent Portal — Module 0 (SIH PS#26133)
- * Implements OTP / ABHA authentication with DPDP Act & ABDM consent flags.
- */
+ * Citizen Authentication & Consent Portal — Module 0
+ * Implements OTP / ABHA authentication with DPDP Act & ABDM consent flags. */
 
 'use client';
 

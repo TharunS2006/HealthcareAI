@@ -1,13 +1,12 @@
 /**
- * Live Map Component — Real-time patient & facility visualization for Gadchiroli, Maharashtra
- * Uses Leaflet for offline-capable mapping with patient & facility pins
- */
+ * Live Map Component — Real-time patient & facility visualization for , India
+ * Uses Leaflet for offline-capable mapping with patient & facility pins */
 
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { Patient } from '@/types/patient';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 
 interface LiveMapProps {
     patients: Patient[];
@@ -37,7 +36,7 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
             });
 
-            // Center on Gadchiroli, Maharashtra
+            // Center on , India
             const map = L.map(mapRef.current, {
                 center: [19.6500, 80.2000],
                 zoom: 10,
@@ -51,8 +50,8 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
 
             L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-            // Add Maharashtra Facility markers
-            MAHARASHTRA_FACILITIES.forEach((fac) => {
+            // Add India Facility markers
+            FACILITY_NETWORK.forEach((fac) => {
                 const isDH = fac.type === 'DH';
                 const isPHC = fac.type === 'PHC';
 
@@ -157,7 +156,7 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
         <div className={`relative w-full h-full rounded-2xl overflow-hidden ${className}`}>
             <div ref={mapRef} className="w-full h-full" />
             <div className="absolute top-3 right-3 z-[1000] bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg border text-[10px] font-bold text-emerald-deep shadow-sm">
-                Gadchiroli District Map
+                the district Map
             </div>
         </div>
     );

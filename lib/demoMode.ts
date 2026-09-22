@@ -1,8 +1,7 @@
 /**
- * Live Demo Mode Controller — NalamMesh (Maharashtra Rural Public Health)
- * Auto-generates simulated patient flow (RED, YELLOW, GREEN) in Gadchiroli
- * Triggers live socket sync, real-time map updates, and audio alerts for RED patients
- */
+ * Live Demo Mode Controller — NalamMesh (Rural Public Health)
+ * Auto-generates simulated patient flow (RED, YELLOW, GREEN) in 
+ * Triggers live socket sync, real-time map updates, and audio alerts for RED patients */
 
 import { v4 as uuidv4 } from 'uuid';
 import { Patient, TriageStatus, TriagePriority } from '@/types/patient';
@@ -16,7 +15,7 @@ const DEMO_PRESETS = [
         name: 'Savita Rama Madavi',
         age: 24,
         gender: 'F' as const,
-        village: 'Kothi',
+        village: 'Village 1',
         triageStatus: 'RED' as TriageStatus,
         triagePriority: 'EMERGENCY' as TriagePriority,
         vitals: {
@@ -35,7 +34,7 @@ const DEMO_PRESETS = [
         name: 'Bandu Soma Atram',
         age: 48,
         gender: 'M' as const,
-        village: 'Govindpur',
+        village: 'Village 2',
         triageStatus: 'YELLOW' as TriageStatus,
         triagePriority: 'URGENT' as TriagePriority,
         vitals: {
@@ -53,7 +52,7 @@ const DEMO_PRESETS = [
         name: 'Baby Anaya (s/o Radha)',
         age: 2,
         gender: 'F' as const,
-        village: 'Perimili',
+        village: 'Block B',
         triageStatus: 'RED' as TriageStatus,
         triagePriority: 'EMERGENCY' as TriagePriority,
         vitals: {
@@ -72,7 +71,7 @@ const DEMO_PRESETS = [
         name: 'Ganesh Devrao Gawde',
         age: 38,
         gender: 'M' as const,
-        village: 'Bhamragad',
+        village: 'Block A',
         triageStatus: 'GREEN' as TriageStatus,
         triagePriority: 'ROUTINE' as TriagePriority,
         vitals: {
@@ -92,7 +91,7 @@ let presetIndex = 0;
 export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     if (demoInterval) return;
 
-    toast('Maharashtra Rural Public Health Live Demo Mode Activated', {
+    toast('Rural Public Health Live Demo Mode Activated', {
         duration: 4000,
         style: { background: '#0E7D6B', color: '#fff', fontWeight: 'bold' },
     });
@@ -101,7 +100,7 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
         const preset = DEMO_PRESETS[presetIndex % DEMO_PRESETS.length];
         presetIndex++;
 
-        // Base location: Gadchiroli, Maharashtra
+        // Base location: , India
         const baseLat = 19.4678;
         const baseLng = 80.3789;
 
@@ -112,9 +111,9 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
             age: preset.age,
             gender: preset.gender,
             village: preset.village,
-            tehsil: 'Bhamragad',
-            district: 'Gadchiroli',
-            state: 'Maharashtra',
+            tehsil: 'Block',
+            district: 'District',
+            state: 'India',
             vitals: preset.vitals,
             triageStatus: preset.triageStatus,
             triagePriority: preset.triagePriority,
@@ -126,7 +125,7 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
             timestamp: new Date().toISOString(),
             isSynced: true,
             chw_name: 'Lakshmi Netam (ASHA)',
-            notes: 'Auto-generated via NalamMesh Maharashtra Demonstration Engine',
+            notes: 'Auto-generated via NalamMesh India Demonstration Engine',
         };
 
         await usePatientStore.getState().addPatient(patient);

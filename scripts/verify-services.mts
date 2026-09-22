@@ -18,12 +18,12 @@
  */
 const { nextOccurrence, getEntitlements, freeEssentialMedicinesAt, TIER_SERVICE_SCHEDULE } =
     await import('../lib/data/patientServices');
-const { SEED_MEDICINES, MAHARASHTRA_FACILITIES } = await import('../lib/data/facilities');
+const { SEED_MEDICINES, FACILITY_NETWORK } = await import('../lib/data/facilities');
 
 let failures = 0;
 function check(label: string, cond: boolean, detail = ''): void {
-    if (cond) { console.log(`  PASS  ${label}`); }
-    else { failures += 1; console.log(`  FAIL  ${label}${detail ? ` — ${detail}` : ''}`); }
+    if (cond) { console.log(` PASS ${label}`); }
+    else { failures += 1; console.log(` FAIL ${label}${detail ? ` — ${detail}` : ''}`); }
 }
 
 const midnight = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -57,7 +57,7 @@ check('a Wednesday ANC from a Monday resolves to +2 days', (() => {
 // ---------------------------------------------------------------------------
 console.log('\n2. FREE-MEDICINE COUNTS — NO OVER-CLAIM');
 // ---------------------------------------------------------------------------
-for (const f of MAHARASHTRA_FACILITIES) {
+for (const f of FACILITY_NETWORK) {
     const s = freeEssentialMedicinesAt(f.id, SEED_MEDICINES);
     const essentialHere = SEED_MEDICINES.filter(m => m.facilityId === f.id && m.isEssentialIPHS).length;
     check(`${f.id}: in-stock (${s.inStock}) <= total (${s.total}) <= essential records (${essentialHere})`,

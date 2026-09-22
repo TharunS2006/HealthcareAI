@@ -1,7 +1,6 @@
 /**
- * Mobile Navigation Drawer & Bottom Bar — NalamMesh FHW Interface (SIH PS#26133)
- * Department of Public Health • Government of Maharashtra
- */
+ * Mobile Navigation Drawer & Bottom Bar — NalamMesh FHW Interface
+ * Department of Public Health • Government of India */
 
 'use client';
 
@@ -150,10 +149,10 @@ export default function MobileMenu() {
                         </strong>
                         <span className="text-[9px] text-slate-500 font-bold block">
                             {language === 'en'
-                                ? 'Govt. of Maharashtra • Public Health'
+                                ? 'Govt. of India • Public Health'
                                 : language === 'hi'
-                                ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य'
-                                : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य'}
+                                ? 'भारत सरकार • सार्वजनिक स्वास्थ्य'
+                                : 'भारत सरकार • सार्वजनिक आरोग्य'}
                         </span>
                     </div>
                 </div>

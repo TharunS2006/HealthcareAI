@@ -1,7 +1,6 @@
 /**
- * NalamMesh Data Models — Rural Public Healthcare (SIH PS#26133)
- * ABDM/FHIR-compliant patient & clinical structures for tiered care
- */
+ * NalamMesh Data Models — Rural Public Healthcare
+ * ABDM/FHIR-compliant patient & clinical structures for tiered care */
 
 export type TriageStatus = 'RED' | 'YELLOW' | 'GREEN';
 export type TriagePriority = 'EMERGENCY' | 'URGENT' | 'SEMI_URGENT' | 'ROUTINE';

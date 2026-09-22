@@ -1,8 +1,7 @@
 /**
  * GovPortalFooter — Official GIGW 3.0 & NIC-Compliant Government Footer
- * Standard Indian Government & Maharashtra Public Health Department Attribution
- * Full Trilingual Localization: English, Marathi, Hindi
- */
+ * Standard Indian Government & Ministry of Health & Family Welfare Attribution
+ * Full Trilingual Localization: English, Marathi, Hindi */
 
 'use client';
 
@@ -19,8 +18,7 @@ export default function GovPortalFooter() {
     /**
      * Resolved after mount, not during render: this is a static export, so anything
      * derived from the clock at render time is baked into the prerendered HTML at build
-     * time and then disagrees with the client on hydration. Empty until mounted.
-     */
+     * time and then disagrees with the client on hydration. Empty until mounted. */
     const [today, setToday] = useState('');
     useEffect(() => {
         setToday(new Date().toLocaleDateString('en-IN', {
@@ -42,12 +40,12 @@ export default function GovPortalFooter() {
         maternal: isEn ? 'Janani Shishu:' : isHi ? 'मातृ व शिशु:' : 'जननी शिशु:',
         healthAdvise: isEn ? 'Health Advice:' : isHi ? 'स्वास्थ्य सलाह:' : 'आरोग्य सल्ला:',
         childLine: isEn ? 'Child Helpline:' : isHi ? 'बाल हेल्पलाइन:' : 'बाल हेल्पलाइन:',
-        stateGov: isEn ? 'Government of Maharashtra' : isHi ? 'महाराष्ट्र सरकार' : 'महाराष्ट्र शासन',
+        stateGov: isEn ? 'Government of India' : isHi ? 'भारत सरकार' : 'भारत सरकार',
         address: isEn
-            ? 'Department of Public Health, Mantralaya, Mumbai 400 032. National Health Mission (NHM) Maharashtra.'
+            ? 'Department of Public Health, Mantralaya, Mumbai 400 032. National Health Mission (NHM) India.'
             : isHi
-            ? 'सार्वजनिक स्वास्थ्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय स्वास्थ्य मिशन (NHM) महाराष्ट्र।'
-            : 'सार्वजनिक आरोग्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय आरोग्य अभियान (NHM) महाराष्ट्र.',
+            ? 'सार्वजनिक स्वास्थ्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय स्वास्थ्य मिशन (NHM) भारत।'
+            : 'सार्वजनिक आरोग्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय आरोग्य अभियान (NHM) भारत.',
         importantPortals: isEn ? 'Important Portals' : isHi ? 'महत्वपूर्ण पोर्टल्स' : 'महत्वाच्या लिंक्स (Important Portals)',
         p1: isEn ? 'Public Health Dept Portal' : isHi ? 'सार्वजनिक स्वास्थ्य विभाग पोर्टल' : 'सार्वजनिक आरोग्य विभाग पोर्टल',
         p2: isEn ? 'Ayushman Bharat Digital Mission (ABDM)' : isHi ? 'आयुष्मान भारत डिजिटल मिशन (ABDM)' : 'आयुष्मान भारत डिजिटल मिशन (ABDM)',
@@ -62,12 +60,12 @@ export default function GovPortalFooter() {
         trans1: isEn ? 'Accessibility Statement' : isHi ? 'पहुंच विवरण' : 'प्रवेशयोग्यता विधान (Accessibility Statement)',
         trans2: isEn ? 'Right to Information (RTI 2005)' : isHi ? 'सूचना का अधिकार (RTI 2005)' : 'माहितीचा अधिकार (RTI 2005)',
         trans3: isEn ? 'Grievance Redressal' : isHi ? 'शिकायत निवारण' : 'तक्रार निवारण (Grievance Redressal)',
-        nodal: isEn ? 'Nodal Officer: Chief Medical Officer, Gadchiroli' : isHi ? 'नोडल अधिकारी: मुख्य चिकित्सा अधिकारी, गढ़चिरौली' : 'नोडल अधिकारी: मुख्य वैद्यकीय अधिकारी, गडचिरोली',
+        nodal: isEn ? 'Nodal Officer: Chief Medical Officer, ' : isHi ? 'नोडल अधिकारी: मुख्य चिकित्सा अधिकारी, गढ़चिरौली' : 'नोडल अधिकारी: मुख्य वैद्यकीय अधिकारी, ',
         rights: isEn
-            ? `© ${currentYear} NalamMesh • Department of Public Health, Government of Maharashtra. All rights reserved.`
+            ? `© ${currentYear} NalamMesh • Department of Public Health, Government of India. All rights reserved.`
             : isHi
-            ? `© ${currentYear} नलममेश • सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार। सर्वाधिकार सुरक्षित।`
-            : `© ${currentYear} नलममेश • सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन. सर्व हक्क राखीव.`,
+            ? `© ${currentYear} नलममेश • सार्वजनिक स्वास्थ्य विभाग, भारत सरकार। सर्वाधिकार सुरक्षित।`
+            : `© ${currentYear} नलममेश • सार्वजनिक आरोग्य विभाग, भारत सरकार. सर्व हक्क राखीव.`,
         designedBy: isEn
             ? 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).'
             : isHi
@@ -137,7 +135,7 @@ export default function GovPortalFooter() {
                             {F.importantPortals}
                         </h4>
                         <ul className="space-y-1 text-[11px] text-slate-300">
-                            <li><a href="https://arogya.maharashtra.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p1}</a></li>
+                            <li><a href="https://nhm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p1}</a></li>
                             <li><a href="https://abdm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p2}</a></li>
                             <li><a href="https://nhm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p3}</a></li>
                             <li><a href="https://esanjeevani.mohfw.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p4}</a></li>

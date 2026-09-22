@@ -1,8 +1,7 @@
 /**
  * IndexedDB wrapper for offline rural public healthcare data storage
  * Version 2: Supports longitudinal patients, visits, referral pipeline, queue tokens, medicine stock, and diagnostics
- * @module lib/db
- */
+ * @module lib/db */
 
 import { openDB, IDBPDatabase } from 'idb';
 import { Patient, SyncQueueItem, ReferralRecord } from '@/types/patient';
@@ -17,7 +16,7 @@ import {
     SEED_QUEUE,
     SEED_MEDICINES,
     SEED_DIAGNOSTICS,
-    MAHARASHTRA_FACILITIES
+    FACILITY_NETWORK
 } from '@/lib/data/facilities';
 
 type NalamMeshDB = {
@@ -111,8 +110,7 @@ export class DatabaseError extends Error {
 }
 
 /**
- * Initialize IndexedDB and seed with authentic Maharashtra datasets if fresh
- */
+ * Initialize IndexedDB and seed with authentic India datasets if fresh */
 export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
     if (dbInstance) return dbInstance;
 
@@ -206,12 +204,12 @@ export async function getDB(): Promise<IDBPDatabase<NalamMeshDB>> {
                         ...SEED_PATIENTS.map(p => tx.objectStore('patients').put(p)),
                         ...SEED_REFERRALS.map(r => tx.objectStore('referrals').put(r)),
                         ...SEED_QUEUE.map(q => tx.objectStore('queue').put(q)),
-                        ...MAHARASHTRA_FACILITIES.map(f => tx.objectStore('facilities').put(f)),
+                        ...FACILITY_NETWORK.map(f => tx.objectStore('facilities').put(f)),
                         ...SEED_MEDICINES.map(m => tx.objectStore('medicineStock').put(m)),
                         ...SEED_DIAGNOSTICS.map(d => tx.objectStore('diagnostics').put(d)),
                     ]);
                     await tx.done;
-                    logger.info('Database seeded with authentic Maharashtra healthcare dataset');
+                    logger.info('Database seeded with authentic public healthcare dataset');
                 }
 
                 return db;
@@ -285,8 +283,7 @@ export function getCurrentActor(): { actorId: string; actorRole: string } {
 /**
  * Record one audit entry. Deliberately non-throwing: the primary clinical write has
  * already succeeded by the time this is called, and a failed audit write must never
- * roll back or block patient care — the failure is logged, not propagated.
- */
+ * roll back or block patient care — the failure is logged, not propagated. */
 export async function logAudit(
     entityType: AuditLogEntry['entityType'],
     entityId: string,
@@ -480,7 +477,7 @@ export async function saveDiagnostic(diagnostic: DiagnosticOrder): Promise<void>
 export async function getAllFacilities(): Promise<Facility[]> {
     const db = await getDB();
     const facs = await db.getAll('facilities');
-    return facs.length > 0 ? facs : MAHARASHTRA_FACILITIES;
+    return facs.length > 0 ? facs : FACILITY_NETWORK;
 }
 
 // -------------------------------------------------------------
@@ -519,7 +516,7 @@ export async function resetToDefaultSeed(): Promise<void> {
         ...SEED_PATIENTS.map(p => tx.objectStore('patients').put(p)),
         ...SEED_REFERRALS.map(r => tx.objectStore('referrals').put(r)),
         ...SEED_QUEUE.map(q => tx.objectStore('queue').put(q)),
-        ...MAHARASHTRA_FACILITIES.map(f => tx.objectStore('facilities').put(f)),
+        ...FACILITY_NETWORK.map(f => tx.objectStore('facilities').put(f)),
         ...SEED_MEDICINES.map(m => tx.objectStore('medicineStock').put(m)),
         ...SEED_DIAGNOSTICS.map(d => tx.objectStore('diagnostics').put(d)),
     ]);

@@ -3,7 +3,7 @@ import PolicyPage from '@/components/gov/PolicyPage';
 
 export const metadata: Metadata = {
     title: 'Hyperlinking Policy | NalamMesh',
-    description: 'Hyperlinking Policy — Department of Public Health, Government of Maharashtra.',
+    description: 'Hyperlinking Policy — Department of Public Health, Government of India.',
 };
 
 export default function Page() {

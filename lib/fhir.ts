@@ -1,7 +1,6 @@
 /**
  * ABDM / FHIR R4 Health Record Generator (National Health Authority compliant)
- * Converts NalamMesh Patient records into standard Ayushman Bharat / FHIR R4 JSON Bundles
- */
+ * Converts NalamMesh Patient records into standard Ayushman Bharat / FHIR R4 JSON Bundles */
 
 import { Patient } from '@/types/patient';
 
@@ -21,8 +20,7 @@ export interface FHIRBundle {
 }
 
 /**
- * Generate a compliant FHIR R4 Resource Bundle for India ABDM integration
- */
+ * Generate a compliant FHIR R4 Resource Bundle for India ABDM integration */
 export function generateFHIRBundle(patient: Patient): FHIRBundle {
     const patientUrl = `urn:uuid:${patient.id}`;
     const timestamp = new Date(patient.timestamp).toISOString();
@@ -58,9 +56,9 @@ export function generateFHIRBundle(patient: Patient): FHIRBundle {
                     active: true,
                     address: [
                         {
-                            city: patient.village || 'Kothi',
-                            district: patient.district || 'Gadchiroli',
-                            state: patient.state || 'Maharashtra',
+                            city: patient.village || 'Village 1',
+                            district: patient.district || '',
+                            state: patient.state || 'India',
                             country: 'India',
                         },
                     ],
@@ -227,8 +225,7 @@ export function generateFHIRBundle(patient: Patient): FHIRBundle {
 }
 
 /**
- * Trigger browser download of compliant FHIR JSON Bundle file
- */
+ * Trigger browser download of compliant FHIR JSON Bundle file */
 export function downloadFHIRRecord(patient: Patient): void {
     const bundle = generateFHIRBundle(patient);
     const jsonStr = JSON.stringify(bundle, null, 2);

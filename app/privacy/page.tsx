@@ -3,7 +3,7 @@ import PolicyPage from '@/components/gov/PolicyPage';
 
 export const metadata: Metadata = {
     title: 'Privacy Policy | NalamMesh',
-    description: 'Privacy Policy — Department of Public Health, Government of Maharashtra.',
+    description: 'Privacy Policy — Department of Public Health, Government of India.',
 };
 
 export default function Page() {

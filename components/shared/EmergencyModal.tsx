@@ -1,8 +1,7 @@
 /**
- * Universal Emergency Escalation & 108/102 SOS Module — NalamMesh (SIH PS#26133)
+ * Universal Emergency Escalation & 108/102 SOS Module — NalamMesh
  * Provides one-tap emergency escalation, nearest FRU/DH routing, and instant LHR emergency summary dispatch.
- * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
- */
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
@@ -11,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
 import { useLanguageStore } from '@/stores/languageStore';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { ReferralRecord } from '@/types/patient';
 import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
@@ -60,11 +59,11 @@ export default function EmergencyModal() {
         name: 'Emergency Patient (Unknown)',
         age: 30,
         gender: 'F',
-        village: 'Bhamragad Sub-Centre',
+        village: 'Block A Sub-Centre',
         vitals: { spo2: 88, heartRate: 124, bloodPressure: { systolic: 168, diastolic: 104 }, injuryType: 'Severe Respiratory Distress' }
     };
 
-    const targetFacility = MAHARASHTRA_FACILITIES.find(f => f.type === 'SDH') || MAHARASHTRA_FACILITIES[1];
+    const targetFacility = FACILITY_NETWORK.find(f => f.type === 'SDH') || FACILITY_NETWORK[1];
 
     const handleDispatch = async () => {
         const emergencyRecord: ReferralRecord = {
@@ -74,7 +73,7 @@ export default function EmergencyModal() {
             patientAge: activePatient.age,
             patientGender: activePatient.gender,
             fromFacilityId: 'fac-phc-001',
-            fromFacilityName: 'PHC Bhamragad',
+            fromFacilityName: 'PHC Block A',
             fromFacilityType: 'PHC',
             toFacilityId: targetFacility.id,
             toFacilityName: targetFacility.name,
@@ -85,7 +84,7 @@ export default function EmergencyModal() {
             referredBy: 'Frontline Worker SOS Trigger (1-Tap)',
             referredAt: new Date().toISOString(),
             transportMode: selectedType === '102_MATERNAL' ? 'AMBULANCE_102' : 'AMBULANCE_108',
-            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'MH-33-T-0102' : 'MH-33-E-1081',
+            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'AMB-T-0102' : 'AMB-E-1081',
             clinicalSummary: `CRITICAL ALERT: SpO2 ${activePatient.vitals.spo2}%, Pulse ${activePatient.vitals.heartRate} bpm, BP ${activePatient.vitals.bloodPressure?.systolic || 160}/${activePatient.vitals.bloodPressure?.diastolic || 100} mmHg. Chief note: ${activePatient.vitals.injuryType}`,
         };
 
@@ -232,7 +231,7 @@ export default function EmergencyModal() {
                                                 <Icon name="map-pin" className="w-4 h-4 text-amber-700" />
                                                 <div>
                                                     <span className="font-bold block">{t.targetFacility}</span>
-                                                    <span className="text-amber-900 font-extrabold">{targetFacility.name} (FRU Aheri)</span>
+                                                    <span className="text-amber-900 font-extrabold">{targetFacility.name} (FRU Sub-Division)</span>
                                                 </div>
                                             </div>
                                             <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">

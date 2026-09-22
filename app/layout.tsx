@@ -17,13 +17,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-    title: "NalamMesh — National Rural Public Healthcare Platform | Government of Maharashtra",
-    description: "National Rural Public Healthcare Access, Continuity & Quality Platform. Department of Public Health, Government of Maharashtra & National Health Mission (NHM).",
+    title: "NalamMesh — National Rural Public Healthcare Platform | Government of India",
+    description: "National Rural Public Healthcare Access, Continuity & Quality Platform. Department of Public Health, Government of India & National Health Mission (NHM).",
     manifest: "/manifest.json",
     keywords: [
-        "NalamMesh", "National Health Mission", "Government of Maharashtra",
+        "NalamMesh", "National Health Mission", "Government of India",
         "सार्वजनिक आरोग्य विभाग", "ABDM", "FHIR R4", "OPD Triage",
-        "Gadchiroli", "eSanjeevani", "108 Ambulance", "Public Healthcare",
+        "", "eSanjeevani", "108 Ambulance", "Public Healthcare",
     ],
 };
 

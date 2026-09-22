@@ -1,14 +1,13 @@
 /**
- * Staff Authentication Portal — Module 0 (SIH PS#26133)
- * Role-Based Access Control (RBAC) login for government healthcare cadre.
- */
+ * Staff Authentication Portal — Module 0
+ * Role-Based Access Control (RBAC) login for government healthcare cadre. */
 
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { useAuthStore, StaffRole } from '@/stores/authStore';
 import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
@@ -38,7 +37,7 @@ export default function StaffLoginPage() {
                     </div>
                     <h1 className="text-xl font-bold text-gov-navy">Healthcare Staff Portal Login</h1>
                     <p className="text-xs text-txt-secondary mt-1">
-                        National Health Mission (NHM) • Government of Maharashtra
+                        National Health Mission (NHM) • Government of India
                     </p>
                 </div>
 
@@ -71,7 +70,7 @@ export default function StaffLoginPage() {
                             onChange={(e) => setFacilityId(e.target.value)}
                             className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-medium"
                         >
-                            {MAHARASHTRA_FACILITIES.map(f => (
+                            {FACILITY_NETWORK.map(f => (
                                 <option key={f.id} value={f.id}>
                                     {f.name} ({f.type} — {f.district})
                                 </option>

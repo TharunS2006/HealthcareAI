@@ -1,8 +1,7 @@
 /**
- * High-Risk Patient Follow-Up & Recall Engine — NalamMesh (SIH PS#26133)
+ * High-Risk Patient Follow-Up & Recall Engine — NalamMesh
  * Implements the 3 mandatory cohorts: Maternal (ANC/PNC), Child (Immunization/SAM), Chronic (NCD/TB)
- * Auto-generates weekly FHW task lists and triggers multilingual SMS recalls.
- */
+ * Auto-generates weekly FHW task lists and triggers multilingual SMS recalls. */
 
 'use client';
 
@@ -32,8 +31,7 @@ interface RecallTask {
      * Days from today the visit is due — negative is overdue, 0 is today. Held as an
      * offset rather than a fixed calendar date so a recall never drifts into showing
      * "due in 2 days" beside a date that has already passed; the ASHA acts on this.
-     * `null` means the visit is tied to the next VHND rather than a fixed interval.
-     */
+     * `null` means the visit is tied to the next VHND rather than a fixed interval. */
     dueInDays: number | null;
     status: 'PENDING' | 'VISITED' | 'SMS_SENT' | 'COMPLETED';
     phone: string;
@@ -65,7 +63,7 @@ export default function FollowUpPage() {
             gender: 'F',
             cohort: 'MATERNAL',
             condition: 'High-Risk Pregnancy 32w (Preeclampsia risk, BP 160/102)',
-            village: 'Kothi (Sub-Centre)',
+            village: 'Village 1 (Sub-Centre)',
             ashaAssigned: 'Lakshmi Netam (ASHA)',
             dueInDays: 2,
             status: 'PENDING',
@@ -81,7 +79,7 @@ export default function FollowUpPage() {
             gender: 'M',
             cohort: 'CHILD',
             condition: 'Severe Acute Malnutrition (SAM) + Pneumonia follow-up',
-            village: 'Perimili',
+            village: 'Block B',
             ashaAssigned: 'Sharda Narote (ASHA)',
             dueInDays: 0,
             status: 'PENDING',
@@ -97,7 +95,7 @@ export default function FollowUpPage() {
             gender: 'M',
             cohort: 'CHRONIC',
             condition: 'Uncontrolled Type-2 Diabetes + Plantar Foot Ulcer',
-            village: 'Govindpur',
+            village: 'Village 2',
             ashaAssigned: 'Kavita Madavi (ANM)',
             dueInDays: -5,
             status: 'PENDING',
@@ -112,8 +110,8 @@ export default function FollowUpPage() {
             age: 42,
             gender: 'F',
             cohort: 'CHRONIC',
-            condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-MH-GAD-29402)',
-            village: 'Bhamragad',
+            condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-PHC-01)',
+            village: 'Block A',
             ashaAssigned: 'Sunita Hichami (CHO)',
             dueInDays: 4,
             status: 'VISITED',
@@ -145,7 +143,7 @@ export default function FollowUpPage() {
             gender: 'F',
             cohort: 'CHILD',
             condition: 'Pentavalent-3 & MR-1 Immunization Milestone Due',
-            village: 'Aheri Gram',
+            village: 'Sub-Division Gram',
             ashaAssigned: 'Rekha Atram (ASHA)',
             dueInDays: null,
             status: 'PENDING',
@@ -212,7 +210,7 @@ export default function FollowUpPage() {
     const handleOpenSMSModal = (task: RecallTask) => {
         setSmsModalPatient(task);
         const template = task.cohort === 'MATERNAL'
-            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपले पुढील ANC तपासणी उपकेंद्र कोठी येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
+            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपले पुढील ANC तपासणी उपकेंद्र गाव १ येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
             : task.cohort === 'CHILD'
             ? `[आरोग्य संदेश] ${task.patientName} यांचे लसीकरण व वजन तपासणी दिवस जवळ आला आहे. कृपया अंगणवाडी केंद्रात या.`
             : `[आरोग्य संदेश] ${task.patientName}, आपली मधुमेह/रक्तदाब तपासणी व औषध वाटप प्राथमिक आरोग्य केंद्रात देय आहे.`;
@@ -406,7 +404,7 @@ export default function FollowUpPage() {
                                 Assigned Frontline Health Worker (ASHA/ANM) Field Tasks ({filteredTasks.length})
                             </h2>
                             <span className="text-xs text-txt-muted font-medium">
-                                Showing prioritized Gadchiroli sub-centre assignments
+                                Showing prioritized  sub-centre assignments
                             </span>
                         </div>
 

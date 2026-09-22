@@ -1,6 +1,6 @@
 /**
  * NalamMesh Service Worker — Offline-First App Shell
- * Government of Maharashtra • Public Health Department • NHM
+ * Government of India • Public Health Department • NHM
  *
  * Strategy:
  *   • Static export routes (HTML) → network-first, cache fallback (fresh when online, works offline)
@@ -9,8 +9,7 @@
  *   • Navigation miss → cached shell for that route, else '/' , else offline response
  *
  * Pre-caching is intentionally NON-ATOMIC: each asset is added individually so a single
- * 404 cannot abort the whole install (cache.addAll() rejects the install on any failure).
- */
+ * 404 cannot abort the whole install (cache.addAll() rejects the install on any failure). */
 
 // Bump on every change to PRECACHE_URLS — the activate handler deletes caches whose
 // key doesn't match, so a stale client would otherwise keep serving the old app shell
@@ -20,8 +19,7 @@ const CACHE_NAME = `nalammesh-${CACHE_VERSION}`;
 
 /**
  * App-shell routes. Every entry below MUST exist in the static export (`out/`).
- * Keep in sync with app/ route segments.
- */
+ * Keep in sync with app/ route segments. */
 const PRECACHE_ROUTES = [
     '/',
     '/opd',
@@ -159,8 +157,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 /**
- * Immutable assets: serve from cache, populate on first miss.
- */
+ * Immutable assets: serve from cache, populate on first miss. */
 async function cacheFirst(request) {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
@@ -178,8 +175,7 @@ async function cacheFirst(request) {
 }
 
 /**
- * Everything else: prefer the network, fall back to cache, then to the app shell.
- */
+ * Everything else: prefer the network, fall back to cache, then to the app shell. */
 async function networkFirst(request) {
     const cache = await caches.open(CACHE_NAME);
 

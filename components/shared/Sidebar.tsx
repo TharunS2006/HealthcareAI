@@ -1,9 +1,8 @@
 /**
  * Sidebar Navigation — Official Government Clinical Workstation Sidebar
- * Department of Public Health • Government of Maharashtra
+ * Department of Public Health • Government of India
  * National Health Mission (NHM) • Ayushman Bharat Digital Mission (ABDM)
- * Fully localized for English, Marathi (मराठी), and Hindi (हिन्दी)
- */
+ * Fully localized for English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
@@ -23,8 +22,8 @@ export default function Sidebar() {
     // Station meta translations
     const stationMeta = {
         badge: isEn ? 'Station' : isHi ? 'कार्यरत केंद्र' : 'कार्यरत केंद्र',
-        name: isEn ? 'PHC Bhamragad' : isHi ? 'प्रा. स्वा. केंद्र, भामरागढ़' : 'प्रा. आ. केंद्र, भामरागड',
-        sub: isEn ? 'Aheri Sub-Division • Dist. Gadchiroli' : isHi ? 'अहेरी उपमंडल • जिला गढ़चिरौली' : 'अहेरी उपविभाग • जि. गडचिरोली',
+        name: isEn ? 'PHC Block A' : isHi ? 'प्रा. स्वा. केंद्र, ब्लॉक अ' : 'प्रा. आ. केंद्र, ब्लॉक अ',
+        sub: isEn ? 'Sub-Division • District Health Office' : isHi ? 'उपविभाग उपमंडल • जिला गढ़चिरौली' : 'उपविभाग उपविभाग • जि. ',
         doctorLabel: isEn ? 'Medical Officer:' : isHi ? 'चिकित्सा अधिकारी:' : 'वैद्यकीय अधिकारी:',
         doctorName: isEn ? 'Dr. Suresh Atram (MO)' : isHi ? 'डॉ. सुरेश आत्राम (MO)' : 'डॉ. सुरेश आत्राम (MO)',
         meshLabel: isEn ? 'ABDM Mesh Relay' : isHi ? 'ABDM मेश रिले' : 'ABDM मेश रिले',
@@ -179,7 +178,7 @@ export default function Sidebar() {
             badge: 'SOS',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
             ),
             isAlert: true,
@@ -199,7 +198,7 @@ export default function Sidebar() {
                         {stationMeta.badge}
                     </span>
                     <span className="px-1.5 py-0.5 text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-mono">
-                        MH-GAD-04
+                        PHC-01
                     </span>
                 </div>
                 <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
@@ -278,7 +277,7 @@ export default function Sidebar() {
                     </span>
                 </div>
                 <div className="flex items-center justify-between text-slate-500 text-[9px] pt-1 border-t border-slate-200/60">
-                    <span>HFR ID: MH-GAD-0042</span>
+                    <span>HFR ID: PHC-01</span>
                     <span className="font-bold text-[#1F3A6E]">{stationMeta.compliance}</span>
                 </div>
             </div>

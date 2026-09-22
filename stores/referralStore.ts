@@ -1,7 +1,6 @@
 /**
  * Referral Pipeline State Store
- * Manages cross-facility continuum of care across Maharashtra tiers
- */
+ * Manages cross-facility continuum of care across India tiers */
 
 import { create } from 'zustand';
 import { ReferralRecord } from '@/types/patient';

@@ -1,14 +1,13 @@
 /**
- * Health Services & Entitlements — NalamMesh (SIH PS#26133)
+ * Health Services & Entitlements — NalamMesh
  *
- * Patient- and ASHA-facing awareness screen. PS#26133 names "limited awareness of
+ * Patient- and ASHA-facing awareness screen. the problem statement names "limited awareness of
  * available services" and "affordability" as root causes of poor rural access; this is
  * the surface that answers, per facility, "what is offered here, WHEN, and what is free."
  *
  * All content is static seed data + dates computed from today, so it works fully offline.
  * The affordability panel is display-only awareness — it performs no scheme verification.
- * Full trilingual localisation: English, Hindi (हिन्दी), Marathi (मराठी).
- */
+ * Full trilingual localisation: English, Hindi (हिन्दी), Marathi (मराठी). */
 
 'use client';
 
@@ -17,7 +16,7 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import Icon from '@/components/gov/Icon';
-import { MAHARASHTRA_FACILITIES } from '@/lib/data/facilities';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import {
     TIER_SERVICE_SCHEDULE,
     nextOccurrence,
@@ -34,9 +33,9 @@ export default function ServicesInfoPage() {
     const isHi = language === 'hi';
     const pick = (l: Localized) => (isEn ? l.en : isHi ? l.hi : l.mr);
 
-    // Default to PHC Bhamragad — the station shown throughout the app.
+    // Default to PHC Block A — the station shown throughout the app.
     const [facilityId, setFacilityId] = useState('phc-bhamragad');
-    const facility = MAHARASHTRA_FACILITIES.find(f => f.id === facilityId) ?? MAHARASHTRA_FACILITIES[0];
+    const facility = FACILITY_NETWORK.find(f => f.id === facilityId) ?? FACILITY_NETWORK[0];
 
     const schedule = TIER_SERVICE_SCHEDULE[facility.type] ?? [];
     const entitlements = getEntitlements(facility.type);
@@ -71,9 +70,9 @@ export default function ServicesInfoPage() {
     };
 
     const txt = {
-        deptTag: isEn ? 'Government of Maharashtra • Public Health — Citizen Services'
-            : isHi ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य — नागरिक सेवाएं'
-            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य — नागरिक सेवा',
+        deptTag: isEn ? 'Government of India • Public Health — Citizen Services'
+            : isHi ? 'भारत सरकार • सार्वजनिक स्वास्थ्य — नागरिक सेवाएं'
+            : 'भारत सरकार • सार्वजनिक आरोग्य — नागरिक सेवा',
         title: isEn ? 'Health Services & Your Entitlements'
             : isHi ? 'स्वास्थ्य सेवाएं एवं आपके अधिकार'
             : 'आरोग्य सेवा व आपले हक्क',
@@ -137,7 +136,7 @@ export default function ServicesInfoPage() {
                                 onChange={(e) => setFacilityId(e.target.value)}
                                 className="px-3.5 py-2 bg-gray-50 border border-border-subtle rounded-xl text-sm w-full sm:w-96 focus:outline-none focus:ring-2 focus:ring-emerald-deep"
                             >
-                                {MAHARASHTRA_FACILITIES.map(f => (
+                                {FACILITY_NETWORK.map(f => (
                                     <option key={f.id} value={f.id}>
                                         {f.type} — {f.name}
                                     </option>
@@ -221,7 +220,7 @@ export default function ServicesInfoPage() {
                                     aria-label={txt.readAloud}
                                 >
                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0.891-1.077 1.337-1.707.707L5.586 15z" />
                                     </svg>
                                     {txt.readAloud}
                                 </button>
