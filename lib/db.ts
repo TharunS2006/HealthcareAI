@@ -233,22 +233,36 @@ export async function savePatient(patient: Patient): Promise<void> {
     await db.put('patients', patient);
 }
 
+/** Fetch one patient by id. Returns undefined if no such record exists on this device. */
 export async function getPatient(id: string): Promise<Patient | undefined> {
     const db = await getDB();
     return await db.get('patients', id);
 }
 
+/**
+ * Every patient held on this device.
+ *
+ * Falls back to the seeded cohort when the store is empty so a fresh install has
+ * something to show. Once a single real patient is registered the seed is never
+ * returned again.
+ */
 export async function getAllPatients(): Promise<Patient[]> {
     const db = await getDB();
     const patients = await db.getAll('patients');
     return patients.length > 0 ? patients : SEED_PATIENTS;
 }
 
+/**
+ * Patients not yet acknowledged by a peer, read from the `by-sync` index.
+ *
+ * This is the backlog a device replays once the mesh relay becomes reachable.
+ */
 export async function getUnsyncedPatients(): Promise<Patient[]> {
     const db = await getDB();
     return await db.getAllFromIndex('patients', 'by-sync', false as unknown as IDBValidKey);
 }
 
+/** Remove one patient from this device. Does not propagate to peers. */
 export async function deletePatient(id: string): Promise<void> {
     const db = await getDB();
     await db.delete('patients', id);
@@ -276,6 +290,7 @@ export function setCurrentActor(actorId: string, actorRole: string): void {
     currentActor = { actorId: actorId || 'system', actorRole: actorRole || 'SYSTEM' };
 }
 
+/** The staff member currently attributed to writes. Set at login via setCurrentActor(). */
 export function getCurrentActor(): { actorId: string; actorRole: string } {
     return currentActor;
 }
@@ -284,6 +299,17 @@ export function getCurrentActor(): { actorId: string; actorRole: string } {
  * Record one audit entry. Deliberately non-throwing: the primary clinical write has
  * already succeeded by the time this is called, and a failed audit write must never
  * roll back or block patient care — the failure is logged, not propagated. */
+/**
+ * Append one row to the audit trail.
+ *
+ * Deliberately NEVER throws. By the time this runs the clinical action has already
+ * been committed, so a failed audit write must not roll back real care — it is
+ * logged to the console and swallowed.
+ *
+ * Snapshots carry the record id and status only. Patient names must not be written
+ * here: the audit surface is readable by the District Health Officer, and entityId
+ * already resolves to the record for anyone entitled to see it.
+ */
 export async function logAudit(
     entityType: AuditLogEntry['entityType'],
     entityId: string,
@@ -318,6 +344,7 @@ export async function getAuditLog(limit = 200): Promise<AuditLogEntry[]> {
         .slice(0, limit);
 }
 
+/** Persist a new referral and record its creation in the audit trail. */
 export async function saveReferral(referral: ReferralRecord): Promise<void> {
     const db = await getDB();
     await db.put('referrals', referral);
@@ -326,6 +353,14 @@ export async function saveReferral(referral: ReferralRecord): Promise<void> {
     });
 }
 
+/**
+ * Advance a referral through the transfer lifecycle.
+ *
+ * Throws if the referral does not exist rather than returning quietly — a silent
+ * no-op in a clinical path is worse than a crash. Stamps `inTransitAt` the first
+ * time the status becomes IN_TRANSIT, which is what the UI's transit clock reads;
+ * a referral with no dispatch stamp shows no clock rather than a fabricated one.
+ */
 export async function updateReferralStatus(
     id: string,
     status: ReferralRecord['status'],
@@ -365,6 +400,7 @@ export async function getAppointments(facilityId?: string): Promise<Appointment[
     return facilityId ? all.filter(a => a.facilityId === facilityId) : all;
 }
 
+/** Persist a citizen booking and record it in the audit trail. */
 export async function saveAppointment(appt: Appointment): Promise<void> {
     const db = await getDB();
     await db.put('appointments', appt);
@@ -373,6 +409,10 @@ export async function saveAppointment(appt: Appointment): Promise<void> {
     });
 }
 
+/**
+ * Move an appointment through its lifecycle, optionally linking the queue token
+ * created when the patient arrives. Throws if the appointment is not found.
+ */
 export async function updateAppointmentStatus(
     id: string,
     status: Appointment['status'],
@@ -407,11 +447,19 @@ export async function getQueueEntries(facilityId?: string): Promise<QueueEntry[]
     return source.filter(q => q.facilityId === facilityId);
 }
 
+/** Persist one OPD queue token. */
 export async function saveQueueEntry(entry: QueueEntry): Promise<void> {
     const db = await getDB();
     await db.put('queue', entry);
 }
 
+/**
+ * Change a queue token's state — called, completed, or cancelled.
+ *
+ * Stamps `calledAt` on transition to CALLED. Wait times elsewhere in the app are
+ * computed from that timestamp rather than from a stored estimate, which is why it
+ * must be written here and not derived later.
+ */
 export async function updateQueueStatus(
     id: string,
     status: QueueEntry['status'],
@@ -449,6 +497,12 @@ export async function getAllMedicines(): Promise<MedicineStockItem[]> {
     return meds.length > 0 ? meds : SEED_MEDICINES;
 }
 
+/**
+ * Upsert a medicine stock line, auditing the quantity change.
+ *
+ * Reads the existing row first so the audit entry can record the before/after
+ * balance rather than only the new value.
+ */
 export async function saveMedicine(medicine: MedicineStockItem): Promise<void> {
     const db = await getDB();
     const existing = await db.get('medicineStock', medicine.id);
@@ -459,12 +513,14 @@ export async function saveMedicine(medicine: MedicineStockItem): Promise<void> {
     });
 }
 
+/** Every diagnostic order on this device, falling back to seed data when empty. */
 export async function getAllDiagnostics(): Promise<DiagnosticOrder[]> {
     const db = await getDB();
     const diags = await db.getAll('diagnostics');
     return diags.length > 0 ? diags : SEED_DIAGNOSTICS;
 }
 
+/** Persist a diagnostic order or its result. */
 export async function saveDiagnostic(diagnostic: DiagnosticOrder): Promise<void> {
     const db = await getDB();
     await db.put('diagnostics', diagnostic);
@@ -489,6 +545,12 @@ export async function addToSyncQueue(item: SyncQueueItem): Promise<void> {
     await db.put('syncQueue', item);
 }
 
+/**
+ * Clear patients, referrals and the queue in one transaction.
+ *
+ * Used by the demo reset. Facilities, stock and diagnostics are left intact because
+ * they are reference data rather than encounter data.
+ */
 export async function clearAllPatients(): Promise<void> {
     const db = await getDB();
     const tx = db.transaction(['patients', 'referrals', 'queue'], 'readwrite');
@@ -498,6 +560,12 @@ export async function clearAllPatients(): Promise<void> {
     await tx.done;
 }
 
+/**
+ * Restore every store to its seeded state in a single transaction.
+ *
+ * Wired to the mesh `data:reset` broadcast so a demo can be returned to a known
+ * starting point across all connected devices at once.
+ */
 export async function resetToDefaultSeed(): Promise<void> {
     const db = await getDB();
     const tx = db.transaction(

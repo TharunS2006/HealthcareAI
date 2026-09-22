@@ -26,6 +26,11 @@ interface UseMeshReturn {
     onMessage: (handler: (message: MeshMessage) => void) => () => void;
 }
 
+/**
+ * Subscribe a component to the mesh relay: connection state, peer list, and
+ * inbound messages. Registers this device as a node on mount and tears the
+ * listeners down on unmount so a remount does not double-subscribe.
+ */
 export function useMesh({ nodeName, gps, autoConnect = false }: UseMeshOptions): UseMeshReturn {
     const [connected, setConnected] = useState(false);
     const [nodes, setNodes] = useState<MeshNode[]>([]);

@@ -6,6 +6,12 @@ export * from './facilities';
 export { FACILITY_NETWORK as HOSPITALS } from './facilities';
 export { getRecommendedFacility as getRecommendedHospital } from './facilities';
 
+/**
+ * The IPHS resource checklist expected at a facility tier.
+ *
+ * Used by the facility scorecard to distinguish "not provided at this tier" from
+ * "should be here and is missing", which are very different findings.
+ */
 export function getResourceChecklist(injuryType: string): string[] {
     const lower = (injuryType || '').toLowerCase();
     if (lower.includes('pregnan') || lower.includes('matern') || lower.includes('labor') || lower.includes('eclampsia')) {

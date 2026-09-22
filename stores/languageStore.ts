@@ -15,6 +15,12 @@ export const SUPPORTED_LANGUAGES: readonly Language[] = ['en', 'mr', 'hi'] as co
 
 const DEFAULT_LANGUAGE: Language = 'en';
 
+/**
+ * Coerce an arbitrary stored value to a supported language code.
+ *
+ * localStorage can hold anything — a value from an older build, or nothing at all —
+ * so anything unrecognised falls back to English rather than rendering undefined.
+ */
 function normalizeLanguage(value: unknown): Language {
     return SUPPORTED_LANGUAGES.includes(value as Language) ? (value as Language) : DEFAULT_LANGUAGE;
 }

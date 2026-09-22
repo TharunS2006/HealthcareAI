@@ -88,6 +88,13 @@ const DEMO_PRESETS = [
 
 let presetIndex = 0;
 
+/**
+ * Begin generating demo patients on an interval, for presentation only.
+ *
+ * Cycles through fixed presets so a walkthrough is reproducible rather than random.
+ * Records created this way are ordinary patients and are clearly the product of an
+ * explicitly started demo — this is never on by default.
+ */
 export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     if (demoInterval) return;
 
@@ -147,6 +154,7 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     demoInterval = setInterval(generatePatient, 10000);
 }
 
+/** Stop demo generation and clear the interval. Safe to call when not running. */
 export function stopDemoMode() {
     if (demoInterval) {
         clearInterval(demoInterval);
@@ -155,6 +163,7 @@ export function stopDemoMode() {
     }
 }
 
+/** Whether demo generation is currently active — drives the toggle's state. */
 export function isDemoRunning(): boolean {
     return demoInterval !== null;
 }

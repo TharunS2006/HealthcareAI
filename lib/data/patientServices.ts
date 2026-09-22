@@ -81,6 +81,13 @@ export const TIER_SERVICE_SCHEDULE: Record<FacilityType, ServiceScheduleEntry[]>
  * The next calendar date on or after `from` that falls on `weekday`.
  * If `from` is already that weekday, `from` itself is returned (today's clinic still counts).
  * Returned date is normalised to local midnight so downstream formatting is stable. */
+/**
+ * The next calendar date on which a given weekday falls, counting from today.
+ *
+ * Returns today when today already matches. Every clinic and camp date shown to a
+ * citizen is computed through here rather than hard-coded, so the schedule stays
+ * correct without anyone editing it.
+ */
 export function nextOccurrence(weekday: number, from: Date = new Date()): Date {
     const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
     const delta = (weekday - d.getDay() + 7) % 7; // 0 when today matches
@@ -100,6 +107,12 @@ export interface EntitlementFacts {
  * immunisation are free of charge under the National Health Mission at every tier; PMJAY
  * cover for admission/secondary care becomes relevant from CHC upward. These are factual
  * awareness statements, not a coverage determination for any individual. */
+/**
+ * What a patient is entitled to at a given facility tier.
+ *
+ * Tier-gated on purpose: PMJAY empanelment and specialist services exist at CHC and
+ * above, so promising them at a sub-centre would send someone to the wrong place.
+ */
 export function getEntitlements(tier: FacilityType): EntitlementFacts {
     const freeCore: Localized[] = [
         { en: 'OPD consultation is free of charge at this public facility (NHM).',
@@ -142,6 +155,12 @@ export interface FreeMedicineSummary {
  * Free IPHS-essential medicines available at a facility, from the live stock seed.
  * `inStock` counts those not out of stock; `sample` lists a few for display. No invented
  * counts — everything derives from SEED_MEDICINES filtered by facility. */
+/**
+ * Which IPHS essential medicines are free, and currently in stock, at a tier.
+ *
+ * Counts only lines actually reported in stock — a citizen told a drug is free
+ * should not arrive to find none of it.
+ */
 export function freeEssentialMedicinesAt(
     facilityId: string,
     medicines: MedicineStockItem[] = SEED_MEDICINES

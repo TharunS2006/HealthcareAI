@@ -217,6 +217,12 @@ export const DICTIONARY = {
     },
 };
 
+/**
+ * Look up a translation key for the active language, falling back to English.
+ *
+ * Note that most screens define their strings inline rather than calling this —
+ * follow whichever pattern the file you are editing already uses.
+ */
 export function t(key: keyof typeof DICTIONARY['en'], lang: Language = 'mr'): string {
     const dict = (DICTIONARY as Record<string, any>)[lang] || DICTIONARY.mr || DICTIONARY.en;
     return dict[key] || DICTIONARY.mr[key] || DICTIONARY.en[key] || key;

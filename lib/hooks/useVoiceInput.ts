@@ -102,6 +102,12 @@ function parseVitals(transcript: string): VoiceParsedVitals {
     return parsed;
 }
 
+/**
+ * Speech-to-text capture for form fields, via the browser's SpeechRecognition API.
+ *
+ * Intended for health workers entering vitals one-handed. Degrades to silence where
+ * the API is unavailable, so a caller must always keep the manual input usable.
+ */
 export function useVoiceInput(): UseVoiceInputReturn {
     const [isListening, setIsListening] = useState(false);
     const [transcript, setTranscript] = useState('');

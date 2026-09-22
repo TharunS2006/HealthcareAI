@@ -9,6 +9,12 @@
 import { useEffect, useState } from 'react';
 import type { MeshStatus } from '@/lib/socket';
 
+/**
+ * The relay connection state — ONLINE, STANDALONE or CONNECTING.
+ *
+ * Drives the status chip in the sidebar. STANDALONE is a normal operating mode,
+ * not an error: the app is fully functional with no relay reachable.
+ */
 export function useMeshStatus(): MeshStatus {
     /**
      * Server render and first client render must agree, so both start at CONNECTING and

@@ -53,6 +53,13 @@ const nodes = new Map<string, MeshNode>();
 const patientCache = new Map<string, { patient: unknown; ts: number }>();
 const PATIENT_CACHE_MAX = 500;
 
+/**
+ * Record one patient in the catch-up cache, evicting the oldest when over the bound.
+ *
+ * This cache is the only state the relay holds, it is in-memory, and it exists solely
+ * so a facility that was offline can ask for what it missed. It is not a database:
+ * each device's own store remains the durable copy.
+ */
 function cachePatient(patient: { id?: string; timestamp?: string }): void {
     if (!patient?.id) return;
     patientCache.set(patient.id, { patient, ts: Date.parse(patient.timestamp ?? '') || Date.now() });
