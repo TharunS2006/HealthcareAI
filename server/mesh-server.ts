@@ -39,6 +39,29 @@ interface RelayMessage {
 }
 
 const nodes = new Map<string, MeshNode>();
+
+/**
+ * Transient record cache backing catch-up sync.
+ *
+ * `patient:sync` is a live broadcast: a facility that was offline when a record
+ * was created never saw it. The relay therefore keeps recent records in memory so
+ * a node can ask for everything it missed on reconnect.
+ *
+ * Deliberately in-memory and bounded — the relay is a courier, not a database.
+ * Each device's own IndexedDB remains the durable store.
+ */
+const patientCache = new Map<string, { patient: unknown; ts: number }>();
+const PATIENT_CACHE_MAX = 500;
+
+function cachePatient(patient: { id?: string; timestamp?: string }): void {
+    if (!patient?.id) return;
+    patientCache.set(patient.id, { patient, ts: Date.parse(patient.timestamp ?? '') || Date.now() });
+    // Evict oldest first when over the bound.
+    if (patientCache.size > PATIENT_CACHE_MAX) {
+        const oldest = [...patientCache.entries()].sort((a, b) => a[1].ts - b[1].ts)[0];
+        if (oldest) patientCache.delete(oldest[0]);
+    }
+}
 const messageCache = new Map<string, RelayMessage>();
 const MAX_HOPS = 5;
 const MESSAGE_TTL_MS = 60000; // 1minute
@@ -169,9 +192,27 @@ io.on('connection', (socket) => {
      * Broadcasts new/updated patient records to all connected clients
      */
     socket.on('patient:sync', (patient: any) => {
+        cachePatient(patient);
         // Broadcast to everyone else (excluding sender)
         socket.broadcast.emit('patient:sync', patient);
         log('Patient sync broadcasted', { patientId: patient.id });
+    });
+
+    /**
+     * Catch-up sync.
+     * A node that was offline asks for everything newer than it last saw, and the
+     * relay replays from its cache. Without this, a facility that missed the live
+     * broadcast never learns the record exists.
+     */
+    socket.on('sync:request', (data: { since?: number }) => {
+        const since = Number(data?.since) || 0;
+        const missed = [...patientCache.values()]
+            .filter((e) => e.ts > since)
+            .sort((a, b) => a.ts - b.ts)
+            .map((e) => e.patient);
+
+        socket.emit('sync:batch', { patients: missed, serverTime: Date.now() });
+        log('Catch-up sync served', { since, records: missed.length });
     });
 
     /**
@@ -179,6 +220,7 @@ io.on('connection', (socket) => {
      * Broadcasts a reset command to all connected clients
      */
     socket.on('data:reset', () => {
+        patientCache.clear();
         // Broadcast to everyone else (excluding sender)
         socket.broadcast.emit('data:reset');
         log('Global reset command broadcasted');

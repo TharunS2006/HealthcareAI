@@ -32,3 +32,6 @@ android/app/build
 android/.idea
 deck/
 android/local.properties
+
+# Local tool config — contains API keys, must never be committed
+.codex/

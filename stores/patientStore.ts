@@ -37,6 +37,52 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             const { getSocket } = await import('@/lib/socket');
             const socket = getSocket();
 
+            // ---- Catch-up sync -------------------------------------------------
+            // patient:sync is a live broadcast; a device that was offline when a
+            // record was created never receives it. On every (re)connect we ask the
+            // relay for everything newer than we last saw and merge it in.
+            const LAST_SYNC_KEY = 'nalammesh-last-sync-at';
+            const readLastSync = (): number => {
+                try { return Number(localStorage.getItem(LAST_SYNC_KEY)) || 0; } catch { return 0; }
+            };
+            const writeLastSync = (t: number): void => {
+                try { localStorage.setItem(LAST_SYNC_KEY, String(t)); } catch { /* private mode */ }
+            };
+
+            const requestCatchUp = () => socket.emit('sync:request', { since: readLastSync() });
+
+            socket.off('sync:batch');
+            socket.on('sync:batch', async (data: { patients: Patient[]; serverTime: number }) => {
+                const incoming = Array.isArray(data?.patients) ? data.patients : [];
+                if (incoming.length === 0) {
+                    writeLastSync(data?.serverTime ?? Date.now());
+                    return;
+                }
+
+                let applied = 0;
+                for (const patient of incoming) {
+                    const existing = get().patients.find(p => p.id === patient.id);
+                    // Same last-write-wins guard the live path uses.
+                    if (existing && new Date(existing.timestamp) >= new Date(patient.timestamp)) continue;
+                    try {
+                        await savePatient(patient);
+                        applied++;
+                    } catch (err) {
+                        console.error('Catch-up sync: failed to persist', patient.id, err);
+                    }
+                }
+
+                if (applied > 0) {
+                    await get().loadPatients();
+                    toast.success(`Synced ${applied} record${applied === 1 ? '' : 's'} missed while offline`);
+                }
+                writeLastSync(data?.serverTime ?? Date.now());
+            });
+
+            socket.off('connect', requestCatchUp);
+            socket.on('connect', requestCatchUp);
+            if (socket.connected) requestCatchUp();
+
             socket.off('patient:sync');
             socket.on('patient:sync', (patient: Patient) => {
                 set(state => {

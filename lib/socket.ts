@@ -38,9 +38,22 @@ export const subscribeMeshStatus = (notify: (status: MeshStatus) => void): (() =
 
 export const getSocket = (): Socket => {
     if (!socket) {
-        const SERVER_URL = typeof window !== 'undefined'
-            ? `http://${window.location.hostname}:3001`
-            : 'http://localhost:3001';
+        // Resolving the relay from window.location.hostname works in a browser on the
+        // same machine, but NOT in the Android build: Capacitor serves the app from a
+        // local origin inside the phone, so the hostname is "localhost" and the device
+        // would dial its own loopback. Set NEXT_PUBLIC_MESH_URL to the relay's LAN
+        // address (e.g. http://192.168.1.20:3001) when building the APK.
+        const configured = process.env.NEXT_PUBLIC_MESH_URL?.trim();
+
+        let derived = 'http://localhost:3001';
+        if (typeof window !== 'undefined') {
+            const host = window.location.hostname;
+            // A Capacitor/localhost origin cannot reach a relay on another machine.
+            const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '';
+            derived = isLoopback ? 'http://localhost:3001' : `http://${host}:3001`;
+        }
+
+        const SERVER_URL = configured || derived;
 
         socket = io(SERVER_URL, {
             transports: ['polling', 'websocket'],
