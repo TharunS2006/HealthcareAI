@@ -13,8 +13,18 @@
     "verify:triage": "tsx scripts/verify-triage.mts",
     "verify:metrics": "tsx scripts/verify-metrics.mts",
     "verify:services": "tsx scripts/verify-services.mts",
+    "verify:chat-thresholds": "tsx scripts/verify-chat-thresholds.mts",
+    "verify:chat-safety": "tsx scripts/verify-chat-safety.mts",
+    "verify:chat-retrieval": "tsx scripts/verify-chat-retrieval.mts",
+    "verify:chat-render": "tsx scripts/verify-chat-render.mts",
+    "verify:chat-scope": "tsx scripts/verify-chat-scope.mts",
     "cap:sync": "next build && npx cap sync",
-    "cap:open": "npx cap open android"
+    "cap:open": "npx cap open android",
+    "verify:cloud-records": "tsx scripts/verify-cloud-records.mts",
+    "verify:records-api": "python3 backend/scripts/verify_records.py",
+    "verify:store-api": "python3 backend/scripts/verify_store_dump.py",
+    "verify:chat-provider": "cd backend && python3 scripts/verify_chat_provider.py",
+    "verify:equipment": "tsx scripts/verify-equipment.mts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

@@ -3,9 +3,9 @@ import "./globals.css";
 import GovPortalHeader from "@/components/gov/GovPortalHeader";
 import GovPortalFooter from "@/components/gov/GovPortalFooter";
 import OfflineBanner from "@/components/gov/OfflineBanner";
-import EmergencyModal from "@/components/shared/EmergencyModal";
 import SocketInit from "@/components/shared/SocketInit";
 import PWAInstall from "@/components/shared/PWAInstall";
+import ChatAssistant from "@/components/shared/ChatAssistant";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
 
@@ -64,10 +64,13 @@ export default function RootLayout({
                     <div id="main-content" className="flex-1 pb-20">
                         {children}
                     </div>
-                    {/* Universal Emergency SOS Modal */}
-                    <EmergencyModal />
                     {/* Registers the service worker (offline app shell) + install prompt */}
                     <PWAInstall />
+                    {/* Assistant, open to staff and public alike — offline first, cloud
+                        only as fallback. It occupies the screen corner that used to hold
+                        the Emergency SOS launcher, so it carries the 108/102 numbers and
+                        links /emergency itself; the dispatch screen is still in the nav. */}
+                    <ChatAssistant />
                 </ErrorBoundary>
 
                 {/* Official NIC Government Footer */}

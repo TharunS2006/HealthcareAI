@@ -76,6 +76,7 @@ export const ROUTES = {
     OPD: '/opd',
     DASHBOARD: '/dashboard',
     REFERRALS: '/referrals',
+    INCOMING: '/incoming',
     QUEUE: '/queue',
     TELECONSULT: '/teleconsult',
     MEDICINE: '/medicine',

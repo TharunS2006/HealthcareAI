@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { Patient } from '@/types/patient';
 import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
+import { queuePatient } from '@/lib/sync/outbox';
 import toast from 'react-hot-toast';
 
 interface PatientStore {
@@ -141,6 +142,11 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket emit failed:', err);
             }
+            // Queue for the district cloud. The socket above only reaches devices on
+            // the same mesh; this is what lets a hospital in another town open the
+            // record before the patient arrives. Not awaited — it is durable and
+            // uploads itself whenever connectivity returns.
+            void queuePatient(patient);
         } catch (error) {
             console.error('Failed to save patient:', error);
             throw error;
@@ -189,6 +195,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket emit update failed:', err);
             }
+            void queuePatient(updatedPatient);
         } catch (error) {
             console.error('Failed to update patient:', error);
         }

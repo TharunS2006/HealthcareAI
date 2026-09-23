@@ -148,5 +148,25 @@ export interface SyncQueueItem {
     entityType?: 'PATIENT' | 'VISIT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE';
     data: any;
     retryCount: number;
+    /**
+     * When the change was made on this device — not when it was uploaded.
+     *
+     * The cloud resolves conflicts last-write-wins on this value, so it has to be
+     * the moment the worker recorded the change. A device that was offline for a
+     * day and reconnects then carries an honestly old timestamp, and the cloud
+     * keeps the newer copy instead of being overwritten by the replay.
+     */
     createdAt: Date | string;
+    /** Earliest time the outbox may retry this item (exponential backoff). */
+    nextAttemptAt?: string;
+    /** Last failure reason, kept so a stuck item can be explained rather than guessed at. */
+    lastError?: string;
+    /**
+     * Set when the cloud refused the record outright (a schema mismatch, say).
+     * Such an item is skipped so it cannot block the records behind it, but it
+     * is never deleted: a refusal is usually a bug in this app, and deleting
+     * the record would destroy the evidence and the patient's hand-off with it.
+     * Cleared on app start, so a fixed build retries it.
+     */
+    blockedReason?: string;
 }

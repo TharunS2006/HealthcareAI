@@ -82,6 +82,24 @@ export default function MobileMenu() {
             ),
         },
         {
+            href: '/incoming',
+            label: language === 'en' ? 'Pre-Arrival Board' : language === 'hi' ? 'आगमन-पूर्व बोर्ड' : 'आगमनपूर्व फलक',
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                </svg>
+            ),
+        },
+        {
+            href: '/data',
+            label: language === 'en' ? 'Data Inspector' : language === 'hi' ? 'डेटा निरीक्षक' : 'डेटा निरीक्षक',
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                </svg>
+            ),
+        },
+        {
             href: '/queue',
             label: t('navQueue', language),
             icon: (

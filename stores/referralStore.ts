@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { ReferralRecord } from '@/types/patient';
 import { getAllReferrals, saveReferral, updateReferralStatus } from '@/lib/db';
+import { queueReferral } from '@/lib/sync/outbox';
 import toast from 'react-hot-toast';
 
 interface ReferralStore {
@@ -50,6 +51,10 @@ export const useReferralStore = create<ReferralStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket referral emit failed:', err);
             }
+            // A referral is the whole point of the cloud hand-off: it is what tells
+            // the receiving facility someone is coming and what to have ready.
+            // Durable and self-uploading, so being offline here costs nothing.
+            void queueReferral(referral);
         } catch (error) {
             console.error('Failed to save referral:', error);
             throw error;
@@ -82,6 +87,10 @@ export const useReferralStore = create<ReferralStore>((set, get) => ({
         try {
             await updateReferralStatus(id, status, opts);
             toast.success(`Referral updated to ${status}`);
+            // Push the new status too: a receiving ward watching the incoming board
+            // needs "in transit" and a revised ETA, not just the original referral.
+            const stored = get().referrals.find(r => r.id === id);
+            if (stored) void queueReferral(stored);
         } catch (error) {
             // Roll the board back to what is actually stored. Leaving the optimistic
             // update on screen after a failed write would tell the referring officer a

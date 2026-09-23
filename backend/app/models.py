@@ -99,3 +99,72 @@ class Referral(SQLModel, table=True):
             return None
         end = self.completed_at or datetime.now(timezone.utc)
         return round((end - self.dispatched_at).total_seconds() / 60, 1)
+
+
+# ─────────────────────── clinical records (pre-arrival) ───────────────────────
+#
+# Everything above this line is deliberately de-identified: the district gets
+# counts, not people. The two tables below break that rule on purpose, and only
+# for one job — letting a receiving facility prepare before a patient arrives.
+#
+# A referral is useless to the receiving team without the record it refers to,
+# so the full record travels. The trade is explicit: identifiable health data
+# now rests in this store, which is why it must run behind a real CORS_ORIGINS
+# list and TLS rather than the wide-open LAN defaults the demo ships with.
+#
+# The record itself is held as a JSON payload rather than exploded into columns.
+# The device schema is the clinical source of truth and evolves with the app; a
+# mirrored column set here would silently drop fields the moment the two drift.
+# Columns exist only for what this service actually queries on.
+
+
+class PatientRecord(SQLModel, table=True):
+    """A patient record as the capturing device holds it."""
+
+    __tablename__ = "patient_records"
+
+    id: str = Field(primary_key=True)
+    facility_id: Optional[str] = Field(default=None, index=True)
+    name: str
+    # Fractional, so an under-5 recorded as 1.5 years is stored, not rejected.
+    age: float
+    gender: str
+    triage_priority: Optional[TriagePriority] = Field(default=None, index=True)
+    # Device clock, used for last-write-wins. Not authoritative for ordering
+    # against other devices — it only decides whether an arriving copy of THIS
+    # record is newer than the stored one.
+    updated_at: datetime = Field(index=True)
+    payload: str = Field(description="Full record as JSON, exactly as the device holds it")
+    # When this service last ACCEPTED a copy, refreshed on every applied
+    # update. Server clock, unlike updated_at, so it is the one field that
+    # orders records from different devices against each other — which is
+    # what the Data Inspector sorts on.
+    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class CareReferral(SQLModel, table=True):
+    """
+    A referral with its clinical payload — the pre-arrival packet.
+
+    Distinct from Referral above, which is the anonymous throughput row the
+    district reports on. This one names the patient so the receiving team can
+    pull the record and prepare.
+    """
+
+    __tablename__ = "care_referrals"
+
+    id: str = Field(primary_key=True)
+    patient_id: str = Field(index=True)
+    from_facility_id: str = Field(index=True)
+    to_facility_id: str = Field(index=True)
+    status: ReferralStatus = Field(index=True)
+    priority: TriagePriority = Field(index=True)
+    reason: Optional[str] = None
+    clinical_summary: Optional[str] = None
+    transport_mode: Optional[str] = None
+    eta_minutes: Optional[int] = None
+    raised_at: datetime = Field(index=True)
+    updated_at: datetime = Field(index=True)
+    payload: str = Field(description="Full referral as JSON, exactly as the device holds it")
+    # See PatientRecord.received_at — same rule.
+    received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

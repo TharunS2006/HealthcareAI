@@ -92,6 +92,27 @@ class DistrictSummary(BaseModel):
     tiers: List[TierBreakdown]
 
 
+# ───────────────────────────── chat assistant ─────────────────────────────
+
+class ChatIn(BaseModel):
+    """
+    A health worker's question, plus the grounding brief the client rendered
+    from its own facility/threshold/scheme data. The backend never has its own
+    copy of that data — it only relays it to the model — so the brief is what
+    keeps the cloud answer from drifting away from what the app itself says.
+    """
+
+    question: str = Field(examples=["Where do I refer a RED case if the CHC has no beds free?"])
+    context: str = Field(examples=["REFERRAL PATHWAY: SC → PHC → CHC → SDH → DH\n..."])
+    role: Optional[str] = Field(default=None, examples=["ASHA"])
+    language: str = Field(default="en", examples=["en"])
+
+
+class ChatOut(BaseModel):
+    answer: str
+    model: str
+
+
 class FacilityScorecard(BaseModel):
     facility_id: str
     name: str
@@ -105,3 +126,132 @@ class FacilityScorecard(BaseModel):
     )
     bed_occupancy_pct: Optional[float] = None
     last_reported_at: Optional[datetime] = None
+
+
+# ───────────────────────── clinical records (pre-arrival) ─────────────────────
+
+class PatientRecordIn(BaseModel):
+    """
+    A full patient record, uploaded so a receiving facility can prepare.
+
+    `payload` is the record verbatim from the device. The named fields beside it
+    are a projection the service queries on — they are not a second source of
+    truth, and on conflict the payload wins.
+    """
+
+    id: str = Field(examples=["pat-7f3a"])
+    name: str = Field(examples=["Sunita Madavi"])
+    # Float, not int: an infant's age is recorded in fractions of a year on the
+    # device ("1.5y"), and paediatric emergencies are exactly the referrals this
+    # service must not refuse. The value is a projection for querying — the
+    # payload carries whatever the device holds.
+    age: float = Field(ge=0, le=130, examples=[27, 1.5])
+    gender: str = Field(examples=["F"])
+    facility_id: Optional[str] = Field(default=None, examples=["phc-bhamragad"])
+    triage_priority: Optional[TriagePriority] = Field(default=None, examples=["RED"])
+    updated_at: datetime = Field(examples=["2026-09-23T09:30:00"])
+    payload: dict = Field(description="The record as the device holds it")
+
+
+class CareReferralIn(BaseModel):
+    """A referral with enough clinical context for the receiving team to act on."""
+
+    id: str = Field(examples=["ref-2026-0891"])
+    patient_id: str = Field(examples=["pat-7f3a"])
+    from_facility_id: str = Field(examples=["phc-bhamragad"])
+    to_facility_id: str = Field(examples=["dh-gadchiroli"])
+    status: ReferralStatus = Field(examples=["IN_TRANSIT"])
+    priority: TriagePriority = Field(examples=["RED"])
+    reason: Optional[str] = Field(default=None, examples=["Severe pre-eclampsia"])
+    clinical_summary: Optional[str] = Field(default=None)
+    transport_mode: Optional[str] = Field(default=None, examples=["AMBULANCE_102"])
+    eta_minutes: Optional[int] = Field(default=None, ge=0, examples=[14])
+    raised_at: datetime = Field(examples=["2026-09-23T09:35:00"])
+    updated_at: datetime = Field(examples=["2026-09-23T09:41:00"])
+    payload: dict = Field(description="The referral as the device holds it")
+
+
+class IncomingCase(BaseModel):
+    """
+    One patient en route to the querying facility.
+
+    `patient` is None when the referral arrived before the record did — the two
+    upload independently, and a half-arrived pair must still show the receiving
+    team that someone is coming rather than being hidden until both land.
+    """
+
+    referral: dict
+    patient: Optional[dict] = None
+    eta_minutes: Optional[int] = None
+    raised_at: datetime
+    priority: TriagePriority
+    status: ReferralStatus
+
+
+class IncomingList(BaseModel):
+    facility_id: str
+    count: int
+    cases: List[IncomingCase]
+
+
+# ───────────────────────── store inspection ─────────────────────────
+# Read-only views of the record-sync tables, for the Data Inspector screen.
+#
+# Every other reporting response is a rollup: counts, rates, a board filtered to
+# one facility. This one is deliberately raw. Its whole job is to let somebody
+# standing in front of the app confirm that the row they captured on a device
+# with the network off is now sitting in the district store, byte for byte — a
+# claim that a summary figure can never actually settle.
+
+
+class StoredPatient(BaseModel):
+    """One row of patient_records, with the device's own JSON alongside it."""
+
+    id: str
+    name: str
+    age: float
+    gender: str
+    facility_id: Optional[str] = None
+    triage_priority: Optional[TriagePriority] = None
+    updated_at: datetime
+    received_at: datetime
+    # The projection columns above are what the service queries on; this is what
+    # the device actually sent. Showing both is the point: it demonstrates that
+    # nothing was reshaped in transit.
+    payload: dict
+
+
+class StoredReferral(BaseModel):
+    """One row of care_referrals, with the device's own JSON alongside it."""
+
+    id: str
+    patient_id: str
+    from_facility_id: str
+    to_facility_id: str
+    status: ReferralStatus
+    priority: TriagePriority
+    reason: Optional[str] = None
+    eta_minutes: Optional[int] = None
+    raised_at: datetime
+    updated_at: datetime
+    received_at: datetime
+    payload: dict
+
+
+class StoreDump(BaseModel):
+    """
+    What the district store is holding right now.
+
+    `*_total` is the true table depth and `*_shown` is how many rows came back,
+    so a truncated view reports itself instead of quietly looking like an empty
+    or half-full store.
+    """
+
+    generated_at: datetime
+    limit: int
+    patient_records_total: int
+    patient_records_shown: int
+    care_referrals_total: int
+    care_referrals_shown: int
+    patient_records: List[StoredPatient]
+    care_referrals: List[StoredReferral]

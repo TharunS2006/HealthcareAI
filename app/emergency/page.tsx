@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -12,29 +12,74 @@ import Icon from '@/components/gov/Icon';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
-import { ReferralRecord } from '@/types/patient';
+import { flushOutbox, uploadStatusOf, type UploadStatus } from '@/lib/sync/outbox';
+import { Patient, ReferralRecord } from '@/types/patient';
 import toast from 'react-hot-toast';
+
+/**
+ * The patient a dispatch is raised against when nobody has been registered yet.
+ *
+ * A roadside 108 call is often placed before any intake happens, so this has to
+ * be a complete, storable record rather than a display-only stub: it is written
+ * to the device and uploaded like any other, which is what puts the case on the
+ * receiving hospital's pre-arrival board. The vitals are the worst-case
+ * assumptions an unassessed emergency is treated on — deliberately pessimistic,
+ * because over-preparing a resus bay costs a trolley and under-preparing costs
+ * more. The name says plainly that this person is unidentified so nobody
+ * mistakes the placeholder for a real record.
+ */
+const UNIDENTIFIED_PATIENT: Patient = {
+    id: 'p-gad-emergency',
+    name: 'Unidentified emergency patient',
+    age: 30,
+    gender: 'F',
+    village: 'Block A Tribal Sub-Centre',
+    tehsil: 'Bhamragad',
+    district: 'Gadchiroli',
+    vitals: {
+        spo2: 88,
+        heartRate: 124,
+        bloodPressure: { systolic: 168, diastolic: 104 },
+        injuryType: 'Acute Shock / Obstetric Crisis',
+    },
+    triageStatus: 'RED',
+    triagePriority: 'EMERGENCY',
+    abhaId: 'ABHA-9188-EMERGENCY',
+    gps: { lat: 19.4981, lng: 80.4512 },
+    isSynced: false,
+    timestamp: '',
+};
 
 export default function EmergencyPage() {
     const [selectedType, setSelectedType] = useState<'108_TRAUMA' | '102_MATERNAL' | 'PEDIATRIC_EMERGENCY'>('108_TRAUMA');
     const [selectedPatientId, setSelectedPatientId] = useState<string>('');
     const [isDispatched, setIsDispatched] = useState(false);
     const [dispatchSummary, setDispatchSummary] = useState<ReferralRecord | null>(null);
+    /**
+     * Whether this escalation has actually reached the district cloud.
+     *
+     * The old copy on this panel claimed the record had been "securely
+     * transmitted" the instant the button was pressed. On a field device that is
+     * almost never true: the record is written locally and queued, and the
+     * upload happens whenever there is a network. Telling a worker the trauma
+     * team can already see the patient — when the record is sitting in an outbox
+     * under a tree in Bhamragad — is the difference between phoning ahead and
+     * not bothering.
+     */
+    const [uploadStatus, setUploadStatus] = useState<UploadStatus>('UNKNOWN');
 
-    const { patients } = usePatientStore();
+    const { patients, addPatient, loadPatients } = usePatientStore();
     const { addReferral } = useReferralStore();
 
-    const activePatient = patients.find(p => p.id === selectedPatientId) || patients[0] || {
-        id: 'p-gad-emergency',
-        name: 'Emergency Unknown Patient',
-        age: 30,
-        gender: 'F',
-        village: 'Block A Tribal Sub-Centre',
-        vitals: { spo2: 88, heartRate: 124, bloodPressure: { systolic: 168, diastolic: 104 }, injuryType: 'Acute Shock / Obstetric Crisis' },
-        triageStatus: 'RED' as const,
-        triagePriority: 'EMERGENCY' as const,
-        abhaId: 'ABHA-9188-EMERGENCY',
-    };
+    // Without this the selector is empty and every dispatch falls back to the
+    // unknown-patient stub below, so the receiving hospital gets a referral with
+    // no clinical record behind it — the one case where it matters most.
+    useEffect(() => {
+        void loadPatients();
+    }, [loadPatients]);
+
+    const activePatient: Patient =
+        patients.find(p => p.id === selectedPatientId) || patients[0] || UNIDENTIFIED_PATIENT;
 
     const handleTriggerEmergency = async () => {
         const targetFacility = selectedType === '102_MATERNAL'
@@ -66,11 +111,41 @@ export default function EmergencyPage() {
             notes: selectedType === '102_MATERNAL' ? 'Obstetrics & Gynecology (CEmONC)' : 'Trauma & Emergency Care (ICU)',
         };
 
-        addReferral(emergencyRecord);
+        // The record has to go up with the referral, not just the referral.
+        // A referral alone is a name and a reason; what lets the trauma team
+        // ready a resus bay is the vitals and risk flags behind it. Saving the
+        // patient here also covers the unidentified-patient case, which exists
+        // only in this component's memory until someone dispatches on it.
+        await addPatient({
+            ...activePatient,
+            activeReferral: emergencyRecord,
+            transportStatus: 'IN_TRANSIT',
+            isSynced: false,
+            timestamp: new Date().toISOString(),
+        });
+
+        await addReferral(emergencyRecord);
         setDispatchSummary(emergencyRecord);
+        setUploadStatus('PENDING');
         setIsDispatched(true);
-        toast.error(`EMERGENCY DISPATCH TRANSMITTED: ${emergencyRecord.ambulanceVehicleNo}`, { duration: 6000 });
+        toast.error(`EMERGENCY ESCALATION RECORDED: ${emergencyRecord.ambulanceVehicleNo}`, { duration: 6000 });
     };
+
+    // Watch this record's journey to the cloud. The panel below reports whatever
+    // this says, including "we cannot tell" — never a fixed reassurance.
+    const refreshUploadStatus = useCallback(async () => {
+        if (!dispatchSummary) return;
+        setUploadStatus(await uploadStatusOf('REFERRAL', dispatchSummary.id));
+    }, [dispatchSummary]);
+
+    useEffect(() => {
+        if (!dispatchSummary) return;
+        void refreshUploadStatus();
+        const t = setInterval(() => {
+            void flushOutbox().then(refreshUploadStatus);
+        }, 5000);
+        return () => clearInterval(t);
+    }, [dispatchSummary, refreshUploadStatus]);
 
     return (
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
@@ -115,15 +190,24 @@ export default function EmergencyPage() {
                                 </div>
                                 <div>
                                     <span className="text-txt-muted block">Status</span>
-                                    <strong className="text-status-green text-sm">IN TRANSIT (ETA 35m)</strong>
+                                    <strong className="text-status-green text-sm">{dispatchSummary.status.replace('_', ' ')}</strong>
+                                    <span className="block text-[10px] text-txt-muted">
+                                        ETA pending crew confirmation
+                                    </span>
                                 </div>
                             </div>
-                            <p className="text-xs text-txt-secondary leading-relaxed">
-                                Emergency LHR snapshot and vitals telemetry have been securely transmitted to the receiving trauma team at {dispatchSummary.toFacilityName}.
-                            </p>
+
+                            <UploadState
+                                status={uploadStatus}
+                                facilityName={dispatchSummary.toFacilityName}
+                                onRetry={() => void flushOutbox().then(refreshUploadStatus)}
+                            />
                             <div className="flex gap-3 pt-2">
                                 <Link href="/referrals" className="gov-btn gov-btn-primary text-xs">
                                     Track Ambulance in Referral Pipeline →
+                                </Link>
+                                <Link href="/incoming" className="gov-btn gov-btn-secondary text-xs">
+                                    Pre-Arrival Board →
                                 </Link>
                                 <button
                                     onClick={() => setIsDispatched(false)}
@@ -262,6 +346,85 @@ export default function EmergencyPage() {
                     )}
                 </div>
             </main>
+        </div>
+    );
+}
+
+/**
+ * What actually happened to the escalation record, in plain words.
+ *
+ * Each state says where the record is and what the worker should do about it.
+ * "Queued" is not a failure and is not dressed up as one — it is the normal
+ * state of an offline device — but it does mean nobody at the receiving end has
+ * seen this yet, and that has to be on the screen.
+ */
+function UploadState({
+    status,
+    facilityName,
+    onRetry,
+}: {
+    status: UploadStatus;
+    facilityName: string;
+    onRetry: () => void;
+}) {
+    if (status === 'UPLOADED') {
+        return (
+            <div className="border border-gov-green-border bg-gov-green-bg p-3">
+                <p className="text-xs font-extrabold text-gov-green">
+                    Record delivered to the district cloud
+                </p>
+                <p className="text-xs text-txt-primary mt-1">
+                    The emergency record and the patient&apos;s vitals are now on the pre-arrival board
+                    at {facilityName}, so the receiving team can ready equipment before arrival.
+                </p>
+            </div>
+        );
+    }
+
+    if (status === 'BLOCKED') {
+        return (
+            <div className="border border-gov-red bg-gov-red-bg p-3">
+                <p className="text-xs font-extrabold text-gov-red">
+                    The district cloud refused this record
+                </p>
+                <p className="text-xs text-txt-primary mt-1">
+                    It is saved on this device and nothing is lost, but {facilityName} cannot see it.
+                    <span className="font-bold"> Phone the receiving facility directly.</span> The record
+                    is retried automatically the next time the app starts.
+                </p>
+            </div>
+        );
+    }
+
+    if (status === 'UNKNOWN') {
+        return (
+            <div className="border border-gov-amber bg-gov-amber-bg p-3">
+                <p className="text-xs font-extrabold text-gov-amber">Upload state could not be read</p>
+                <p className="text-xs text-txt-primary mt-1">
+                    The escalation is recorded on this device. Whether {facilityName} has received it
+                    cannot be confirmed from here —{' '}
+                    <span className="font-bold">assume they have not and phone ahead.</span>
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="border border-gov-amber bg-gov-amber-bg p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-extrabold text-gov-amber">
+                    Saved on this device — waiting to upload
+                </p>
+                <button onClick={onRetry} className="gov-btn gov-btn-ghost text-[11px]">
+                    Try now
+                </button>
+            </div>
+            <p className="text-xs text-txt-primary mt-1">
+                The ambulance has been requested and the record is safe locally. It uploads to the
+                district cloud automatically as soon as there is a connection; until then{' '}
+                {facilityName} cannot see it, so{' '}
+                <span className="font-bold">radio or phone the details through.</span>
+            </p>
         </div>
     );
 }

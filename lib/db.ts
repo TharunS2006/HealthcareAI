@@ -546,6 +546,32 @@ export async function addToSyncQueue(item: SyncQueueItem): Promise<void> {
 }
 
 /**
+ * Everything still waiting to reach the cloud, oldest change first.
+ *
+ * Order matters: uploads are applied last-write-wins on the server, so replaying
+ * them out of order could land an older edit on top of a newer one.
+ */
+export async function getSyncQueue(): Promise<SyncQueueItem[]> {
+    const db = await getDB();
+    const items = await db.getAll('syncQueue');
+    return items.sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+}
+
+/** Drop an item once the cloud has acknowledged it (or permanently refused it). */
+export async function removeFromSyncQueue(id: string): Promise<void> {
+    const db = await getDB();
+    await db.delete('syncQueue', id);
+}
+
+/** How many records are still waiting on connectivity. Shown to the worker. */
+export async function getSyncQueueDepth(): Promise<number> {
+    const db = await getDB();
+    return db.count('syncQueue');
+}
+
+/**
  * Clear patients, referrals and the queue in one transaction.
  *
  * Used by the demo reset. Facilities, stock and diagnostics are left intact because
@@ -589,4 +615,55 @@ export async function resetToDefaultSeed(): Promise<void> {
         ...SEED_DIAGNOSTICS.map(d => tx.objectStore('diagnostics').put(d)),
     ]);
     await tx.done;
+}
+
+// ── inspection ───────────────────────────────────────────────────────────────
+
+/** One object store as the Data Inspector screen shows it. */
+export interface StoreSnapshot {
+    /** The object store's name, exactly as IndexedDB holds it. */
+    name: string;
+    /** Every row in the store, not just the ones returned below. */
+    count: number;
+    /** The newest rows, capped. Untyped on purpose — see inspectStores. */
+    rows: unknown[];
+    /** True when `count` exceeds what `rows` carries. */
+    truncated: boolean;
+}
+
+/**
+ * Read every object store in this device's database.
+ *
+ * For the Data Inspector screen, whose claim is "this is what is on the device,
+ * right now, with no network". Two deliberate choices:
+ *
+ *   - The store list comes from `db.objectStoreNames`, never from a hardcoded
+ *     array. A store added to the schema later then appears here on its own; a
+ *     hardcoded list would leave it invisible, and an inspector that silently
+ *     omits data is worse than no inspector at all.
+ *   - Rows come back as `unknown[]`. Nine stores hold nine unrelated shapes, and
+ *     the screen renders them generically. Pretending to a single row type here
+ *     would only push a cast somewhere less visible.
+ *
+ * Unlike getAllPatients this never substitutes seed data for an empty store: an
+ * empty store is a fact the inspector has to be able to report.
+ */
+export async function inspectStores(limitPerStore = 25): Promise<StoreSnapshot[]> {
+    const db = await getDB();
+    const names = Array.from(db.objectStoreNames) as Array<keyof NalamMeshDB>;
+
+    const snapshots = await Promise.all(
+        names.map(async (name) => {
+            const count = await db.count(name);
+            const rows = await db.getAll(name, undefined, limitPerStore);
+            return {
+                name: String(name),
+                count,
+                rows: rows as unknown[],
+                truncated: count > rows.length,
+            };
+        })
+    );
+
+    return snapshots.sort((a, b) => a.name.localeCompare(b.name));
 }
