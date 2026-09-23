@@ -61,18 +61,23 @@ CHAT_ENV = ("XAI_API_KEY", "GROK_API_KEY", "GROQ_API_KEY", "ANTHROPIC_API_KEY",
 
 def load(**env):
     """
-    Re-import app.main under a given environment.
+    Re-import app.chat_engine under a given environment.
 
     The provider constants are read at import time — which is what makes an
     unset key a startup fact rather than a per-request surprise — so the only
     honest way to test the selection is to import the module again.
+
+    It must be chat_engine and not main: main only holds a reference to the
+    resolved functions, so reloading main would re-bind those names without
+    re-reading a single key, and every assertion below would keep passing
+    against the constants of whichever environment was set first.
     """
     for name in CHAT_ENV:
         os.environ.pop(name, None)
     for name, value in env.items():
         os.environ[name] = value
-    import app.main
-    return importlib.reload(app.main)
+    import app.chat_engine
+    return importlib.reload(app.chat_engine)
 
 
 # ── 1. which provider answers ───────────────────────────────────────────────
@@ -130,7 +135,7 @@ check("XAI_MODEL overrides the default", m._resolve_provider() == ("grok", "grok
 # the laptop. The prefixes tell them apart, so the swap is corrected at startup.
 print("\nA key in the other service's variable is recognised, not rejected:")
 
-import app.main as _m  # noqa: E402  (module-level guard runs at import)
+import app.chat_engine as _m  # noqa: E402  (module-level guard runs at import)
 
 os.environ.pop("GROQ_API_KEY", None)
 os.environ["XAI_API_KEY"] = "gsk_looks_like_groq"

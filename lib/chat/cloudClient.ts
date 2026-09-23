@@ -15,7 +15,7 @@
  */
 
 import type { Language } from '@/stores/languageStore';
-import { reportingBaseUrl } from '@/lib/cloudEndpoint';
+import { chatBaseUrl, reportingBaseUrl } from '@/lib/cloudEndpoint';
 import { buildGroundingBrief } from './groundingBrief';
 import { isInScope } from './scopeGuard';
 
@@ -56,7 +56,7 @@ export async function askCloud(
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-        const response = await fetch(`${reportingBaseUrl()}/api/v1/chat`, {
+        const response = await fetch(`${chatBaseUrl()}/api/v1/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
