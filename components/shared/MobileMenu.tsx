@@ -9,8 +9,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useLanguageStore } from '@/stores/languageStore';
-import { useAuthStore } from '@/stores/authStore';
-import { ROLE_LABELS, canAccessRoute } from '@/lib/auth/permissions';
 import { t } from '@/lib/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,7 +16,6 @@ export default function MobileMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const { language } = useLanguageStore();
-    const { role, facilityName } = useAuthStore();
 
     const navItems = [
         {
@@ -158,12 +155,6 @@ export default function MobileMenu() {
         },
     ];
 
-    // Same gate as the sidebar and the route guard: a link is shown only when
-    // canAccessRoute would admit the click. This drawer is the whole navigation
-    // on a phone, which is what ANMs work from in the field, so an unfiltered
-    // menu here would undo the filtering done on the desktop sidebar.
-    const visibleItems = navItems.filter(item => canAccessRoute(role, item.href));
-
     return (
         <>
             {/* Top Mobile Bar */}
@@ -211,7 +202,7 @@ export default function MobileMenu() {
                         className="md:hidden fixed inset-x-0 top-[53px] bg-white border-b border-slate-300 shadow-xl z-40 max-h-[85vh] overflow-y-auto"
                     >
                         <div className="p-3 space-y-1">
-                            {visibleItems.map((item) => {
+                            {navItems.map((item) => {
                                 const isActive = pathname === item.href;
                                 return (
                                     <Link
@@ -231,33 +222,6 @@ export default function MobileMenu() {
                                     </Link>
                                 );
                             })}
-
-                            {/* Who is signed in, and how to change it. Without this
-                                the only way to tell an ANM session from a DHO one on
-                                a phone is to notice which menu items went missing. */}
-                            <div className="mt-2 pt-2.5 border-t border-slate-200 px-3.5 pb-1">
-                                {role ? (
-                                    <>
-                                        <p className="text-[11px] font-bold text-slate-800 leading-tight">
-                                            {ROLE_LABELS[role]}
-                                        </p>
-                                        <p className="text-[10px] text-slate-500 mb-2">{facilityName ?? '\u2014'}</p>
-                                    </>
-                                ) : (
-                                    <p className="text-[11px] font-bold text-slate-600 mb-2">
-                                        {language === 'en' ? 'Not signed in' : '\u0932\u0949\u0917\u093f\u0928 \u0928\u093e\u0939\u0940'}
-                                    </p>
-                                )}
-                                <Link
-                                    href="/staff/login"
-                                    onClick={() => setIsOpen(false)}
-                                    className="text-[11px] font-bold text-[#1F3A6E] underline"
-                                >
-                                    {role
-                                        ? (language === 'en' ? 'Switch cadre' : '\u0915\u0947\u0921\u0930 \u092c\u0926\u0932\u093e')
-                                        : (language === 'en' ? 'Staff sign in' : '\u0915\u0930\u094d\u092e\u091a\u093e\u0930\u0940 \u0932\u0949\u0917\u093f\u0928')}
-                                </Link>
-                            </div>
                         </div>
                     </motion.div>
                 )}

@@ -10,23 +10,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useMeshStatus } from '@/lib/hooks/useMeshStatus';
-import { useAuthStore } from '@/stores/authStore';
-import { ROLE_LABELS, canAccessRoute } from '@/lib/auth/permissions';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { language } = useLanguageStore();
     const meshStatus = useMeshStatus();
-    const { role, staffId, facilityName, facilityType } = useAuthStore();
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
 
-    // Station meta translations. The facility line is whatever the signed-in
-    // session is actually posted to — a header that always reads "PHC Block A"
-    // tells an ANM at a Sub Centre she is somewhere she is not, and this app
-    // shows her only her own facility's patients on the strength of that
-    // posting. Signed out, it falls back to the generic station label.
+    // Station meta translations
     const stationMeta = {
         badge: isEn ? 'Station' : isHi ? 'कार्यरत केंद्र' : 'कार्यरत केंद्र',
         name: isEn ? 'PHC Block A' : isHi ? 'प्रा. स्वा. केंद्र, ब्लॉक अ' : 'प्रा. आ. केंद्र, ब्लॉक अ',
@@ -212,35 +205,6 @@ export default function Sidebar() {
         },
     ];
 
-    // The station header reads off the session when there is one.
-    const station = {
-        name: facilityName ?? stationMeta.name,
-        tag: facilityType ?? 'PHC-01',
-        cadreLabel: role
-            ? (isEn ? 'Signed in:' : isHi ? '\u0932\u0949\u0917\u093f\u0928:' : '\u0932\u0949\u0917\u093f\u0928:')
-            : stationMeta.doctorLabel,
-        cadre: role ? ROLE_LABELS[role] : stationMeta.doctorName,
-        staffId: staffId ?? null,
-    };
-
-    // Show only the modules this cadre may open.
-    //
-    // This mirrors the route guard rather than second-guessing it: both ask
-    // canAccessRoute, so a link can never appear for a page that would then
-    // refuse the click. Pages with no permission attached \u2014 the citizen-facing
-    // half of the portal \u2014 stay visible to everyone, signed in or not.
-    const permittedItems = navItems.filter(
-        item => 'section' in item || canAccessRoute(role, item.href)
-    );
-
-    // Drop headings whose whole section was filtered away, so an ANM is not
-    // shown an empty \"Continuity of Care\" rule with nothing beneath it.
-    const visibleItems = permittedItems.filter((item, idx) => {
-        if (!('section' in item)) return true;
-        const next = permittedItems[idx + 1];
-        return next !== undefined && !('section' in next);
-    });
-
     return (
         <aside
             className="w-64 flex-shrink-0 bg-white border border-[#B9C5D6] flex flex-col font-sans select-none hidden md:flex"
@@ -254,31 +218,24 @@ export default function Sidebar() {
                         {stationMeta.badge}
                     </span>
                     <span className="px-1.5 py-0.5 text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-mono">
-                        {station.tag}
+                        PHC-01
                     </span>
                 </div>
                 <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
-                    {station.name}
+                    {stationMeta.name}
                 </strong>
                 <p className="text-[10px] text-slate-600 mt-0.5 font-medium">
                     {stationMeta.sub}
                 </p>
                 <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500 font-medium">{station.cadreLabel}</span>
-                    <strong className="text-slate-800 font-bold text-right leading-tight">
-                        {station.cadre}
-                        {station.staffId && (
-                            <span className="block font-mono font-normal text-[9px] text-slate-500">
-                                {station.staffId}
-                            </span>
-                        )}
-                    </strong>
+                    <span className="text-slate-500 font-medium">{stationMeta.doctorLabel}</span>
+                    <strong className="text-slate-800 font-bold">{stationMeta.doctorName}</strong>
                 </div>
             </div>
 
             {/* Navigation Links */}
             <nav className="flex-1 px-2.5 py-2.5 space-y-0.5 overflow-y-auto">
-                {visibleItems.map((item, idx) => {
+                {navItems.map((item, idx) => {
                     if ('section' in item) {
                         return (
                             <div
@@ -340,7 +297,7 @@ export default function Sidebar() {
                     </span>
                 </div>
                 <div className="flex items-center justify-between text-slate-500 text-[9px] pt-1 border-t border-slate-200/60">
-                    <span>HFR ID: {station.tag}</span>
+                    <span>HFR ID: PHC-01</span>
                     <span className="font-bold text-[#1F3A6E]">{stationMeta.compliance}</span>
                 </div>
             </div>
