@@ -24,7 +24,8 @@
     "verify:records-api": "python3 backend/scripts/verify_records.py",
     "verify:store-api": "python3 backend/scripts/verify_store_dump.py",
     "verify:chat-provider": "cd backend && python3 scripts/verify_chat_provider.py",
-    "verify:equipment": "tsx scripts/verify-equipment.mts"
+    "verify:equipment": "tsx scripts/verify-equipment.mts",
+    "verify:permissions": "tsx scripts/verify-permissions.mts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",

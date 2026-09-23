@@ -7,6 +7,7 @@ import SocketInit from "@/components/shared/SocketInit";
 import PWAInstall from "@/components/shared/PWAInstall";
 import ChatAssistant from "@/components/shared/ChatAssistant";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
+import RouteGuard from "@/components/auth/RouteGuard";
 import { Toaster } from 'react-hot-toast';
 
 export const viewport: Viewport = {
@@ -62,7 +63,11 @@ export default function RootLayout({
                 <ErrorBoundary>
                     <SocketInit />
                     <div id="main-content" className="flex-1 pb-20">
-                        {children}
+                        {/* Every page passes through one gate. Public pages are
+                            handed straight through; guarded ones wait for the
+                            session and redirect to /403 when the cadre lacks the
+                            right. See lib/auth/permissions.ts. */}
+                        <RouteGuard>{children}</RouteGuard>
                     </div>
                     {/* Registers the service worker (offline app shell) + install prompt */}
                     <PWAInstall />
