@@ -41,3 +41,4 @@ backend/__pycache__/
 backend/app/__pycache__/
 backend/*.db
 backend/.venv/
+.vercel
