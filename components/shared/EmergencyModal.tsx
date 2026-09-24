@@ -23,7 +23,7 @@ export default function EmergencyModal() {
     const [dispatchSummary, setDispatchSummary] = useState<ReferralRecord | null>(null);
 
     const { patients } = usePatientStore();
-    const { addReferral } = useReferralStore();
+    const createReferral = useReferralStore(s => s.create);
     const { language } = useLanguageStore();
 
     const isEn = language === 'en';
@@ -66,30 +66,29 @@ export default function EmergencyModal() {
     const targetFacility = FACILITY_NETWORK.find(f => f.type === 'SDH') || FACILITY_NETWORK[1];
 
     const handleDispatch = async () => {
-        const emergencyRecord: ReferralRecord = {
-            id: `ref-sos-${Date.now()}`,
-            patientId: activePatient.id,
-            patientName: activePatient.name,
-            patientAge: activePatient.age,
-            patientGender: activePatient.gender,
-            fromFacilityId: 'fac-phc-001',
-            fromFacilityName: 'PHC Block A',
-            fromFacilityType: 'PHC',
-            toFacilityId: targetFacility.id,
-            toFacilityName: targetFacility.name,
-            toFacilityType: targetFacility.type || 'SDH',
-            reason: selectedType === '102_MATERNAL' ? 'Eclampsia / High Risk Delivery (CEmONC)' : 'Acute Respiratory Distress / Severe Trauma',
-            priority: 'EMERGENCY',
-            status: 'IN_TRANSIT',
-            referredBy: 'Frontline Worker SOS Trigger (1-Tap)',
-            referredAt: new Date().toISOString(),
-            transportMode: selectedType === '102_MATERNAL' ? 'AMBULANCE_102' : 'AMBULANCE_108',
-            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'AMB-T-0102' : 'AMB-E-1081',
-            clinicalSummary: `CRITICAL ALERT: SpO2 ${activePatient.vitals.spo2}%, Pulse ${activePatient.vitals.heartRate} bpm, BP ${activePatient.vitals.bloodPressure?.systolic || 160}/${activePatient.vitals.bloodPressure?.diastolic || 100} mmHg. Chief note: ${activePatient.vitals.injuryType}`,
-        };
-
-        await addReferral(emergencyRecord);
-        setDispatchSummary(emergencyRecord);
+        const origin = FACILITY_NETWORK.find(f => f.id === 'phc-bhamragad') ?? FACILITY_NETWORK[3];
+        const maternal = selectedType === '102_MATERNAL';
+        // Raised by the automatic 108/102 service, through the same referral
+        // workflow as every other referral — it is Created until the network
+        // confirms it, never shown as delivered on the strength of a tap.
+        const result = await createReferral(
+            {
+                patient: { id: activePatient.id, name: activePatient.name, age: activePatient.age, gender: activePatient.gender as 'M' | 'F' | 'O' },
+                from: { id: origin.id, name: origin.name, type: origin.type },
+                to: { id: targetFacility.id, name: targetFacility.name, type: targetFacility.type },
+                reason: maternal ? 'Eclampsia / High Risk Delivery (CEmONC)' : 'Acute Respiratory Distress / Severe Trauma',
+                priority: 'EMERGENCY',
+                transportMode: maternal ? 'AMBULANCE_102' : 'AMBULANCE_108',
+                clinicalSummary: `SpO2 ${activePatient.vitals.spo2}%, Pulse ${activePatient.vitals.heartRate} bpm, BP ${activePatient.vitals.bloodPressure?.systolic ?? '—'}/${activePatient.vitals.bloodPressure?.diastolic ?? '—'} mmHg. ${activePatient.vitals.injuryType}`,
+                dispatch: { vehicleNo: maternal ? 'AMB-T-0102' : 'AMB-E-1081' },
+            },
+            null
+        );
+        if (!result.ok) {
+            toast.error(result.message);
+            return;
+        }
+        setDispatchSummary(result.value);
         setIsDispatched(true);
         toast.error(`108/102 DISPATCHED: ${targetFacility.name}`, {
             duration: 6000,

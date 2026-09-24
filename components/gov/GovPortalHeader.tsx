@@ -6,15 +6,20 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import StateEmblem from '@/components/gov/StateEmblem';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useAuthStore } from '@/stores/authStore';
+import { canAccessRoute, ROLE_LABELS } from '@/lib/auth/permissions';
 import { dep, departmentLine } from '@/lib/config/deployment';
 import { useState, useEffect } from 'react';
 
 export default function GovPortalHeader() {
     const pathname = usePathname();
+    const router = useRouter();
     const { language, setLanguage } = useLanguageStore();
+    const session = useAuthStore(s => s.session);
     const [fontSize, setFontSize] = useState<'normal' | 'large'>('normal');
     const [highContrast, setHighContrast] = useState(false);
 
@@ -58,19 +63,32 @@ export default function GovPortalHeader() {
         }
     };
 
+    // Filtered by the same rule the route guard enforces, so a link never
+    // appears for a page that would answer with 403.
     const navLinks = [
         { href: '/', label: isEn ? 'Home' : isHi ? 'मुख्य पोर्टल' : 'मुख्य पोर्टल' },
+        { href: '/my-dashboard', label: isEn ? 'My Dashboard' : isHi ? 'मेरा डैशबोर्ड' : 'माझा डॅशबोर्ड' },
         { href: '/opd', label: isEn ? 'OPD Triage' : isHi ? 'ओपीडी ट्राइएज' : 'ओपीडी ट्राइएज' },
+        { href: '/referrals', label: isEn ? 'Referrals' : isHi ? 'रेफरल' : 'संदर्भ सेवा' },
         { href: '/dashboard', label: isEn ? 'Command Center' : isHi ? 'जिला कमांड सेंटर' : 'जिल्हा कमांड केंद्र' },
+        { href: '/facility-resources', label: isEn ? 'Beds & Equipment' : isHi ? 'बिस्तर व उपकरण' : 'खाटा व उपकरणे' },
         { href: '/followup', label: isEn ? 'High-Risk Recalls' : isHi ? 'उच्च जोखिम फॉलो-अप' : 'उच्च जोखीम फॉलो-अप' },
         { href: '/diagnostics', label: isEn ? 'Diagnostics' : isHi ? 'निदान व परीक्षण' : 'निदान व लॅब' },
         { href: '/medicine', label: isEn ? 'Medicine Stock' : isHi ? 'दवा स्टॉक' : 'औषध साठा' },
-        { href: '/referrals', label: isEn ? 'Referrals (108)' : isHi ? 'रेफरल सेवा (१०८)' : 'रेफरल सेवा (१०८)' },
         { href: '/queue', label: isEn ? 'OPD Queue' : isHi ? 'ओपीडी कतार' : 'ओपीडी रांग' },
         { href: '/teleconsult', label: isEn ? 'Teleconsult' : isHi ? 'ई-संजीवनी' : 'ई-संजीवनी' },
         { href: '/facilities', label: isEn ? 'Facilities (4-Tier)' : isHi ? 'स्वास्थ्य केंद्र (४-स्तरीय)' : 'आरोग्य केंद्रे (४-स्तर)' },
+        { href: '/demo/simulation', label: isEn ? 'Two-User Demo' : isHi ? 'दो-उपयोगकर्ता डेमो' : 'दोन-वापरकर्ता डेमो' },
+        { href: '/admin', label: isEn ? 'Admin' : isHi ? 'प्रशासन' : 'प्रशासन' },
         { href: '/emergency', label: isEn ? 'Emergency SOS' : isHi ? 'आपातकालीन SOS' : 'तातडीची मदत SOS', isAlert: true },
-    ];
+    ].filter(link => canAccessRoute(session?.role ?? null, link.href));
+
+    // Leave the guarded page first and end the session on arrival: clearing it
+    // here would let the route guard on this page answer 403 before the
+    // navigation to sign-in lands.
+    const signOut = () => {
+        router.push('/staff/login?signout=1');
+    };
 
     const i18nTexts = {
         stateGov: dep('government', language),
@@ -92,6 +110,7 @@ export default function GovPortalHeader() {
         helplineLabel: isEn ? 'Health Helpline' : isHi ? 'स्वास्थ्य हेल्पलाइन' : 'आरोग्य हेल्पलाइन',
         citizenLogin: isEn ? 'ABHA / Citizen' : isHi ? 'ABHA / नागरिक' : 'ABHA / नागरिक',
         staffLogin: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
+        signOut: isEn ? 'Sign out' : isHi ? 'साइन आउट' : 'साइन आउट',
         noticeLabel: isEn ? 'IMPORTANT NOTICE' : isHi ? 'महत्वपूर्ण सूचना' : 'महत्त्वाची सूचना',
         noticeText: isEn
             ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at Sub-District Hospital and District Hospital. Live 108 Ambulance GPS tracking active.'
@@ -224,21 +243,40 @@ export default function GovPortalHeader() {
                             </div>
                         </div>
 
-                        {/* Staff / ABHA Login */}
-                        <div className="flex items-center gap-1.5">
-                            <Link
-                                href="/login"
-                                className="px-3 py-1.5 bg-white border border-[#1F3A6E] text-[#1F3A6E] hover:bg-slate-50 font-bold text-xs rounded transition-colors"
-                            >
-                                {i18nTexts.citizenLogin}
-                            </Link>
-                            <Link
-                                href="/staff/login"
-                                className="px-3 py-1.5 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-xs rounded transition-colors shadow-none"
-                            >
-                                {i18nTexts.staffLogin}
-                            </Link>
-                        </div>
+                        {/* Signed-in staff: who, where, the bell and sign-out. Otherwise the two logins. */}
+                        {session ? (
+                            <div className="flex items-center gap-1.5">
+                                <div className="text-right leading-tight max-w-[14rem]">
+                                    <strong className="block text-[12px] text-[#1F3A6E] truncate">{session.name}</strong>
+                                    <span className="block text-[10px] text-slate-600 truncate">
+                                        {ROLE_LABELS[session.role]} · {session.facilityName}
+                                    </span>
+                                </div>
+                                <NotificationBell session={session} />
+                                <button
+                                    type="button"
+                                    onClick={signOut}
+                                    className="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded"
+                                >
+                                    {i18nTexts.signOut}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1.5">
+                                <Link
+                                    href="/login"
+                                    className="px-3 py-1.5 bg-white border border-[#1F3A6E] text-[#1F3A6E] hover:bg-slate-50 font-bold text-xs rounded transition-colors"
+                                >
+                                    {i18nTexts.citizenLogin}
+                                </Link>
+                                <Link
+                                    href="/staff/login"
+                                    className="px-3 py-1.5 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-xs rounded transition-colors shadow-none"
+                                >
+                                    {i18nTexts.staffLogin}
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -36,24 +36,28 @@ export const subscribeMeshStatus = (notify: (status: MeshStatus) => void): (() =
     };
 };
 
+/**
+ * The relay's address. Resolving from window.location.hostname works in a browser
+ * on the same machine, but NOT in the Android build: Capacitor serves the app from
+ * a local origin inside the phone, so the hostname is "localhost" and the device
+ * would dial its own loopback. Set NEXT_PUBLIC_MESH_URL to the relay's LAN address
+ * (e.g. http://192.168.1.20:3001) when building the APK.
+ */
+export const relayBaseUrl = (): string => {
+    const configured = process.env.NEXT_PUBLIC_MESH_URL?.trim();
+    if (configured) return configured.replace(/\/+$/, '');
+    if (typeof window !== 'undefined') {
+        const host = window.location.hostname;
+        // A Capacitor/localhost origin cannot reach a relay on another machine.
+        const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '';
+        return isLoopback ? 'http://localhost:3001' : `http://${host}:3001`;
+    }
+    return 'http://localhost:3001';
+};
+
 export const getSocket = (): Socket => {
     if (!socket) {
-        // Resolving the relay from window.location.hostname works in a browser on the
-        // same machine, but NOT in the Android build: Capacitor serves the app from a
-        // local origin inside the phone, so the hostname is "localhost" and the device
-        // would dial its own loopback. Set NEXT_PUBLIC_MESH_URL to the relay's LAN
-        // address (e.g. http://192.168.1.20:3001) when building the APK.
-        const configured = process.env.NEXT_PUBLIC_MESH_URL?.trim();
-
-        let derived = 'http://localhost:3001';
-        if (typeof window !== 'undefined') {
-            const host = window.location.hostname;
-            // A Capacitor/localhost origin cannot reach a relay on another machine.
-            const isLoopback = host === 'localhost' || host === '127.0.0.1' || host === '';
-            derived = isLoopback ? 'http://localhost:3001' : `http://${host}:3001`;
-        }
-
-        const SERVER_URL = configured || derived;
+        const SERVER_URL = relayBaseUrl();
 
         socket = io(SERVER_URL, {
             transports: ['polling', 'websocket'],

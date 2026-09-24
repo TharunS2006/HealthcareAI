@@ -2,6 +2,19 @@
  * NalamMesh Data Models — Rural Public Healthcare
  * ABDM/FHIR-compliant patient & clinical structures for tiered care */
 
+import type {
+    ReferralStatus,
+    ReferralEvent,
+    ReferralComment,
+    TreatmentNote,
+    ReferralRejection,
+    RouteHistoryEntry,
+    BedReservation,
+    CapacityOverride,
+    EmergencyEscalation,
+} from './referral';
+import type { WardType } from './resources';
+
 export type TriageStatus = 'RED' | 'YELLOW' | 'GREEN';
 export type TriagePriority = 'EMERGENCY' | 'URGENT' | 'SEMI_URGENT' | 'ROUTINE';
 
@@ -82,20 +95,52 @@ export interface ReferralRecord {
     toFacilityName: string;
     toFacilityType: FacilityType;
     reason: string;
+    /** Urgency as the spec names it: Routine / Urgent / Emergency. */
     priority: TriagePriority;
-    status: 'INITIATED' | 'ACCEPTED' | 'IN_TRANSIT' | 'COMPLETED' | 'REJECTED';
+    status: ReferralStatus;
     referredBy: string;
+    referredByUserId?: string;
     referredAt: Date | string;
-    completedAt?: Date | string;
+    /** Last change of any kind; the merge rule and the relay cache order by it. */
+    updatedAt: string;
     transportMode: 'AMBULANCE_108' | 'AMBULANCE_102' | 'SELF' | 'PUBLIC_TRANSPORT';
     ambulanceVehicleNo?: string;
     clinicalSummary?: string;
     notes?: string;
-    // Transport telemetry — set when the referral is dispatched into transit, so the
-    // sending facility sees real elapsed time rather than a static "in transit" label.
-    inTransitAt?: Date | string;   // when status became IN_TRANSIT
-    lastUpdatedAt?: Date | string; // last dispatcher/status update (manual contact point)
-    etaMinutes?: number;           // dispatcher's estimated time to receiving facility
+    /** Vitals as recorded on the referral form, so the receiver is not reading today's values as the referral's. */
+    vitalsAtReferral?: Vitals;
+
+    // Lifecycle — every status change is an event, with who and when.
+    timeline: ReferralEvent[];
+    comments: ReferralComment[];
+    treatmentNotes?: TreatmentNote[];
+    sentVia?: 'RELAY' | 'LOCAL_PEER';
+    deliveredAt?: string;       // "Seen by PHC at [time]"
+    acknowledgedAt?: string;
+    acceptedAt?: string;
+    rejectedAt?: string;
+    arrivedAt?: string;
+    admittedAt?: string;
+    dischargedAt?: string;
+    /** Kept from before the lifecycle rework; set on discharge so older readers still see a close. */
+    completedAt?: Date | string;
+
+    rejection?: ReferralRejection;
+    routeHistory?: RouteHistoryEntry[];
+    reservation?: BedReservation;
+    /** The ward the patient was admitted to, so discharge frees the same one. */
+    admittedWard?: WardType;
+    capacityOverride?: CapacityOverride;
+    escalation?: EmergencyEscalation;
+    /** Set on a PHC referral the MO escalated onward, and on the onward one. */
+    onwardReferralId?: string;
+    parentReferralId?: string;
+
+    // Transport telemetry — set when the sender dispatches the patient, so the
+    // receiver sees real elapsed time rather than a static "in transit" label.
+    inTransitAt?: Date | string;
+    lastUpdatedAt?: Date | string;
+    etaMinutes?: number;
 }
 
 export interface Patient {
@@ -129,6 +174,8 @@ export interface Patient {
     timestamp: Date | string;
     chw_id?: string;         // ASHA / ANM Worker ID
     chw_name?: string;
+    /** The facility whose worker registered this patient — the basis of facility scoping. */
+    registeredAtFacilityId?: string;
     notes?: string;
     arScanUrl?: string;
 }

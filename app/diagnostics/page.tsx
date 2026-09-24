@@ -18,8 +18,19 @@ import { DiagnosticOrder } from '@/types/facility';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import toast from 'react-hot-toast';
 
+import { useSession } from '@/lib/auth/session';
+import { scopeToFacility } from '@/lib/auth/permissions';
+
 export default function DiagnosticsPage() {
-    const { diagnostics, loadAll, updateDiagnosticResult } = useFacilityStore();
+    const { diagnostics: allDiagnostics, loadAll, updateDiagnosticResult } = useFacilityStore();
+    // Orders at the officer's own facility's lab, plus orders they sent to
+    // another lab (the order records the lab, not the sender, so the sender is
+    // matched by name).
+    const session = useSession();
+    const diagnostics = [
+        ...scopeToFacility(allDiagnostics, session, d => [d.facilityId]),
+        ...allDiagnostics.filter(d => session && d.facilityId !== session.facilityId && d.orderedBy.startsWith(session.name)),
+    ];
     const { patients, loadPatients } = usePatientStore();
     const { language } = useLanguageStore();
 
@@ -35,7 +46,7 @@ export default function DiagnosticsPage() {
     // New Order Form State
     const [orderPatientId, setOrderPatientId] = useState('');
     const [orderTestType, setOrderTestType] = useState('CBC');
-    const [orderFacilityId, setOrderFacilityId] = useState('fac-phc-001');
+    const [orderFacilityId, setOrderFacilityId] = useState(session?.facilityId ?? 'phc-bhamragad');
     const [orderNotes, setOrderNotes] = useState('');
 
     // Result Entry State
@@ -92,7 +103,7 @@ export default function DiagnosticsPage() {
             facilityName: FACILITY_NETWORK.find(f => f.id === orderFacilityId)?.name || 'PHC Block A',
             testName: isEn ? selectedCat.name : isHi ? selectedCat.nameHi : selectedCat.nameMr,
             category: selectedCat.category,
-            orderedBy: isEn ? 'Dr. Suresh Atram (MO)' : isHi ? 'डॉ. सुरेश आत्राम (MO)' : 'डॉ. सुरेश आत्राम (MO)',
+            orderedBy: session ? `${session.name} (${session.role})` : 'Unattributed',
             orderedAt: new Date().toISOString(),
             status: 'ORDERED',
             isAbnormal: false,

@@ -1,125 +1,236 @@
 /**
- * Staff Authentication Portal — Module 0
- * Role-Based Access Control (RBAC) login for government healthcare cadre. */
+ * Staff sign-in — role, posting, person.
+ *
+ * Mock authentication: no password is verified. What sign-in establishes is
+ * the session every other screen relies on — the role (what you may do) and
+ * the facility (whose patients). Postings offered follow the role's tier, and
+ * the person must exist in the staff directory at that posting, so a session
+ * can never claim a role at a facility that has no such post.
+ */
 
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/stores/authStore';
+import { useDirectoryStore } from '@/stores/directoryStore';
+import { useFacilityStore } from '@/stores/facilityStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
-import { useAuthStore, StaffRole } from '@/stores/authStore';
+import { DEMO_LOGIN_USER_IDS, type StaffUser } from '@/lib/auth/users';
+import {
+    ROLE_FACILITY_TIERS,
+    ROLE_HOME,
+    ROLE_LABELS,
+    ROLE_POSTING_LABEL,
+    STAFF_ROLES,
+    canAccessRoute,
+    type StaffRole,
+} from '@/lib/auth/permissions';
 import Icon from '@/components/gov/Icon';
+import { useSessionRestored } from '@/components/auth/RouteGuard';
 import toast from 'react-hot-toast';
 
-export default function StaffLoginPage() {
-    const router = useRouter();
-    const login = useAuthStore(s => s.login);
-    const [role, setRole] = useState('MO');
-    const [facilityId, setFacilityId] = useState('phc-bhamragad');
-    const [staffId, setStaffId] = useState('MO-GAD-4412');
-    const [pin, setPin] = useState('1234');
+/** Only same-site paths — a sign-in page must not become an open redirect. */
+function safeNext(raw: string | null): string | null {
+    if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return null;
+    return raw;
+}
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        // Persist the session so mutations are attributed and role-gated views work.
-        login({ role: role as StaffRole, staffId });
-        toast.success(`Signed in as ${role} (${staffId})`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
-        router.push('/staff');
+function LoginForm() {
+    const router = useRouter();
+    const params = useSearchParams();
+    const next = safeNext(params?.get('next') ?? null);
+    const login = useAuthStore(s => s.login);
+    const logout = useAuthStore(s => s.logout);
+    const current = useAuthStore(s => s.session);
+    const restored = useSessionRestored();
+    const users = useDirectoryStore(s => s.users);
+    const storedFacilities = useFacilityStore(s => s.facilities);
+    const facilities = storedFacilities.length ? storedFacilities : FACILITY_NETWORK;
+
+    const [role, setRole] = useState<StaffRole>('ANM');
+    const [facilityId, setFacilityId] = useState<string>('');
+    const [userId, setUserId] = useState<string>('');
+    const [pin, setPin] = useState('');
+
+    const tiers = ROLE_FACILITY_TIERS[role];
+    const postings = useMemo(() => facilities.filter(f => tiers.includes(f.type)), [facilities, tiers]);
+    const staff = useMemo(
+        () => users.filter(u => u.active && u.role === role && (tiers.length === 0 ? u.facilityId === null : u.facilityId === facilityId)),
+        [users, role, facilityId, tiers]
+    );
+
+    // Arriving from "Sign out": end the session here, on a public page — once
+    // the session has been read, so a reload of this URL cannot skip it.
+    useEffect(() => {
+        if (params?.get('signout') !== '1' || !restored) return;
+        if (current) {
+            logout();
+            toast.success('Signed out');
+        }
+        router.replace('/staff/login');
+    }, [params, current, restored, logout, router]);
+
+    // Keep the posting and the person valid for the chosen role.
+    useEffect(() => {
+        if (tiers.length === 0) setFacilityId('');
+        else if (!postings.some(f => f.id === facilityId)) setFacilityId(postings[0]?.id ?? '');
+    }, [role, tiers, postings, facilityId]);
+    useEffect(() => {
+        if (!staff.some(u => u.id === userId)) setUserId(staff[0]?.id ?? '');
+    }, [staff, userId]);
+
+    const signIn = (user: StaffUser) => {
+        const facility = facilities.find(f => f.id === user.facilityId);
+        login({
+            userId: user.id,
+            name: user.name,
+            role: user.role,
+            staffId: user.staffId,
+            facilityId: user.facilityId,
+            facilityName: facility?.name ?? ROLE_POSTING_LABEL[user.role] ?? 'Unassigned',
+            facilityType: facility?.type ?? null,
+        });
+        toast.success(`Signed in as ${user.name} — ${ROLE_LABELS[user.role]}`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
+        router.replace(next && canAccessRoute(user.role, next) ? next : ROLE_HOME[user.role]);
     };
 
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const user = staff.find(u => u.id === userId);
+        if (!user) {
+            toast.error('Choose a staff member posted here');
+            return;
+        }
+        if (!/^\d{4,6}$/.test(pin)) {
+            toast.error('Enter a 4–6 digit PIN');
+            return;
+        }
+        signIn(user);
+    };
+
+    const quick = DEMO_LOGIN_USER_IDS.map(id => users.find(u => u.id === id)).filter((u): u is StaffUser => Boolean(u && u.active));
+    const field = 'w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded focus:ring-2 focus:ring-[#1F3A6E] focus:outline-none font-medium';
+    const label = 'block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1';
+
     return (
-        <div className="max-w-md mx-auto px-4 py-12">
-            <div className="surface-card p-6 sm:p-8 space-y-6">
-                <div className="text-center">
-                    <div className="w-12 h-12 bg-gov-navy text-white rounded flex items-center justify-center mx-auto mb-3">
-                        <Icon name="clinician" className="w-6 h-6" />
-                    </div>
-                    <h1 className="text-xl font-bold text-gov-navy">Healthcare Staff Portal Login</h1>
-                    <p className="text-xs text-txt-secondary mt-1">
-                        National Health Mission (NHM) • Government of India
-                    </p>
+        <div className="max-w-4xl mx-auto px-4 py-8 grid md:grid-cols-[1fr_1.1fr] gap-4 items-start">
+            <section className="border border-[#B9C5D6] bg-white">
+                <div className="bg-[#1F3A6E] text-white px-3 py-2">
+                    <h1 className="text-[13px] font-bold">Healthcare Staff Portal — Sign in</h1>
                 </div>
-
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={submit} className="p-4 space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
-                            Staff Cadre / Role
-                        </label>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-medium"
-                        >
-                            <option value="ASHA">ASHA / Frontline Health Worker (Field)</option>
-                            <option value="ANM">ANM / CHO (Sub-Centre Level)</option>
-                            <option value="MO">Medical Officer (PHC / CHC Level)</option>
-                            <option value="SPECIALIST">Specialist Doctor (District Hospital)</option>
-                            <option value="PHARMACIST">Pharmacist (Facility Pharmacy)</option>
-                            <option value="LAB_TECH">Lab Technician (Diagnostic Center)</option>
-                            <option value="DHO">District Health Officer (DHO Command)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
-                            Assigned Public Health Facility
-                        </label>
-                        <select
-                            value={facilityId}
-                            onChange={(e) => setFacilityId(e.target.value)}
-                            className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-medium"
-                        >
-                            {FACILITY_NETWORK.map(f => (
-                                <option key={f.id} value={f.id}>
-                                    {f.name} ({f.type} — {f.district})
-                                </option>
+                        <label className={label} htmlFor="role">Role</label>
+                        <select id="role" value={role} onChange={e => setRole(e.target.value as StaffRole)} className={field}>
+                            {STAFF_ROLES.map(r => (
+                                <option key={r} value={r}>{ROLE_LABELS[r]}</option>
                             ))}
                         </select>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
-                            Government Staff ID / License Number
-                        </label>
-                        <input
-                            type="text"
-                            value={staffId}
-                            onChange={(e) => setStaffId(e.target.value)}
-                            placeholder="e.g. MO-GAD-4412"
-                            className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-mono"
-                            required
-                        />
+                        <label className={label} htmlFor="posting">Posting</label>
+                        {tiers.length === 0 ? (
+                            <p className="px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded text-slate-700">
+                                {ROLE_POSTING_LABEL[role]} — sees every facility
+                            </p>
+                        ) : (
+                            <select id="posting" value={facilityId} onChange={e => setFacilityId(e.target.value)} className={field}>
+                                {postings.map(f => (
+                                    <option key={f.id} value={f.id}>{f.name} ({f.type})</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
-                            Security PIN / Password
-                        </label>
+                        <label className={label} htmlFor="user">Staff member</label>
+                        {staff.length === 0 ? (
+                            <p className="px-3 py-2 text-xs bg-amber-50 border border-amber-300 rounded text-amber-900">
+                                Nobody is posted here in this role. The Super Admin can add them in User Management.
+                            </p>
+                        ) : (
+                            <select id="user" value={userId} onChange={e => setUserId(e.target.value)} className={field}>
+                                {staff.map(u => (
+                                    <option key={u.id} value={u.id}>{u.name} — {u.staffId}</option>
+                                ))}
+                            </select>
+                        )}
+                    </div>
+
+                    <div>
+                        <label className={label} htmlFor="pin">PIN</label>
                         <input
+                            id="pin"
                             type="password"
+                            inputMode="numeric"
+                            autoComplete="off"
                             value={pin}
-                            onChange={(e) => setPin(e.target.value)}
-                            placeholder="••••"
-                            className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none"
-                            required
+                            onChange={e => setPin(e.target.value)}
+                            placeholder="4–6 digits"
+                            className={field}
                         />
                     </div>
 
-                    <button
-                        type="submit"
-                        className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5"
-                    >
-                        Sign In to Staff Workspace →
+                    <button type="submit" disabled={staff.length === 0} className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50">
+                        Sign in →
                     </button>
-                </form>
 
-                <div className="pt-2 text-center border-t border-border-subtle">
-                    <Link href="/login" className="text-xs font-bold text-txt-secondary hover:text-gov-navy">
-                        ← Back to Citizen / Patient Login
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Demonstration sign-in: the PIN is not verified against any account. Your role and posting
+                        decide which modules you see and whose patients you can act on.
+                    </p>
+                </form>
+            </section>
+
+            <section className="border border-[#B9C5D6] bg-white">
+                <div className="bg-[#EDF1F7] text-[#1F3A6E] border-b border-[#B9C5D6] px-3 py-2">
+                    <h2 className="text-[13px] font-bold">Demo accounts — one per role</h2>
+                </div>
+                <ul className="divide-y divide-slate-200">
+                    {quick.map(u => {
+                        const facility = facilities.find(f => f.id === u.facilityId);
+                        return (
+                            <li key={u.id}>
+                                <button
+                                    type="button"
+                                    onClick={() => signIn(u)}
+                                    className="w-full text-left px-3 py-2.5 hover:bg-slate-50 flex items-center justify-between gap-3"
+                                >
+                                    <span className="min-w-0">
+                                        <strong className="block text-[12px] text-[#1F3A6E]">{ROLE_LABELS[u.role]}</strong>
+                                        <span className="block text-[11px] text-slate-600 truncate">
+                                            {u.name} · {facility?.name ?? ROLE_POSTING_LABEL[u.role]}
+                                        </span>
+                                    </span>
+                                    <span className="shrink-0 text-[11px] font-bold text-[#1F3A6E] border border-[#1F3A6E] px-2 py-1 rounded">
+                                        Sign in
+                                    </span>
+                                </button>
+                            </li>
+                        );
+                    })}
+                </ul>
+                <div className="px-3 py-3 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
+                    <p>
+                        Tip: sessions are per browser tab. Sign in as the ANM in one tab and the PHC Medical Officer in
+                        another to watch a referral travel between them — or use the Two-User Simulation (DHO / Super Admin).
+                    </p>
+                    <Link href="/login" className="font-bold text-[#1F3A6E] underline">
+                        ← Citizen / patient login
                     </Link>
                 </div>
-            </div>
+            </section>
         </div>
+    );
+}
+
+export default function StaffLoginPage() {
+    return (
+        <Suspense fallback={<div className="py-24 text-center text-xs text-slate-500">Loading sign-in…</div>}>
+            <LoginForm />
+        </Suspense>
     );
 }

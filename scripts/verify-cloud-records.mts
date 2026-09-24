@@ -80,8 +80,14 @@ if (!(await waitForBackend())) {
     process.exit(1);
 }
 
-const { uploadPatientRecord, uploadCareReferral, fetchIncoming, fetchStore } =
+const { uploadPatientRecord, uploadCareReferral, fetchIncoming, fetchStore, setIdentityProvider, wireStatus } =
     await import('../lib/sync/cloudRecords');
+
+// The district service answers only a signed-in role (backend/app/access.py).
+// Checks 1–6 run as the District Health Officer, who may upload and read any
+// facility's board and the full store; section 0 checks what happens without.
+const DHO = { 'x-nalammesh-user': 'u-dho', 'x-nalammesh-role': 'DHO' };
+setIdentityProvider(() => ({}));
 
 const NOW = new Date().toISOString();
 const EARLIER = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -120,7 +126,9 @@ const referral = (over: Record<string, unknown> = {}): any => ({
     toFacilityType: 'DH',
     reason: 'Severe pre-eclampsia',
     priority: 'EMERGENCY',
-    status: 'IN_TRANSIT',
+    // Accepted and dispatched: uploads as IN_TRANSIT (see wireStatus).
+    status: 'ACCEPTED',
+    inTransitAt: EARLIER,
     referredBy: 'ASHA Sunita',
     referredAt: EARLIER,
     transportMode: 'AMBULANCE_102',
@@ -128,6 +136,29 @@ const referral = (over: Record<string, unknown> = {}): any => ({
     etaMinutes: 22,
     ...over,
 });
+
+// ── 0. Identity and status mapping ───────────────────────────────────────────
+console.log('\nWithout a signed-in role, uploads wait and reads are refused:');
+const anonymous = await uploadPatientRecord(patient, NOW);
+check('an upload with no session stays queued (retryable), not refused',
+    !anonymous.ok && anonymous.retryable === true, JSON.stringify(anonymous));
+const anonymousStore = await fetchStore(50);
+check('the store refuses a caller with no session, and says so',
+    anonymousStore.ok === false && anonymousStore.reason === 'forbidden', JSON.stringify(anonymousStore));
+setIdentityProvider(() => ({ 'x-nalammesh-user': 'u-mo-bhamragad', 'x-nalammesh-role': 'MO', 'x-nalammesh-facility': 'phc-bhamragad' }));
+const otherBoard = await fetchIncoming('dh-gadchiroli');
+check('a PHC cannot read another facility\'s pre-arrival board',
+    otherBoard.ok === false && otherBoard.reason === 'forbidden', JSON.stringify(otherBoard));
+setIdentityProvider(() => DHO);
+
+console.log('\nLifecycle statuses map onto the service\'s five:');
+check('awaiting-answer states upload as INITIATED',
+    ['CREATED', 'SENT', 'DELIVERED', 'ACKNOWLEDGED'].every(st => wireStatus({ status: st as any }) === 'INITIATED'));
+check('accepted and dispatched uploads as IN_TRANSIT, accepted alone as ACCEPTED',
+    wireStatus({ status: 'ACCEPTED', inTransitAt: NOW }) === 'IN_TRANSIT' && wireStatus({ status: 'ACCEPTED' }) === 'ACCEPTED');
+check('arrived / admitted / discharged leave the board as COMPLETED; rejected as CANCELLED',
+    ['PATIENT_ARRIVED', 'ADMITTED', 'DISCHARGED'].every(st => wireStatus({ status: st as any }) === 'COMPLETED') &&
+    wireStatus({ status: 'REJECTED' }) === 'CANCELLED');
 
 // ── 1. Round trip ────────────────────────────────────────────────────────────
 console.log('A record uploaded here is readable there:');
@@ -211,7 +242,7 @@ check('an unreadable priority is treated as the most urgent, not the least',
 console.log('\nEvery app priority is actually accepted by the cloud:');
 for (const [priority] of EXPECTED) {
     const res = await uploadCareReferral(
-        referral({ id: `ref-prio-${priority}`, priority, status: 'INITIATED' }), NOW);
+        referral({ id: `ref-prio-${priority}`, priority, status: 'SENT' }), NOW);
     check(`a ${priority} referral uploads`, res.ok, JSON.stringify(res));
 }
 

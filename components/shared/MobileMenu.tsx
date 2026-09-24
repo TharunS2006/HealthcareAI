@@ -11,13 +11,17 @@ import LanguageSelector from '@/components/shared/LanguageSelector';
 import { useLanguageStore } from '@/stores/languageStore';
 import { t } from '@/lib/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuthStore } from '@/stores/authStore';
+import { canAccessRoute, ROLE_LABELS } from '@/lib/auth/permissions';
 
 export default function MobileMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const pathname = usePathname();
     const { language } = useLanguageStore();
+    const session = useAuthStore(s => s.session);
+    const lang3 = (en: string, hi: string, mr: string) => (language === 'en' ? en : language === 'hi' ? hi : mr);
 
-    const navItems = [
+    const allItems = [
         {
             href: '/',
             label: t('navHome', language),
@@ -33,6 +37,15 @@ export default function MobileMenu() {
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/my-dashboard',
+            label: lang3('My Dashboard', 'मेरा डैशबोर्ड', 'माझा डॅशबोर्ड'),
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
             ),
         },
@@ -78,6 +91,15 @@ export default function MobileMenu() {
             icon: (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+            ),
+        },
+        {
+            href: '/facility-resources',
+            label: lang3('Beds & Equipment', 'बिस्तर व उपकरण', 'खाटा व उपकरणे'),
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10m0-4h18m0 4V11a2 2 0 00-2-2h-7v4M7 11.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                 </svg>
             ),
         },
@@ -153,7 +175,28 @@ export default function MobileMenu() {
                 </svg>
             ),
         },
+        {
+            href: '/demo/simulation',
+            label: lang3('Two-User Simulation', 'दो-उपयोगकर्ता सिमुलेशन', 'दोन-वापरकर्ता सिम्युलेशन'),
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+            ),
+        },
+        {
+            href: '/admin',
+            label: lang3('User & Facility Admin', 'उपयोगकर्ता व केंद्र प्रशासन', 'वापरकर्ता व केंद्र प्रशासन'),
+            icon: (
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            ),
+        },
     ];
+
+    // Same rule as the route guard: a link is shown only if the page will open.
+    const navItems = allItems.filter(item => canAccessRoute(session?.role ?? null, item.href));
 
     return (
         <>
@@ -166,7 +209,9 @@ export default function MobileMenu() {
                             {language === 'en' ? 'NalamMesh' : 'नलममेश'}
                         </strong>
                         <span className="text-[9px] text-slate-500 font-bold block">
-                            {language === 'en'
+                            {session
+                                ? `${ROLE_LABELS[session.role]} · ${session.facilityName}`
+                                : language === 'en'
                                 ? 'Govt. of India • Public Health'
                                 : language === 'hi'
                                 ? 'भारत सरकार • सार्वजनिक स्वास्थ्य'

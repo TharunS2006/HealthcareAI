@@ -6,6 +6,8 @@ import OfflineBanner from "@/components/gov/OfflineBanner";
 import SocketInit from "@/components/shared/SocketInit";
 import PWAInstall from "@/components/shared/PWAInstall";
 import ChatAssistant from "@/components/shared/ChatAssistant";
+import RouteGuard from "@/components/auth/RouteGuard";
+import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
 
@@ -61,8 +63,12 @@ export default function RootLayout({
                 {/* Main Content Area */}
                 <ErrorBoundary>
                     <SocketInit />
+                    {/* Referral transport, escalation clock, delivery receipts and
+                        notification toasts — background only. */}
+                    <ReferralRuntime />
                     <div id="main-content" className="flex-1 pb-20">
-                        {children}
+                        {/* Every page passes this gate; the rules are in lib/auth/permissions.ts. */}
+                        <RouteGuard>{children}</RouteGuard>
                     </div>
                     {/* Registers the service worker (offline app shell) + install prompt */}
                     <PWAInstall />

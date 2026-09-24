@@ -15,6 +15,8 @@ import { useLanguageStore } from '@/stores/languageStore';
 import { t } from '@/lib/i18n';
 import { openSmsComposer } from '@/lib/sms/fallback';
 import toast from 'react-hot-toast';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide } from '@/lib/auth/permissions';
 import Link from 'next/link';
 
 interface RecallTask {
@@ -188,7 +190,17 @@ export default function FollowUpPage() {
             : `${dueInDays} दिवसांत नियोजित (${dateStr})`;
     };
 
-    const filteredTasks = tasks.filter(t => {
+    // Only the recalls for patients registered at this worker's own facility.
+    // A task whose patient is not on this device is kept out rather than shown
+    // to everyone.
+    const session = useSession();
+    const scopedTasks = tasks.filter(t => {
+        if (isDistrictWide(session?.role ?? null)) return true;
+        const patient = patients.find(p => p.id === t.patientId);
+        return Boolean(session?.facilityId && patient?.registeredAtFacilityId === session.facilityId);
+    });
+
+    const filteredTasks = scopedTasks.filter(t => {
         const matchesCohort = activeTab === 'ALL' || t.cohort === activeTab;
         const matchesSearch = t.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               t.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -197,10 +209,10 @@ export default function FollowUpPage() {
         return matchesCohort && matchesSearch;
     });
 
-    const maternalCount = tasks.filter(t => t.cohort === 'MATERNAL').length;
-    const childCount = tasks.filter(t => t.cohort === 'CHILD').length;
-    const chronicCount = tasks.filter(t => t.cohort === 'CHRONIC').length;
-    const completedCount = tasks.filter(t => t.status === 'COMPLETED' || t.status === 'VISITED').length;
+    const maternalCount = scopedTasks.filter(t => t.cohort === 'MATERNAL').length;
+    const childCount = scopedTasks.filter(t => t.cohort === 'CHILD').length;
+    const chronicCount = scopedTasks.filter(t => t.cohort === 'CHRONIC').length;
+    const completedCount = scopedTasks.filter(t => t.status === 'COMPLETED' || t.status === 'VISITED').length;
 
     const handleMarkComplete = (taskId: string) => {
         setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'COMPLETED' } : t));
@@ -354,13 +366,13 @@ export default function FollowUpPage() {
                                         FHW Compliance Score
                                     </span>
                                     <h3 className="text-2xl font-black text-emerald-900 mt-0.5">
-                                        {Math.round((completedCount / tasks.length) * 100)}%
+                                        {scopedTasks.length === 0 ? 0 : Math.round((completedCount / scopedTasks.length) * 100)}%
                                     </h3>
                                 </div>
                                 <span className="p-2 bg-emerald-100 text-emerald-800 rounded"><Icon name="target" className="w-5 h-5" /></span>
                             </div>
                             <p className="text-[11px] text-txt-muted mt-2">
-                                {completedCount} of {tasks.length} weekly visits completed
+                                {completedCount} of {scopedTasks.length} weekly visits completed
                             </p>
                         </div>
                     </div>

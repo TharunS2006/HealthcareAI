@@ -15,12 +15,20 @@ import Icon from '@/components/gov/Icon';
 import { SEED_TELECONSULT, FACILITY_NETWORK } from '@/lib/data/facilities';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
+import { useSession } from '@/lib/auth/session';
+import { can } from '@/lib/auth/permissions';
 import { TeleconsultSession } from '@/types/facility';
 import toast from 'react-hot-toast';
 
 export default function TeleconsultPage() {
     const { patients } = usePatientStore();
-    const { addReferral } = useReferralStore();
+    const createReferral = useReferralStore(s => s.create);
+    const staff = useSession();
+    // Specialists advise; the referral itself is raised by the facility the
+    // patient is at, by someone who may raise referrals there.
+    const referringFacility = staff && can(staff.role, 'referral:create') && staff.facilityId
+        ? FACILITY_NETWORK.find(f => f.id === staff.facilityId)
+        : undefined;
 
     const [session, setSession] = useState<TeleconsultSession>(SEED_TELECONSULT);
     const [isMuted, setIsMuted] = useState(false);
@@ -62,28 +70,29 @@ export default function TeleconsultPage() {
     };
 
     const handleDispatchReferral = async () => {
-        const newRef = {
-            id: `ref-tele-${Math.floor(1000 + Math.random() * 9000)}`,
-            patientId: session.patientId,
-            patientName: session.patientName,
-            patientAge: session.patientAge,
-            patientGender: session.patientGender,
-            fromFacilityId: session.initiatingFacilityId,
-            fromFacilityName: session.initiatingFacilityName,
-            fromFacilityType: 'SC' as const,
-            toFacilityId: 'dh-district',
-            toFacilityName: 'District Hospital',
-            toFacilityType: 'DH' as const,
-            reason: `Teleconsultation Decision: ${session.reasonForConsult}`,
-            priority: 'EMERGENCY' as const,
-            status: 'ACCEPTED' as const,
-            referredBy: `${session.specialistDoctorName} (MD)`,
-            referredAt: new Date().toISOString(),
-            transportMode: 'AMBULANCE_102' as const,
-            clinicalSummary: specialistNotes,
-        };
-        await addReferral(newRef);
-        toast.success(`Direct Referral created to ${newRef.toFacilityName}`);
+        const target = FACILITY_NETWORK.find(f => f.id === 'dh-district');
+        if (!staff || !referringFacility || !target) {
+            toast.error('Only staff at the referring facility can raise this referral');
+            return;
+        }
+        const result = await createReferral(
+            {
+                patient: { id: session.patientId, name: session.patientName, age: session.patientAge, gender: session.patientGender },
+                from: { id: referringFacility.id, name: referringFacility.name, type: referringFacility.type },
+                to: { id: target.id, name: target.name, type: target.type },
+                reason: `Teleconsultation decision (${session.specialistDoctorName}): ${session.reasonForConsult}`,
+                priority: 'EMERGENCY',
+                transportMode: 'AMBULANCE_102',
+                clinicalSummary: specialistNotes,
+                vitals: session.currentVitals,
+            },
+            staff
+        );
+        if (!result.ok) {
+            toast.error(result.message);
+            return;
+        }
+        toast.success(`Referral ${result.value.id} raised to ${target.name} — it now needs the hospital's acceptance`);
     };
 
     return (
@@ -336,10 +345,15 @@ export default function TeleconsultPage() {
                                 <div className="space-y-2 pt-2 border-t">
                                     <button
                                         onClick={handleDispatchReferral}
-                                        className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2"
+                                        disabled={!referringFacility}
+                                        title={referringFacility ? undefined : 'Raised by staff at the referring facility (ANM / Medical Officer)'}
+                                        className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Icon name="ambulance" className="w-4 h-4" /> Authorize Immediate Referral to District Hospital
+                                        <Icon name="ambulance" className="w-4 h-4" /> Raise Emergency Referral to District Hospital
                                     </button>
+                                    {!referringFacility && (
+                                        <p className="text-[11px] text-slate-600">Specialists advise; the referral is raised by the ANM or Medical Officer at the patient&apos;s facility.</p>
+                                    )}
 
                                     <button
                                         onClick={() => toast.success('Teleconsultation record saved to patient profile (ABDM-ready export)')}

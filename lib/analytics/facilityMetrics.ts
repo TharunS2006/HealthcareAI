@@ -177,6 +177,10 @@ export interface DangerSignTelemetry {
  * death reviews keep surfacing, and it is the one a DHO can still do something about
  * today. It is surfaced as a gap to close, not folded into a success percentage.
  */
+const IN_PIPELINE: ReadonlyArray<ReferralRecord['status']> = [
+    'CREATED', 'SENT', 'DELIVERED', 'ACKNOWLEDGED', 'ACCEPTED', 'PATIENT_ARRIVED',
+];
+
 export function computeDangerSignTelemetry(
     patients: Patient[],
     referrals: ReferralRecord[]
@@ -203,13 +207,11 @@ export function computeDangerSignTelemetry(
 
         escalated += 1;
 
-        if (patientReferrals.some(r => r.status === 'COMPLETED')) {
+        // Admitted (and possibly since discharged) is definitive care; anything
+        // short of admission that has not been rejected is still in the pipeline.
+        if (patientReferrals.some(r => r.status === 'ADMITTED' || r.status === 'DISCHARGED')) {
             reachedDefinitiveCare += 1;
-        } else if (
-            patientReferrals.some(
-                r => r.status === 'INITIATED' || r.status === 'ACCEPTED' || r.status === 'IN_TRANSIT'
-            )
-        ) {
+        } else if (patientReferrals.some(r => IN_PIPELINE.includes(r.status))) {
             inTransit += 1;
         }
     }

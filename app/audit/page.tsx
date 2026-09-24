@@ -1,10 +1,12 @@
 /**
  * Accountability Audit Trail — NalamMesh (the rural healthcare access problem, Module: Accountability)
  *
- * Read-only view of every recorded mutation (referral status, queue movement, medicine
- * stock, patient records) with who acted, when, and the before→after change. Role-gated:
- * visible only to Medical Officer / Specialist / DHO, never to ASHA/ANM field roles.
- * Data is local (IndexedDB auditLog store); no network. */
+ * Read-only view of every recorded action — referral lifecycle, bed and equipment
+ * changes, maintenance, user administration, sign-ins, queue and stock — with who acted,
+ * at which facility, when, and the before→after change. Open to the District Health
+ * Officer and Super Admin (audit:view, lib/auth/permissions.ts). Data is this device's
+ * IndexedDB auditLog store; referral events received from other devices are recorded
+ * here too, under the user who took them. */
 
 'use client';
 
@@ -13,32 +15,40 @@ import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import { getAuditLog } from '@/lib/db';
 import { AuditLogEntry } from '@/types/facility';
-import { useAuthStore, AUDIT_ALLOWED_ROLES } from '@/stores/authStore';
+import { useSession } from '@/lib/auth/session';
+import { can, ROLE_LABELS, isStaffRole } from '@/lib/auth/permissions';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import Link from 'next/link';
 
 type EntityFilter = 'ALL' | AuditLogEntry['entityType'];
 
 export default function AuditPage() {
-    const { role, staffId } = useAuthStore();
+    const session = useSession();
+    const role = session?.role ?? null;
+    const staffId = session?.staffId ?? null;
     const [entries, setEntries] = useState<AuditLogEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<EntityFilter>('ALL');
+    const [facility, setFacility] = useState<string>('ALL');
 
-    const permitted = role !== null && AUDIT_ALLOWED_ROLES.includes(role);
+    const permitted = can(role, 'audit:view');
 
     useEffect(() => {
         if (!permitted) { setLoading(false); return; }
         let alive = true;
-        getAuditLog(300)
+        getAuditLog(500)
             .then(rows => { if (alive) { setEntries(rows); setLoading(false); } })
             .catch(() => { if (alive) setLoading(false); });
         return () => { alive = false; };
     }, [permitted]);
 
     const filtered = useMemo(
-        () => (filter === 'ALL' ? entries : entries.filter(e => e.entityType === filter)),
-        [entries, filter]
+        () => entries
+            .filter(e => filter === 'ALL' || e.entityType === filter)
+            .filter(e => facility === 'ALL' || e.actorFacilityId === facility),
+        [entries, filter, facility]
     );
+    const facilityName = (id?: string | null) => (id ? FACILITY_NETWORK.find(f => f.id === id)?.name ?? id : 'District / system');
 
     const fmt = (iso: string) => new Date(iso).toLocaleString('en-IN', {
         day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -56,6 +66,8 @@ export default function AuditPage() {
         t === 'REFERRAL' ? 'bg-teal-100 text-teal-800'
         : t === 'QUEUE' ? 'bg-indigo-100 text-indigo-800'
         : t === 'MEDICINE' ? 'bg-amber-100 text-amber-800'
+        : t === 'RESOURCES' || t === 'MAINTENANCE' ? 'bg-blue-100 text-blue-800'
+        : t === 'USER' || t === 'FACILITY' || t === 'SESSION' ? 'bg-purple-100 text-purple-800'
         : 'bg-slate-100 text-slate-700';
 
     return (
@@ -77,7 +89,7 @@ export default function AuditPage() {
                             Accountability Audit Trail
                         </h1>
                         <p className="text-xs text-txt-secondary mt-0.5">
-                            Every recorded change to referrals, queue, and medicine stock — who, when, and what changed
+                            Every recorded action — who, at which facility, when, and what changed
                         </p>
                     </div>
 
@@ -90,8 +102,8 @@ export default function AuditPage() {
                             </div>
                             <h2 className="text-lg font-bold text-[#1F3A6E]">Restricted view</h2>
                             <p className="text-sm text-txt-secondary mt-1 max-w-md mx-auto">
-                                The audit trail is available to Medical Officer, Specialist, and District Health
-                                Officer roles only{role ? ` — you are signed in as ${role}.` : '.'} {' '}
+                                The audit trail is available to the District Health Officer and Super Admin
+                                {role ? ` — you are signed in as ${ROLE_LABELS[role]}.` : '.'} {' '}
                                 {!role && <>Please <Link href="/staff/login" className="text-[#1F3A6E] underline font-bold">sign in</Link> with an authorised role.</>}
                             </p>
                         </div>
@@ -99,7 +111,7 @@ export default function AuditPage() {
                         <>
                             {/* Filter pills */}
                             <div className="surface-card p-3 flex flex-wrap items-center gap-1.5">
-                                {(['ALL', 'REFERRAL', 'QUEUE', 'MEDICINE', 'PATIENT'] as EntityFilter[]).map(f => (
+                                {(['ALL', 'REFERRAL', 'RESOURCES', 'MAINTENANCE', 'USER', 'FACILITY', 'SESSION', 'QUEUE', 'MEDICINE', 'PATIENT', 'APPOINTMENT'] as EntityFilter[]).map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setFilter(f)}
@@ -110,8 +122,12 @@ export default function AuditPage() {
                                         {f}{f !== 'ALL' && ` (${entries.filter(e => e.entityType === f).length})`}
                                     </button>
                                 ))}
-                                <span className="ml-auto text-[11px] text-txt-muted">
-                                    Signed in as <strong>{role}</strong>{staffId ? ` · ${staffId}` : ''} · {entries.length} entries
+                                <select value={facility} onChange={e => setFacility(e.target.value)} className="ml-auto px-2 py-1 text-[11px] border border-slate-300 rounded" aria-label="Facility">
+                                    <option value="ALL">All facilities</option>
+                                    {FACILITY_NETWORK.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                </select>
+                                <span className="text-[11px] text-txt-muted">
+                                    Signed in as <strong>{role ? ROLE_LABELS[role] : '—'}</strong>{staffId ? ` · ${staffId}` : ''} · {filtered.length} of {entries.length} entries
                                 </span>
                             </div>
 
@@ -128,7 +144,8 @@ export default function AuditPage() {
                                         <thead>
                                             <tr>
                                                 <th>When</th>
-                                                <th>Actor</th>
+                                                <th>Who</th>
+                                                <th>Facility</th>
                                                 <th>Entity</th>
                                                 <th>Action</th>
                                                 <th>Before → After</th>
@@ -139,9 +156,12 @@ export default function AuditPage() {
                                                 <tr key={e.id}>
                                                     <td className="whitespace-nowrap text-xs">{fmt(e.timestamp)}</td>
                                                     <td className="text-xs">
-                                                        <span className="font-mono">{e.actorId}</span>
-                                                        <span className="block text-[10px] text-txt-muted">{e.actorRole}</span>
+                                                        <span className="font-semibold">{e.actorName ?? e.actorId}</span>
+                                                        <span className="block text-[10px] text-txt-muted">
+                                                            {isStaffRole(e.actorRole) ? ROLE_LABELS[e.actorRole] : e.actorRole} · <span className="font-mono">{e.actorId}</span>
+                                                        </span>
                                                     </td>
+                                                    <td className="text-[11px]">{facilityName(e.actorFacilityId)}</td>
                                                     <td>
                                                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeFor(e.entityType)}`}>
                                                             {e.entityType}

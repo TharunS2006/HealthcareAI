@@ -37,12 +37,13 @@ const POLL_MS = 15_000;
 type CloudState =
     | { kind: 'loading' }
     | { kind: 'ok'; store: StoreDump; at: number }
-    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error'; at: number };
+    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden'; at: number };
 
 // 'unreachable' is worded by CloudUnavailable instead, because it is the only
 // reason where naming the address is what tells the operator what to fix.
-const CLOUD_REASON: Record<'offline' | 'timeout' | 'error', string> = {
+const CLOUD_REASON: Record<'offline' | 'timeout' | 'error' | 'forbidden', string> = {
     offline: 'This device is offline, so the district store cannot be read.',
+    forbidden: 'The district record service refused this role — the full store is open to the District Health Officer and Super Admin only.',
     timeout: 'The district record service took too long to answer.',
     error: 'The district record service returned an unexpected response.',
 };
@@ -346,7 +347,7 @@ function PanelHeader({ eyebrow, title, note }: { eyebrow: string; title: string;
     );
 }
 
-function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' }) {
+function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' }) {
     return (
         <div className="border-b border-gov-amber bg-gov-amber-bg px-4 py-3">
             <p className="text-sm font-extrabold text-gov-amber">The district store was not read</p>

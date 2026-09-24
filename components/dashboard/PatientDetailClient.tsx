@@ -21,6 +21,9 @@ import QRWristband from '@/components/shared/QRWristband';
 import FHIRModal from '@/components/shared/FHIRModal';
 import { getRecommendedHospital, getResourceChecklist } from '@/lib/data/hospitals';
 import toast from 'react-hot-toast';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide, ROLE_HOME } from '@/lib/auth/permissions';
+import { useReferralStore } from '@/stores/referralStore';
 
 export default function PatientDetailClient() {
     const params = useParams();
@@ -31,6 +34,9 @@ export default function PatientDetailClient() {
     const [status, setStatus] = useState<'loading' | 'found' | 'not-found'>('loading');
     const [showQR, setShowQR] = useState(false);
     const [showFHIRModal, setShowFHIRModal] = useState(false);
+    const session = useSession();
+    const referrals = useReferralStore(s => s.referrals);
+    const home = session ? ROLE_HOME[session.role] : '/';
 
     // /dashboard/[id] takes precedence; /record?id=… is the runtime-safe route.
     const patientId = (params?.id as string | undefined) || searchParams.get('id') || '';
@@ -121,10 +127,10 @@ export default function PatientDetailClient() {
                         </div>
                         <div className="flex gap-2 justify-center pt-1">
                             <Link
-                                href="/dashboard"
+                                href={home}
                                 className="px-4 py-2 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-sm rounded transition-colors"
                             >
-                                Back to Command Centre
+                                Back to my workspace
                             </Link>
                             <Link
                                 href="/opd"
@@ -133,6 +139,35 @@ export default function PatientDetailClient() {
                                 Register Patient
                             </Link>
                         </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    // A patient belongs to the facility that registered them, and to any
+    // facility a referral has taken them to or from. Everyone else is refused —
+    // a deep link is not a way around facility scoping.
+    const involved = new Set<string>([
+        ...(patient.registeredAtFacilityId ? [patient.registeredAtFacilityId] : []),
+        ...referrals.filter(r => r.patientId === patient.id).flatMap(r => [r.fromFacilityId, r.toFacilityId]),
+        ...(patient.visits ?? []).map(v => v.facilityId),
+    ]);
+    const mayView = isDistrictWide(session?.role ?? null) || Boolean(session?.facilityId && involved.has(session.facilityId));
+    if (!mayView) {
+        return (
+            <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="surface-card max-w-md w-full p-8 text-center space-y-3">
+                        <h1 className="text-lg font-bold text-[#1F3A6E]">Not permitted</h1>
+                        <p className="text-sm text-txt-secondary">
+                            This patient is not registered at, or referred to or from, {session?.facilityName ?? 'your facility'}.
+                            Records are shown only to the facilities caring for the patient and to district officers.
+                        </p>
+                        <Link href={home} className="inline-block px-4 py-2 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-sm rounded">
+                            Back to my workspace
+                        </Link>
                     </div>
                 </main>
             </div>

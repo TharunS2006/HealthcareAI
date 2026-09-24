@@ -36,13 +36,48 @@ function toIso(value: Date | string | undefined, fallback: string): string {
 }
 
 /**
- * The device tracks a referral the referring clinician rejected; the cloud only
- * distinguishes "still coming" from "not coming". REJECTED maps to CANCELLED so
- * the case leaves the receiving facility's board rather than being rejected at
- * the schema boundary and retried forever.
+ * The device tracks nine lifecycle states; the district service's board only
+ * needs to know "still coming", "on the road", "arrived" and "not coming".
+ *
+ *   CREATED · SENT · DELIVERED · ACKNOWLEDGED  → INITIATED  (raised, not yet answered)
+ *   ACCEPTED, not yet dispatched               → ACCEPTED
+ *   ACCEPTED, dispatched                       → IN_TRANSIT
+ *   PATIENT_ARRIVED · ADMITTED · DISCHARGED    → COMPLETED  (off the pre-arrival board)
+ *   REJECTED                                   → CANCELLED
+ *
+ * Mapped here rather than widened in the service's schema, so a device on this
+ * build and the service already deployed keep agreeing. A re-routed referral
+ * uploads with its new destination, so it leaves the declining facility's board
+ * and appears on the new one.
  */
-function wireStatus(status: ReferralRecord['status']): string {
-    return status === 'REJECTED' ? 'CANCELLED' : status;
+export function wireStatus(referral: Pick<ReferralRecord, 'status' | 'inTransitAt'>): string {
+    switch (referral.status) {
+        case 'CREATED':
+        case 'SENT':
+        case 'DELIVERED':
+        case 'ACKNOWLEDGED':
+            return 'INITIATED';
+        case 'ACCEPTED':
+            return referral.inTransitAt ? 'IN_TRANSIT' : 'ACCEPTED';
+        case 'PATIENT_ARRIVED':
+        case 'ADMITTED':
+        case 'DISCHARGED':
+            return 'COMPLETED';
+        case 'REJECTED':
+            return 'CANCELLED';
+    }
+}
+
+/**
+ * Who is asking, as headers. Set by the app shell from the signed-in session;
+ * the district service scopes what it returns by it. Kept as an injected
+ * function so this module stays free of the UI stores and runs under the
+ * verify scripts unchanged.
+ */
+let identityProvider: () => Record<string, string> = () => ({});
+
+export function setIdentityProvider(provider: () => Record<string, string>): void {
+    identityProvider = provider;
 }
 
 async function post(path: string, body: unknown): Promise<UploadOutcome> {
@@ -56,7 +91,7 @@ async function post(path: string, body: unknown): Promise<UploadOutcome> {
     try {
         const response = await fetch(`${reportingBaseUrl()}${path}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...identityProvider() },
             body: JSON.stringify(body),
             signal: controller.signal,
         });
@@ -67,6 +102,14 @@ async function post(path: string, body: unknown): Promise<UploadOutcome> {
                 updated?: boolean;
             };
             return { ok: true, duplicate: Boolean(receipt.duplicate), updated: Boolean(receipt.updated) };
+        }
+
+        // Not signed in, or signed in as a role the service will not take this
+        // from: the record is fine, the session is not. Keep it queued — it
+        // uploads once someone permitted signs in — rather than marking it
+        // refused, which would park it until the next app start.
+        if (response.status === 401 || response.status === 403) {
+            return { ok: false, retryable: true, reason: 'server', detail: `HTTP ${response.status} — waiting for a permitted sign-in` };
         }
 
         // 408 and 429 are the server asking for patience, not refusing the record.
@@ -140,7 +183,7 @@ export function uploadCareReferral(referral: ReferralRecord, changedAt: string):
         patient_id: referral.patientId,
         from_facility_id: referral.fromFacilityId,
         to_facility_id: referral.toFacilityId,
-        status: wireStatus(referral.status),
+        status: wireStatus(referral),
         priority: colourForPriority(referral.priority),
         reason: referral.reason ?? null,
         clinical_summary: referral.clinicalSummary ?? null,
@@ -164,7 +207,7 @@ export interface IncomingCase {
 
 export type IncomingResult =
     | { ok: true; cases: IncomingCase[] }
-    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' };
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' };
 
 /**
  * What is currently en route to a facility.
@@ -183,7 +226,8 @@ export async function fetchIncoming(facilityId: string): Promise<IncomingResult>
 
     try {
         const url = `${reportingBaseUrl()}/api/v1/records/incoming?facility_id=${encodeURIComponent(facilityId)}`;
-        const response = await fetch(url, { signal: controller.signal });
+        const response = await fetch(url, { signal: controller.signal, headers: identityProvider() });
+        if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
         if (!response.ok) return { ok: false, reason: 'error' };
 
         const data = (await response.json()) as { cases?: IncomingCase[] };
@@ -240,7 +284,7 @@ export interface StoreDump {
 
 export type StoreResult =
     | { ok: true; store: StoreDump }
-    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' };
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' };
 
 /**
  * Everything the district record store is currently holding.
@@ -260,7 +304,8 @@ export async function fetchStore(limit = 50): Promise<StoreResult> {
 
     try {
         const url = `${reportingBaseUrl()}/api/v1/store?limit=${encodeURIComponent(String(limit))}`;
-        const response = await fetch(url, { signal: controller.signal });
+        const response = await fetch(url, { signal: controller.signal, headers: identityProvider() });
+        if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
         if (!response.ok) return { ok: false, reason: 'error' };
 
         const data = (await response.json()) as Partial<StoreDump>;

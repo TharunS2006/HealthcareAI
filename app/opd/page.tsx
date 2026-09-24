@@ -17,6 +17,9 @@ import { classifyTriage, TriageResult } from '@/lib/triage/model';
 import { usePatientStore } from '@/stores/patientStore';
 import { useQueueStore } from '@/stores/queueStore';
 import { useReferralStore } from '@/stores/referralStore';
+import { useSession } from '@/lib/auth/session';
+import { can } from '@/lib/auth/permissions';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useVoiceInput } from '@/lib/hooks/useVoiceInput';
 import { downloadFHIRRecord } from '@/lib/fhir';
@@ -27,7 +30,11 @@ export default function OPDPage() {
     const { language } = useLanguageStore();
     const { patients, addPatient } = usePatientStore();
     const { queue, addQueueEntry } = useQueueStore();
-    const { addReferral } = useReferralStore();
+    const createReferral = useReferralStore(s => s.create);
+    // The patient is registered at — and any referral raised from — the
+    // signed-in worker's own facility, never a hardcoded one.
+    const session = useSession();
+    const facility = FACILITY_NETWORK.find(f => f.id === session?.facilityId);
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -227,9 +234,11 @@ export default function OPDPage() {
                 vitals,
                 triageStatus: result.status,
                 triagePriority: result.priority,
-                gps: { lat: 19.0432, lng: 80.3621 },
+                gps: facility ? { lat: facility.location.lat, lng: facility.location.lng } : { lat: 19.0432, lng: 80.3621 },
                 timestamp: new Date().toISOString(),
                 isSynced: false,
+                registeredAtFacilityId: facility?.id,
+                ...(session ? { chw_id: session.staffId, chw_name: session.name } : {}),
                 highRiskFlags: vitals.isPregnant
                     ? [
                           {
@@ -243,7 +252,13 @@ export default function OPDPage() {
                     : [],
             };
 
-            addPatient(newPatient);
+            try {
+                await addPatient(newPatient);
+            } catch {
+                toast.error(isEn ? 'Could not save the patient on this device — nothing was registered' : 'रुग्णाची नोंद जतन झाली नाही');
+                setIsAnalyzing(false);
+                return;
+            }
             setCreatedPatient(newPatient);
 
             // Add into Facility Queue
@@ -255,41 +270,41 @@ export default function OPDPage() {
                 patientName: name,
                 patientAge: age,
                 patientGender: gender,
-                facilityId: 'phc-bhamragad',
-                facilityName: 'PHC Block A',
+                facilityId: facility?.id ?? 'phc-bhamragad',
+                facilityName: facility?.name ?? 'PHC Block A',
                 registeredAt: new Date().toISOString(),
                 priority: result.priority,
                 chiefComplaint: vitals.injuryType || 'General Consultation',
                 status: 'WAITING',
                 roomNo: result.status === 'RED' ? 'Emergency Stabilisation' : 'Room 2 (MO)',
-                consultingDoctor: 'Dr. Suresh Atram',
+                consultingDoctor: facility?.medicalOfficerInCharge ?? 'Medical Officer',
                 estimatedWaitMinutes: result.status === 'RED' ? 0 : result.status === 'YELLOW' ? 8 : 25,
             };
             addQueueEntry(queueItem);
 
-            // If Critical RED, automatically trigger 108 Emergency Referral Pipeline draft
-            if (result.status === 'RED') {
-                addReferral({
-                    id: `REF-${uuidv4().substring(0, 6).toUpperCase()}`,
-                    patientId: newPatId,
-                    patientName: name,
-                    patientAge: age,
-                    patientGender: gender,
-                    fromFacilityId: 'phc-bhamragad',
-                    fromFacilityName: 'PHC Block A (ब्लॉक अ)',
-                    fromFacilityType: 'PHC',
-                    toFacilityId: 'dh-district',
-                    toFacilityName: 'District Hospital (जिल्हा रुग्णालय)',
-                    toFacilityType: 'DH',
-                    status: 'INITIATED',
-                    priority: 'EMERGENCY',
-                    reason: `${result.recommendedAction} — Severe clinical vitals (SpO2: ${vitals.spo2}%, BP: ${vitals.bloodPressure?.systolic}/${vitals.bloodPressure?.diastolic})`,
-                    referredBy: 'Dr. Suresh Atram (MO)',
-                    referredAt: new Date().toISOString(),
-                    transportMode: 'AMBULANCE_108',
-                    ambulanceVehicleNo: 'AMB-E-1081',
-                });
-                toast.error(isEn ? 'CRITICAL: 108 Emergency Ambulance Pipeline Triggered' : 'अति तातडीचे: १०८ रुग्णवाहिका रेफरल तात्काळ सक्रिय केले!');
+            // RED: raise the emergency referral to the next tier at once. It is
+            // saved here first and shows as Sent only when the network confirms.
+            const parent = facility?.parentFacilityId ? FACILITY_NETWORK.find(f => f.id === facility.parentFacilityId) : undefined;
+            if (result.status === 'RED' && session && facility && parent && can(session.role, 'referral:create')) {
+                const referral = await createReferral(
+                    {
+                        patient: { id: newPatId, name, age, gender },
+                        from: { id: facility.id, name: facility.name, type: facility.type },
+                        to: { id: parent.id, name: parent.name, type: parent.type },
+                        reason: `${result.recommendedAction} — severe vitals (SpO2 ${vitals.spo2}%, BP ${vitals.bloodPressure?.systolic ?? '—'}/${vitals.bloodPressure?.diastolic ?? '—'}). ${vitals.injuryType || ''}`.trim(),
+                        priority: 'EMERGENCY',
+                        transportMode: 'AMBULANCE_108',
+                        vitals,
+                    },
+                    session
+                );
+                if (referral.ok) {
+                    toast.error(isEn ? `RED: emergency referral ${referral.value.id} raised to ${parent.name}` : `अति तातडीचे: ${parent.name} येथे संदर्भ पाठवला`, { duration: 7000 });
+                } else {
+                    toast.error(isEn ? `RED patient — the referral could not be raised: ${referral.message}. Refer by phone.` : `संदर्भ तयार झाला नाही: ${referral.message}`, { duration: 9000 });
+                }
+            } else if (result.status === 'RED') {
+                toast.error(isEn ? 'RED patient — raise a referral from the Referrals screen now' : 'अति तातडीचे: संदर्भ सेवा स्क्रीनवरून संदर्भ पाठवा', { duration: 7000 });
             } else {
                 toast.success(isEn ? `Token Generated: ${tokenNum}` : `टोकन तयार केले: ${tokenNum}`);
             }

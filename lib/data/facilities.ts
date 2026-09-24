@@ -4,7 +4,7 @@
  * Facility Tier Hierarchy: Sub-Centre (SC) -> PHC -> CHC -> Sub-District Hospital (SDH) -> District Hospital (DH) */
 
 import { Facility, MedicineStockItem, DiagnosticOrder, QueueEntry, TeleconsultSession } from '@/types/facility';
-import { Patient, ReferralRecord } from '@/types/patient';
+import { Patient } from '@/types/patient';
 
 export const FACILITY_NETWORK: Facility[] = [
     // 1. District Hospital (Apex Facility in District)
@@ -261,6 +261,7 @@ export const FACILITY_NETWORK: Facility[] = [
 export const SEED_PATIENTS: Patient[] = [
     {
         id: 'p-gad-1001',
+        registeredAtFacilityId: 'sc-kothi',
         abhaId: 'ABHA-9128-4421-8890',
         aadhaarLast4: '4821',
         name: 'Sunita M. Devi',
@@ -338,6 +339,7 @@ export const SEED_PATIENTS: Patient[] = [
     },
     {
         id: 'p-gad-1002',
+        registeredAtFacilityId: 'sc-govindpur',
         abhaId: 'ABHA-7741-2309-1123',
         aadhaarLast4: '1904',
         name: 'Ramesh Pandu Patil',
@@ -380,6 +382,7 @@ export const SEED_PATIENTS: Patient[] = [
     },
     {
         id: 'p-gad-1003',
+        registeredAtFacilityId: 'phc-perimili',
         abhaId: 'ABHA-3319-8802-9914',
         name: 'Baby Aarav (s/o Meena)',
         age: 1.5,
@@ -426,6 +429,7 @@ export const SEED_PATIENTS: Patient[] = [
     },
     {
         id: 'p-gad-1004',
+        registeredAtFacilityId: 'phc-bhamragad',
         abhaId: 'ABHA-5520-1194-6632',
         name: 'Lata B. Meshram',
         age: 42,
@@ -462,6 +466,7 @@ export const SEED_PATIENTS: Patient[] = [
     },
     {
         id: 'p-gad-1005',
+        registeredAtFacilityId: 'phc-bhamragad',
         name: 'Devendra Somu Yadav',
         age: 34,
         gender: 'M',
@@ -484,96 +489,70 @@ export const SEED_PATIENTS: Patient[] = [
         gps: { lat: 19.3800, lng: 80.2000 },
         isSynced: true,
         timestamp: new Date(Date.now() - 240 * 60000).toISOString(),
-    }
+    },
+
+    // Patients behind the seeded referrals below — one per lifecycle state the
+    // referral screens need to show on first open.
+    seedPatient('p-gad-1006', 'Mangesh Pendam', 38, 'M', 'Village 2', 'sc-govindpur', 'RED', 'EMERGENCY', 25,
+        { spo2: 95, heartRate: 112, bloodPressure: { systolic: 132, diastolic: 86 }, respiratoryRate: 22, consciousness: 'ALERT',
+          injuryType: 'Snake bite (suspected krait) 40 min ago while asleep on floor; early ptosis, abdominal pain' },
+        { lat: 19.5211, lng: 80.3992 }, 'Kavita Madavi (ANM)'),
+    seedPatient('p-gad-1007', 'Rukhmini Atram', 65, 'F', 'Village 1', 'sc-kothi', 'YELLOW', 'URGENT', 55,
+        { spo2: 96, heartRate: 104, bloodPressure: { systolic: 104, diastolic: 68 }, temperature: 102.6, consciousness: 'ALERT',
+          injuryType: 'Fever 5 days, RDT malaria positive (Pf), repeated vomiting — cannot retain oral ACT' },
+        { lat: 19.4981, lng: 80.4512 }, 'Sunita Hichami (ANM)'),
+    seedPatient('p-gad-1008', 'Sanjay Wadde', 22, 'M', 'Block B', 'phc-perimili', 'RED', 'EMERGENCY', 140,
+        { spo2: 97, heartRate: 118, bloodPressure: { systolic: 112, diastolic: 70 }, consciousness: 'ALERT',
+          injuryType: 'Road traffic accident — closed fracture right tibia, deformity and swelling, distal pulse present' },
+        { lat: 19.3512, lng: 80.1245 }),
+    seedPatient('p-gad-1009', 'Pooja Netam', 24, 'F', 'Village 2', 'sc-govindpur', 'YELLOW', 'URGENT', 2 * 24 * 60,
+        { spo2: 98, heartRate: 108, bloodPressure: { systolic: 96, diastolic: 62 }, temperature: 99.1, consciousness: 'ALERT',
+          injuryType: 'Acute gastroenteritis with moderate dehydration — 9 loose stools since morning' },
+        { lat: 19.5211, lng: 80.3992 }, 'Kavita Madavi (ANM)'),
+    seedPatient('p-gad-1010', 'Vitthal Kowase', 58, 'M', 'Block A', 'phc-bhamragad', 'RED', 'EMERGENCY', 150,
+        { spo2: 93, heartRate: 96, bloodPressure: { systolic: 150, diastolic: 94 }, consciousness: 'ALERT',
+          injuryType: 'Central chest pain 2 hours, sweating; ECG shows ST elevation in V2–V4 (cardiac event suspected)' },
+        { lat: 19.4678, lng: 80.3789 }),
+    seedPatient('p-gad-1011', 'Kamla Usendi', 70, 'F', 'Block B', 'phc-perimili', 'YELLOW', 'URGENT', 5 * 60,
+        { spo2: 94, heartRate: 116, bloodPressure: { systolic: 100, diastolic: 60 }, consciousness: 'ALERT',
+          injuryType: 'Severe anaemia (Hb 5.8 g/dL) with breathlessness on walking — needs transfusion' },
+        { lat: 19.3512, lng: 80.1245 }),
 ];
 
-/**
- * Seed Referrals across the India Continuum of Care */
-export const SEED_REFERRALS: ReferralRecord[] = [
-    {
-        id: 'ref-2025-01',
-        patientId: 'p-gad-1001',
-        patientName: 'Sunita M. Devi',
-        patientAge: 26,
-        patientGender: 'F',
-        fromFacilityId: 'sc-kothi',
-        fromFacilityName: 'Sub-Centre Village 1',
-        fromFacilityType: 'SC',
-        toFacilityId: 'chc-etapalli',
-        toFacilityName: 'CHC Block A',
-        toFacilityType: 'CHC',
-        reason: 'Severe Gestational Hypertension (BP 160/102 at 32w) requiring CEmONC evaluation',
-        priority: 'EMERGENCY',
-        status: 'IN_TRANSIT',
-        referredBy: 'Sunita Hichami (CHO)',
-        referredAt: new Date(Date.now() - 45 * 60000).toISOString(),
-        transportMode: 'AMBULANCE_102',
-        ambulanceVehicleNo: 'AMB-T-0102',
-        clinicalSummary: 'Primigravida 32 weeks, headache present, pedal edema ++, reflex hyperactive. Initial dose of Labetalol 100mg given per teleconsult MO guidance.',
-    },
-    {
-        id: 'ref-2025-02',
-        patientId: 'p-gad-1003',
-        patientName: 'Baby Aarav (s/o Meena)',
-        patientAge: 1.5,
-        patientGender: 'M',
-        fromFacilityId: 'phc-perimili',
-        fromFacilityName: 'PHC Block B',
-        fromFacilityType: 'PHC',
-        toFacilityId: 'dh-district',
-        toFacilityName: 'District Hospital (SNCU/NRC)',
-        toFacilityType: 'DH',
-        reason: 'Severe Acute Malnutrition (SAM) with respiratory distress (SpO2 91%, RR 48/min)',
-        priority: 'EMERGENCY',
-        status: 'ACCEPTED',
-        referredBy: 'Dr. Anjali Borkar',
-        referredAt: new Date(Date.now() - 20 * 60000).toISOString(),
-        transportMode: 'AMBULANCE_108',
-        ambulanceVehicleNo: 'AMB-E-1081',
-        clinicalSummary: 'SAM child admitted with chest indrawing, fever 102.4F. Oxygen via nasal cannula started at 2L/min. Pediatrician Dr. Khandate at DH alerted.',
-    },
-    {
-        id: 'ref-2025-03',
-        patientId: 'p-gad-1002',
-        patientName: 'Ramesh Pandu Patil',
-        patientAge: 54,
-        patientGender: 'M',
-        fromFacilityId: 'phc-bhamragad',
-        fromFacilityName: 'PHC Block A',
-        fromFacilityType: 'PHC',
-        toFacilityId: 'chc-etapalli',
-        toFacilityName: 'CHC Block A',
-        toFacilityType: 'CHC',
-        reason: 'Uncontrolled Diabetes Mellitus with Grade-2 Plantar Ulcer needing surgical debridement & X-Ray',
-        priority: 'URGENT',
-        status: 'INITIATED',
-        referredBy: 'Dr. Suresh Atram (MO)',
-        referredAt: new Date(Date.now() - 75 * 60000).toISOString(),
-        transportMode: 'SELF',
-        clinicalSummary: 'Fasting glucose 284 mg/dL. Ulcer 3x2 cm with slough. Dressing done, Amoxiclav started. Referred for surgical consultation.',
-    },
-    {
-        id: 'ref-2025-04',
-        patientId: 'p-gad-1004',
-        patientName: 'Lata B. Meshram',
-        patientAge: 42,
-        patientGender: 'F',
-        fromFacilityId: 'phc-bhamragad',
-        fromFacilityName: 'PHC Block A',
-        fromFacilityType: 'PHC',
-        toFacilityId: 'dh-district',
-        toFacilityName: 'District Hospital (CBNAAT Lab)',
-        toFacilityType: 'DH',
-        reason: 'Follow-up Sputum GeneXpert / CBNAAT Test for Pulmonary TB Month-3',
-        priority: 'ROUTINE',
-        status: 'COMPLETED',
-        referredBy: 'Dr. Suresh Atram',
-        referredAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-        completedAt: new Date(Date.now() - 4 * 3600000).toISOString(),
-        transportMode: 'PUBLIC_TRANSPORT',
-        clinicalSummary: 'Sputum sample collected and transferred via courier. Result: MTB NOT DETECTED (Responsive to treatment).',
-    }
-];
+/** A compact seed patient for the referral scenarios — same shape the OPD writes. */
+function seedPatient(
+    id: string,
+    name: string,
+    age: number,
+    gender: 'M' | 'F',
+    village: string,
+    registeredAtFacilityId: string,
+    triageStatus: Patient['triageStatus'],
+    triagePriority: Patient['triagePriority'],
+    minutesAgo: number,
+    vitals: Patient['vitals'],
+    gps: { lat: number; lng: number },
+    chwName?: string
+): Patient {
+    return {
+        id,
+        name,
+        age,
+        gender,
+        village,
+        tehsil: 'Block',
+        district: 'District',
+        languagePreference: 'mr',
+        vitals,
+        triageStatus,
+        triagePriority,
+        gps,
+        isSynced: true,
+        timestamp: new Date(Date.now() - minutesAgo * 60000).toISOString(),
+        registeredAtFacilityId,
+        ...(chwName ? { chw_name: chwName } : {}),
+    };
+}
 
 /**
  * Seed Live Queue Entries for PHC Block A */

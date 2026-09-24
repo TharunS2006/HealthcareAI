@@ -159,7 +159,7 @@ class CareReferralIn(BaseModel):
     id: str = Field(examples=["ref-2026-0891"])
     patient_id: str = Field(examples=["pat-7f3a"])
     from_facility_id: str = Field(examples=["phc-bhamragad"])
-    to_facility_id: str = Field(examples=["dh-gadchiroli"])
+    to_facility_id: str = Field(examples=["dh-district"])
     status: ReferralStatus = Field(examples=["IN_TRANSIT"])
     priority: TriagePriority = Field(examples=["RED"])
     reason: Optional[str] = Field(default=None, examples=["Severe pre-eclampsia"])

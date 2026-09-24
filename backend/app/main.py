@@ -35,6 +35,7 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 # Imported for its side effect — see app/env.py. Must precede the first
 # os.environ.get below, which is DATABASE_URL.
 from . import env  # noqa: F401
+from .access import require
 from .chat_engine import _chat_completion, _resolve_provider
 from .models import (CareReferral, Encounter, Facility, FacilityTier,
                      PatientRecord, Referral, ReferralStatus, TriagePriority)
@@ -189,6 +190,7 @@ def chat(payload: ChatIn):
 
 @app.post(
     "/api/v1/facilities",
+    dependencies=[Depends(require("staff:workspace"))],
     response_model=IngestReceipt,
     status_code=status.HTTP_202_ACCEPTED,
     tags=["ingest"],
@@ -210,6 +212,7 @@ def upsert_facility(payload: FacilityIn, session: Session = Depends(get_session)
 
 @app.post(
     "/api/v1/encounters",
+    dependencies=[Depends(require("staff:workspace"))],
     response_model=IngestReceipt,
     status_code=status.HTTP_202_ACCEPTED,
     tags=["ingest"],
@@ -228,6 +231,7 @@ def ingest_encounter(payload: EncounterIn, session: Session = Depends(get_sessio
 
 @app.post(
     "/api/v1/referrals",
+    dependencies=[Depends(require("staff:workspace"))],
     response_model=IngestReceipt,
     status_code=status.HTTP_202_ACCEPTED,
     tags=["ingest"],
@@ -258,6 +262,7 @@ def ingest_referral(payload: ReferralIn, session: Session = Depends(get_session)
 
 @app.post(
     "/api/v1/records/patients",
+    dependencies=[Depends(require("staff:workspace"))],
     response_model=IngestReceipt,
     status_code=status.HTTP_202_ACCEPTED,
     tags=["records"],
@@ -289,6 +294,7 @@ def upload_patient_record(payload: PatientRecordIn, session: Session = Depends(g
 
 @app.post(
     "/api/v1/records/referrals",
+    dependencies=[Depends(require("staff:workspace"))],
     response_model=IngestReceipt,
     status_code=status.HTTP_202_ACCEPTED,
     tags=["records"],
@@ -318,6 +324,7 @@ def upload_care_referral(payload: CareReferralIn, session: Session = Depends(get
 
 @app.get(
     "/api/v1/records/incoming",
+    dependencies=[Depends(require("referral:receive", facility_query="facility_id"))],
     response_model=IncomingList,
     tags=["records"],
     summary="Patients en route to a facility, for pre-arrival preparation",
@@ -361,6 +368,7 @@ def incoming_cases(
 
 @app.get(
     "/api/v1/store",
+    dependencies=[Depends(require("data:inspect"))],
     response_model=StoreDump,
     tags=["records"],
     summary="Everything the record-sync store is holding, newest first",
@@ -443,6 +451,7 @@ def store_dump(
 
 @app.get(
     "/api/v1/district/summary",
+    dependencies=[Depends(require("analytics:view"))],
     response_model=DistrictSummary,
     tags=["reporting"],
     summary="District-wide totals for a rolling window",
@@ -494,6 +503,7 @@ def district_summary(
 
 @app.get(
     "/api/v1/facilities/{facility_id}/scorecard",
+    dependencies=[Depends(require("analytics:view"))],
     response_model=FacilityScorecard,
     tags=["reporting"],
     summary="Per-facility scorecard",
@@ -541,6 +551,7 @@ def facility_scorecard(
 
 @app.get(
     "/api/v1/facilities",
+    dependencies=[Depends(require("staff:workspace"))],
     tags=["reporting"],
     summary="All reporting facilities",
 )

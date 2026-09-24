@@ -17,6 +17,8 @@ import PortalAside from '@/components/gov/PortalAside';
 import Breadcrumb from '@/components/gov/Breadcrumb';
 import { useEffect } from 'react';
 
+import { isOpenReferral } from '@/lib/referrals/workflow';
+
 export default function Home() {
     const { language } = useLanguageStore();
     const { patients, loadPatients } = usePatientStore();
@@ -32,7 +34,7 @@ export default function Home() {
         loadFacilities();
     }, [loadPatients, loadReferrals, loadFacilities]);
 
-    const activeReferralsCount = referrals.filter(r => r.status === 'INITIATED' || r.status === 'ACCEPTED' || r.status === 'IN_TRANSIT').length;
+    const activeReferralsCount = referrals.filter(r => isOpenReferral(r.status)).length;
     const criticalPatientsCount = patients.filter(p => p.triageStatus === 'RED' || (p.highRiskFlags && p.highRiskFlags.length > 0)).length;
 
     // Bed occupancy is summed from the facility records rather than asserted.
@@ -42,7 +44,7 @@ export default function Home() {
     const icuVacant = facilities.reduce((n, f) => n + ((f.beds?.icu?.total ?? 0) - (f.beds?.icu?.occupied ?? 0)), 0);
     const matVacant = facilities.reduce((n, f) => n + ((f.beds?.maternity?.total ?? 0) - (f.beds?.maternity?.occupied ?? 0)), 0);
     const bedPct = bedTotal > 0 ? Math.round((bedOccupied / bedTotal) * 100) : null;
-    const inTransit = referrals.filter(r => r.status === 'IN_TRANSIT').length;
+    const inTransit = referrals.filter(r => r.status === 'ACCEPTED' && Boolean(r.inTransitAt)).length;
     const noData = isEn ? 'Not reported' : isHi ? 'सूचित नहीं' : 'नोंद नाही';
 
     const modules = [

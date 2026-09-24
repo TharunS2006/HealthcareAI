@@ -4,8 +4,8 @@
   "description": "Enterprise-Grade Digital Public Infrastructure for zero-downtime medical data exchange",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "dev:full": "npm run server & next dev",
+    "dev": "next dev -p 3000",
+    "dev:full": "npm run server & next dev -p 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -24,7 +24,14 @@
     "verify:records-api": "python3 backend/scripts/verify_records.py",
     "verify:store-api": "python3 backend/scripts/verify_store_dump.py",
     "verify:chat-provider": "cd backend && python3 scripts/verify_chat_provider.py",
-    "verify:equipment": "tsx scripts/verify-equipment.mts"
+    "verify:equipment": "tsx scripts/verify-equipment.mts",
+    "verify:permissions": "tsx scripts/verify-permissions.mts",
+    "verify:referral-flow": "tsx scripts/verify-referral-flow.mts",
+    "verify:capacity": "tsx scripts/verify-capacity.mts",
+    "verify:relay": "tsx scripts/verify-relay-rbac.mts",
+    "verify:db-upgrade": "tsx scripts/verify-db-upgrade.mts",
+    "export:permissions": "tsx scripts/export-permissions.mts",
+    "verify:access-api": "cd backend && python3 scripts/verify_access.py"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
@@ -56,6 +63,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.0",
     "express": "^4.18.0",
+    "fake-indexeddb": "^6.2.5",
     "postcss": "^8",
     "socket.io": "^4.7.0",
     "tailwindcss": "^3.4.0",

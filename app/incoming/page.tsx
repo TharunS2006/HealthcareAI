@@ -27,6 +27,8 @@ import { fetchIncoming, type IncomingCase } from '@/lib/sync/cloudRecords';
 import { prepareFor, type ReadinessItem, type ReadinessReport } from '@/lib/care/equipment';
 import { colourForPatient, colourForPriority, COLOUR_RANK } from '@/lib/care/priority';
 import type { TriageStatus } from '@/types/patient';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide } from '@/lib/auth/permissions';
 
 /** How often the board re-asks the district service. */
 const POLL_MS = 20_000;
@@ -34,10 +36,11 @@ const POLL_MS = 20_000;
 type LoadState =
     | { kind: 'loading' }
     | { kind: 'ok'; cases: IncomingCase[]; at: number }
-    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error'; at: number };
+    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden'; at: number };
 
-const REASON_TEXT: Record<'offline' | 'unreachable' | 'timeout' | 'error', string> = {
+const REASON_TEXT: Record<'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden', string> = {
     offline: 'This device is offline, so the board cannot be refreshed.',
+    forbidden: 'The district record service refused this request for your role or facility.',
     unreachable: 'The district record service is not responding.',
     timeout: 'The district record service took too long to answer.',
     error: 'The district record service returned an unexpected response.',
@@ -50,7 +53,13 @@ const COLOUR_STYLE: Record<TriageStatus, { bar: string; chip: string; label: str
 };
 
 export default function IncomingPage() {
-    const [facilityId, setFacilityId] = useState('dh-district');
+    const session = useSession();
+    // A facility sees what is coming to it; only district roles pick another facility.
+    const pinned = session?.facilityId && !isDistrictWide(session.role) ? session.facilityId : null;
+    const [facilityId, setFacilityId] = useState(pinned ?? 'dh-district');
+    useEffect(() => {
+        if (pinned) setFacilityId(pinned);
+    }, [pinned]);
     const [state, setState] = useState<LoadState>({ kind: 'loading' });
     // A slow tick so "arrives in 12 min" counts down without a manual refresh.
     const [now, setNow] = useState(() => Date.now());
@@ -117,7 +126,9 @@ export default function IncomingPage() {
                                     id="incoming-facility"
                                     value={facilityId}
                                     onChange={(e) => setFacilityId(e.target.value)}
-                                    className="border border-border-subtle bg-white px-3 py-2 text-sm min-w-[230px]"
+                                    disabled={Boolean(pinned)}
+                                    title={pinned ? 'Your own facility — other facilities are visible to district roles only' : undefined}
+                                    className="border border-border-subtle bg-white px-3 py-2 text-sm min-w-[230px] disabled:bg-slate-50"
                                 >
                                     {FACILITY_NETWORK.map((f) => (
                                         <option key={f.id} value={f.id}>
@@ -192,7 +203,7 @@ function ConnectionLine({ state, count }: { state: LoadState; count: number }) {
     );
 }
 
-function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' }) {
+function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' }) {
     return (
         <div className="border border-gov-red bg-gov-red-bg p-4">
             <p className="text-sm font-extrabold text-gov-red">

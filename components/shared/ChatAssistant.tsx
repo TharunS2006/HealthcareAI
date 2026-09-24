@@ -40,7 +40,9 @@ interface Turn {
 }
 
 export default function ChatAssistant() {
-    const { role, name } = useAuthStore();
+    const session = useAuthStore(s => s.session);
+    const role = session?.role ?? null;
+    const name = session?.name ?? null;
     const { language } = useLanguageStore();
 
     const [isOpen, setIsOpen] = useState(false);

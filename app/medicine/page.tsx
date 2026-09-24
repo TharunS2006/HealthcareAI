@@ -13,15 +13,21 @@ import { useFacilityStore } from '@/stores/facilityStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { MedicineStockItem, DiagnosticOrder } from '@/types/facility';
 import toast from 'react-hot-toast';
+import { useSession } from '@/lib/auth/session';
+import { scopeToFacility } from '@/lib/auth/permissions';
 
 export default function MedicinePage() {
     const {
-        medicines,
-        diagnostics,
+        medicines: allMedicines,
+        diagnostics: allDiagnostics,
         loadAll,
         restockMedicine,
         updateDiagnosticResult
     } = useFacilityStore();
+    // Stock and lab results of the officer's own facility only.
+    const session = useSession();
+    const medicines = scopeToFacility(allMedicines, session, m => [m.facilityId]);
+    const diagnostics = scopeToFacility(allDiagnostics, session, d => [d.facilityId]);
 
     const { language } = useLanguageStore();
     const isEn = language === 'en';

@@ -13,6 +13,8 @@ import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide } from '@/lib/auth/permissions';
 import { usePatientStore } from '@/stores/patientStore';
 import { useAppointmentStore } from '@/stores/appointmentStore';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -34,7 +36,13 @@ export default function AppointmentsPage() {
     const { patients, loadPatients } = usePatientStore();
     const { appointments, loadAppointments, addAppointment, changeStatus, convertToToken } = useAppointmentStore();
 
-    const [facilityId, setFacilityId] = useState('phc-bhamragad');
+    // Bookings are made against the officer's own facility.
+    const session = useSession();
+    const pinned = session?.facilityId && !isDistrictWide(session.role) ? session.facilityId : null;
+    const [facilityId, setFacilityId] = useState(pinned ?? 'phc-bhamragad');
+    useEffect(() => {
+        if (pinned) setFacilityId(pinned);
+    }, [pinned]);
     const [patientId, setPatientId] = useState('');
     const [department, setDepartment] = useState<string>(APPOINTMENT_DEPARTMENTS[0]);
     const [date, setDate] = useState(todayISO());
@@ -163,8 +171,8 @@ export default function AppointmentsPage() {
 
                             <label className="block">
                                 <span className="text-[11px] font-bold text-txt-muted uppercase">{t.facility}</span>
-                                <select value={facilityId} onChange={e => setFacilityId(e.target.value)}
-                                    className="w-full mt-1 p-2 bg-gray-50 border border-border-subtle rounded-xl">
+                                <select value={facilityId} onChange={e => setFacilityId(e.target.value)} disabled={Boolean(pinned)}
+                                    className="w-full mt-1 p-2 bg-gray-50 border border-border-subtle rounded-xl disabled:opacity-80">
                                     {FACILITY_NETWORK.map(f => <option key={f.id} value={f.id}>{f.type} — {f.name}</option>)}
                                 </select>
                             </label>

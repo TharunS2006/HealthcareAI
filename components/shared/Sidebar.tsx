@@ -10,22 +10,26 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useMeshStatus } from '@/lib/hooks/useMeshStatus';
+import { useAuthStore } from '@/stores/authStore';
+import { canAccessRoute, ROLE_LABELS } from '@/lib/auth/permissions';
 
 export default function Sidebar() {
     const pathname = usePathname();
     const { language } = useLanguageStore();
     const meshStatus = useMeshStatus();
+    const session = useAuthStore(s => s.session);
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
 
-    // Station meta translations
+    // The station is the signed-in user's posting — never a hardcoded facility,
+    // or every user would appear to be working at PHC Block A.
     const stationMeta = {
         badge: isEn ? 'Station' : isHi ? 'कार्यरत केंद्र' : 'कार्यरत केंद्र',
-        name: isEn ? 'PHC Block A' : isHi ? 'प्रा. स्वा. केंद्र, ब्लॉक अ' : 'प्रा. आ. केंद्र, ब्लॉक अ',
-        sub: isEn ? 'Sub-Division • District Health Office' : isHi ? 'उपविभाग उपमंडल • जिला गढ़चिरौली' : 'उपविभाग उपविभाग • जि. ',
-        doctorLabel: isEn ? 'Medical Officer:' : isHi ? 'चिकित्सा अधिकारी:' : 'वैद्यकीय अधिकारी:',
-        doctorName: isEn ? 'Dr. Suresh Atram (MO)' : isHi ? 'डॉ. सुरेश आत्राम (MO)' : 'डॉ. सुरेश आत्राम (MO)',
+        name: session?.facilityName ?? (isEn ? 'Not signed in' : isHi ? 'साइन इन नहीं' : 'साइन इन केलेले नाही'),
+        sub: session ? ROLE_LABELS[session.role] : (isEn ? 'Sign in to see your modules' : isHi ? 'अपने मॉड्यूल देखने हेतु साइन इन करें' : 'आपले मॉड्यूल पाहण्यासाठी साइन इन करा'),
+        doctorLabel: isEn ? 'Signed in:' : isHi ? 'साइन इन:' : 'साइन इन:',
+        doctorName: session?.name ?? '—',
         meshLabel: isEn ? 'ABDM Mesh Relay' : isHi ? 'ABDM मेश रिले' : 'ABDM मेश रिले',
         online: isEn ? 'ONLINE' : isHi ? 'सक्रिय' : 'सक्रिय',
         standalone: isEn ? 'STANDALONE' : isHi ? 'स्वतंत्र' : 'स्वतंत्र',
@@ -91,7 +95,7 @@ export default function Sidebar() {
         },
         {
             href: '/dashboard',
-            label: isEn ? 'District Command' : isHi ? 'जिला कमांड सेंटर' : 'जिल्हा कमांड केंद्र',
+            label: isEn ? 'Command Center' : isHi ? 'जिला कमांड सेंटर' : 'जिल्हा कमांड केंद्र',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -99,9 +103,29 @@ export default function Sidebar() {
             ),
         },
         {
+            href: '/my-dashboard',
+            label: isEn ? 'My Dashboard' : isHi ? 'मेरा डैशबोर्ड' : 'माझा डॅशबोर्ड',
+            badge: isEn ? 'Today' : isHi ? 'आज' : 'आज',
+            icon: (
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+            ),
+        },
+        {
+            href: '/facility-resources',
+            label: isEn ? 'Beds & Equipment' : isHi ? 'बिस्तर व उपकरण' : 'खाटा व उपकरणे',
+            badge: isEn ? 'Capacity' : isHi ? 'क्षमता' : 'क्षमता',
+            icon: (
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10m0-4h18m0 4V11a2 2 0 00-2-2h-7v4M7 11.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                </svg>
+            ),
+        },
+        {
             href: '/audit',
             label: isEn ? 'Audit Trail' : isHi ? 'ऑडिट ट्रेल' : 'ऑडिट ट्रेल',
-            badge: isEn ? 'MO/DHO' : 'MO/DHO',
+            badge: isEn ? 'DHO' : 'DHO',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2zM9 7h1" />
@@ -110,8 +134,8 @@ export default function Sidebar() {
         },
         {
             href: '/referrals',
-            label: isEn ? 'Emergency Referrals' : isHi ? 'आपातकालीन रेफरल' : 'आपत्कालीन संदर्भ सेवा',
-            badge: '108/102',
+            label: isEn ? 'Referrals' : isHi ? 'रेफरल' : 'संदर्भ सेवा',
+            badge: isEn ? 'Live' : isHi ? 'लाइव' : 'थेट',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -198,12 +222,44 @@ export default function Sidebar() {
             badge: 'SOS',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0.538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
             ),
             isAlert: true,
         },
+        {
+            section: isEn ? 'System' : isHi ? 'प्रणाली' : 'प्रणाली',
+        },
+        {
+            href: '/demo/simulation',
+            label: isEn ? 'Two-User Simulation' : isHi ? 'दो-उपयोगकर्ता सिमुलेशन' : 'दोन-वापरकर्ता सिम्युलेशन',
+            badge: isEn ? 'Demo' : isHi ? 'डेमो' : 'डेमो',
+            icon: (
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+            ),
+        },
+        {
+            href: '/admin',
+            label: isEn ? 'User & Facility Admin' : isHi ? 'उपयोगकर्ता व केंद्र प्रशासन' : 'वापरकर्ता व केंद्र प्रशासन',
+            badge: isEn ? 'Admin' : isHi ? 'प्रशासन' : 'प्रशासन',
+            icon: (
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            ),
+        },
     ];
+
+    // Only the modules this role may open, by the rule the route guard
+    // enforces — and no section heading left standing over nothing.
+    const allowed = navItems.filter(item => !('href' in item) || canAccessRoute(session?.role ?? null, item.href as string));
+    const visibleItems = allowed.filter((item, i) => {
+        if (!('section' in item)) return true;
+        const next = allowed[i + 1];
+        return Boolean(next && !('section' in next));
+    });
 
     return (
         <aside
@@ -218,7 +274,7 @@ export default function Sidebar() {
                         {stationMeta.badge}
                     </span>
                     <span className="px-1.5 py-0.5 text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-mono">
-                        PHC-01
+                        {session ? (session.facilityType ?? (session.role === 'DHO' ? 'DISTRICT' : 'SYSTEM')) : '—'}
                     </span>
                 </div>
                 <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
@@ -235,7 +291,7 @@ export default function Sidebar() {
 
             {/* Navigation Links */}
             <nav className="flex-1 px-2.5 py-2.5 space-y-0.5 overflow-y-auto">
-                {navItems.map((item, idx) => {
+                {visibleItems.map((item, idx) => {
                     if ('section' in item) {
                         return (
                             <div
@@ -297,7 +353,7 @@ export default function Sidebar() {
                     </span>
                 </div>
                 <div className="flex items-center justify-between text-slate-500 text-[9px] pt-1 border-t border-slate-200/60">
-                    <span>HFR ID: PHC-01</span>
+                    <span>{session?.facilityId ? `Facility ID: ${session.facilityId}` : session ? session.staffId : 'Not signed in'}</span>
                     <span className="font-bold text-[#1F3A6E]">{stationMeta.compliance}</span>
                 </div>
             </div>

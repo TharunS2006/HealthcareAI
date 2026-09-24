@@ -150,7 +150,8 @@ with Session(engine) as s:
 
     # ── 3. The payload is the record — over HTTP, not just in Python ─────────
     print("\nThe device payload survives the trip, in the JSON the browser reads:")
-    client = TestClient(app)
+    # The full store is District Health Officer / Super Admin only (data:inspect).
+    client = TestClient(app, headers={"x-nalammesh-user": "u-dho", "x-nalammesh-role": "DHO"})
     body = client.get("/api/v1/store", params={"limit": 50}).json()
 
     check("the response carries both tables as arrays",

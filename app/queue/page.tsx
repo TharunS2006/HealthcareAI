@@ -16,6 +16,7 @@ import { useAppointmentStore } from '@/stores/appointmentStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { useSession } from '@/lib/auth/session';
 import type { Appointment } from '@/types/appointment';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -39,6 +40,12 @@ export default function QueuePage() {
     } = useQueueStore();
 
     const { appointments, loadAppointments, convertToToken } = useAppointmentStore();
+    // The queue is the signed-in officer's own facility's queue.
+    const session = useSession();
+    useEffect(() => {
+        if (session?.facilityId && session.facilityId !== selectedFacilityId) setSelectedFacilityId(session.facilityId);
+    }, [session?.facilityId, selectedFacilityId, setSelectedFacilityId]);
+    const facilityName = FACILITY_NETWORK.find(f => f.id === selectedFacilityId)?.name ?? 'PHC Block A';
     const { patients, loadPatients } = usePatientStore();
 
     const { language } = useLanguageStore();
@@ -72,7 +79,7 @@ export default function QueuePage() {
 
     const txt = {
         deptTag: isEn ? 'Smart Queue & Token Calling Engine' : isHi ? 'स्मार्ट ओपीडी कतार व टोकन इंजन' : 'स्मार्ट ओपीडी रांग व टोकन प्रणाली',
-        title: isEn ? 'Queue Management — PHC Block A' : isHi ? 'ओपीडी कतार प्रबंधन — प्रा. स्वा. केंद्र ब्लॉक अ' : 'ओपीडी रांग व्यवस्थापन — प्रा. आ. केंद्र ब्लॉक अ',
+        title: isEn ? `Queue Management — ${facilityName}` : isHi ? `ओपीडी कतार प्रबंधन — ${facilityName}` : `ओपीडी रांग व्यवस्थापन — ${facilityName}`,
         subTitle: isEn
             ? 'Prioritize critical triage patients, track waiting times, and streamline doctor consultation'
             : isHi

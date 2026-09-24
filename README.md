@@ -28,6 +28,12 @@ For the app alone (no relay):
 npm run dev          # http://localhost:3000
 ```
 
+`npm run dev` always uses port 3000. If the app is already running it stops with
+"address already in use" rather than starting a second copy on :3001 or :3002 —
+two copies share the `.next` folder, overwrite each other's build and break with
+"Cannot read properties of undefined (reading 'call')". Reload the tab you have,
+or stop the old server (Ctrl-C in its terminal) before starting another.
+
 The app works with no backend running — the "Mesh Relay" badge then shows
 **STANDALONE**, and all data is stored locally in IndexedDB.
 

@@ -1,100 +1,101 @@
 /**
- * Staff Command Center — NalamMesh Rural Public Healthcare Platform
- * Role-Based Healthcare Cadre Workspace — Government of India */
+ * Staff workspace home — the modules this role may open, and the few numbers
+ * that need attention now. Every figure is counted from the records on this
+ * device for this user's facility; nothing here is a display constant.
+ */
 
 'use client';
 
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Icon, { IconName } from '@/components/gov/Icon';
+import { useSession } from '@/lib/auth/session';
+import { canAccessRoute, isDistrictWide, ROLE_LABELS } from '@/lib/auth/permissions';
+import { useReferralStore } from '@/stores/referralStore';
+import { useResourceStore } from '@/stores/resourceStore';
+import { usePatientStore } from '@/stores/patientStore';
+import * as wf from '@/lib/referrals/workflow';
+
+const MODULES: { href: string; label: string; icon: IconName; desc: string }[] = [
+    { href: '/my-dashboard', label: 'My Dashboard', icon: 'chart-bar', desc: 'Patients registered today, your referrals and follow-ups' },
+    { href: '/referrals', label: 'Referrals', icon: 'ambulance', desc: 'Raise, receive, accept and track referrals between facilities' },
+    { href: '/opd', label: 'OPD Intake & Triage', icon: 'stethoscope', desc: 'Register a patient and record vitals' },
+    { href: '/facility-resources', label: 'Beds & Equipment', icon: 'hospital', desc: 'Ward beds, critical equipment, staff on duty, maintenance log' },
+    { href: '/dashboard', label: 'Command Center', icon: 'chart-bar', desc: 'Live facilities, referrals, bed occupancy and escalations' },
+    { href: '/incoming', label: 'Pre-Arrival Board', icon: 'ambulance', desc: 'Patients on their way and what to have ready' },
+    { href: '/teleconsult', label: 'Teleconsult', icon: 'video', desc: 'Assisted consultation with a specialist' },
+    { href: '/followup', label: 'High-Risk Follow-Up', icon: 'clipboard', desc: 'ANC, child and chronic-disease recalls' },
+    { href: '/diagnostics', label: 'Diagnostics', icon: 'flask', desc: 'Order tests and record results' },
+    { href: '/medicine', label: 'Essential Medicines', icon: 'pill', desc: 'Facility stock and restocking' },
+    { href: '/queue', label: 'OPD Queue', icon: 'ticket', desc: 'Token queue and calling' },
+    { href: '/audit', label: 'Audit Trail', icon: 'clipboard', desc: 'Who did what, when, at which facility' },
+    { href: '/admin', label: 'Users, Roles & Facilities', icon: 'clinician', desc: 'Manage staff, postings and the facility directory' },
+    { href: '/demo/simulation', label: 'Two-User Simulation', icon: 'video', desc: 'ANM and Medical Officer side by side' },
+];
 
 export default function StaffHome() {
-    const todaysTasks: { label: string; value: string; icon: IconName; color: string }[] = [
-        { label: 'OPD Patients Seen Today', value: '24', icon: 'stethoscope', color: 'border-l-emerald-deep' },
-        { label: '108 / 102 In Transit', value: '3 Active', icon: 'ambulance', color: 'border-l-amber-500' },
-        { label: 'Overdue ANC / SAM Recalls', value: '7 Due', icon: 'warning', color: 'border-l-rose-500' },
-        { label: 'Teleconsults Scheduled', value: '2 Scheduled', icon: 'video', color: 'border-l-teal-600' },
-    ];
+    const session = useSession();
+    const referrals = useReferralStore(s => s.referrals);
+    const notifications = useReferralStore(s => s.notifications);
+    const tickets = useResourceStore(s => s.tickets);
+    const patients = usePatientStore(s => s.patients);
+    const loadPatients = usePatientStore(s => s.loadPatients);
 
-    const quickLinks: { href: string; label: string; icon: IconName; desc: string }[] = [
-        { href: '/opd', label: 'Start OPD Intake & AI Triage', icon: 'stethoscope', desc: 'Register new patient & assess emergency symptoms' },
-        { href: '/teleconsult', label: 'Launch Teleconsult Room', icon: 'video', desc: 'Connect with District Hospital specialist doctor' },
-        { href: '/referrals', label: 'Emergency Referral Pipeline', icon: 'ambulance', desc: 'Refer patient with real-time 108/102 tracking' },
-        { href: '/followup', label: 'High-Risk Follow-Up Engine', icon: 'clipboard', desc: 'ANC, infant malnutrition & NCD cohort recalls' },
-        { href: '/diagnostics', label: 'Diagnostic Lab Network', icon: 'flask', desc: 'Order laboratory tests & track sample lifecycle' },
-        { href: '/medicine', label: 'Essential Medicine Stock', icon: 'pill', desc: 'Facility inventory & emergency reorder requisitions' },
-        { href: '/queue', label: 'OPD Live Queue Board', icon: 'ticket', desc: 'Manage facility token queue & call next patient' },
-        { href: '/facilities', label: '4-Tier Health Directory', icon: 'hospital', desc: 'Sub-Centre → PHC → CHC → DH locator' },
-        { href: '/dashboard', label: 'District Health Command', icon: 'chart-bar', desc: 'Executive scorecards, bed census & KPI analytics' },
-    ];
+    useEffect(() => {
+        void loadPatients();
+    }, [loadPatients]);
+
+    const counts = useMemo(() => {
+        if (!session) return [];
+        const districtWide = isDistrictWide(session.role);
+        const mineTo = referrals.filter(r => (districtWide || r.toFacilityId === session.facilityId) && r.status !== 'CREATED');
+        const awaiting = mineTo.filter(r => wf.phaseOf(r.status) === 'AWAITING');
+        const emergencies = awaiting.filter(r => r.priority === 'EMERGENCY');
+        const unread = notifications.filter(n => n.recipient_user_id === session.userId && !n.is_read);
+        const openTickets = tickets.filter(t => t.status !== 'RESOLVED' && (districtWide || t.facilityId === session.facilityId));
+        const today = new Date().toDateString();
+        const registered = patients.filter(p => (districtWide || p.registeredAtFacilityId === session.facilityId) && new Date(p.timestamp).toDateString() === today);
+        return [
+            { label: districtWide ? 'Referrals awaiting a response' : 'Incoming referrals awaiting you', value: awaiting.length },
+            { label: 'Unanswered emergencies', value: emergencies.length, alert: emergencies.length > 0 },
+            { label: 'Unread notifications', value: unread.length },
+            { label: 'Open maintenance issues', value: openTickets.length },
+            { label: 'Patients registered today', value: registered.length },
+        ];
+    }, [session, referrals, notifications, tickets, patients]);
+
+    if (!session) return null;
+    const modules = MODULES.filter(m => canAccessRoute(session.role, m.href));
 
     return (
-        <div className="space-y-6">
-            {/* Header */}
+        <div className="space-y-5">
             <div>
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-deep animate-pulse" />
-                    <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
-                        Government of India • Public Health Department | Medical Officer Workspace
-                    </span>
-                </div>
-                <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
-                    NalamMesh Staff Command Center
-                </h1>
-                <p className="text-xs text-txt-secondary mt-0.5">
-                    Dr. Suresh Atram (Medical Officer In-Charge) • Primary Health Centre — Block A (Sub-Division Division, )
-                </p>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ROLE_LABELS[session.role]} · {session.facilityName}</p>
+                <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">Welcome, {session.name}</h1>
             </div>
 
-            {/* Today's Operational Summary */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {todaysTasks.map((stat) => (
-                    <div key={stat.label} className={`surface-card p-4 ${stat.color} flex items-center justify-between`}>
-                        <div>
-                            <span className="text-[10px] font-black text-txt-muted uppercase tracking-wider block">
-                                {stat.label}
-                            </span>
-                            <span className="text-xl md:text-2xl font-black text-emerald-deep mt-0.5 block">
-                                {stat.value}
-                            </span>
-                        </div>
-                        <Icon name={stat.icon} className="w-6 h-6 text-txt-muted flex-shrink-0" />
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                {counts.map(c => (
+                    <div key={c.label} className={`bg-white border border-[#B9C5D6] border-l-4 ${c.alert ? 'border-l-red-600' : 'border-l-[#1F3A6E]'} px-3 py-2`}>
+                        <span className="block text-[10px] font-bold uppercase text-slate-500">{c.label}</span>
+                        <strong className={`block text-2xl ${c.alert ? 'text-red-700' : 'text-[#1F3A6E]'}`}>{c.value}</strong>
                     </div>
                 ))}
             </div>
 
-            {/* Quick Actions Grid */}
             <div>
-                <h2 className="text-xs font-black text-emerald-deep uppercase tracking-wider mb-3">
-                    Operational Clinical & Public Health Modules
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {quickLinks.map((link) => (
-                        <Link key={link.href} href={link.href} className="group block">
-                            <div className="surface-card p-4.5 transition-all h-full flex items-start gap-3 bg-white">
-                                <Icon name={link.icon} className="w-6 h-6 flex-shrink-0 text-emerald-deep" />
-                                <div>
-                                    <h3 className="text-sm font-bold text-emerald-deep group-hover:text-teal-700 transition-colors">
-                                        {link.label}
-                                    </h3>
-                                    <p className="text-xs text-txt-secondary mt-0.5 leading-relaxed">{link.desc}</p>
-                                </div>
-                            </div>
+                <h2 className="text-xs font-black text-[#1F3A6E] uppercase tracking-wider mb-2">Your modules</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {modules.map(m => (
+                        <Link key={m.href} href={m.href} className="group bg-white border border-[#B9C5D6] hover:border-[#1F3A6E] p-3 flex items-start gap-3">
+                            <Icon name={m.icon} className="w-5 h-5 flex-shrink-0 text-[#1F3A6E]" />
+                            <span>
+                                <strong className="block text-sm text-[#1F3A6E] group-hover:underline">{m.label}</strong>
+                                <span className="block text-xs text-slate-600">{m.desc}</span>
+                            </span>
                         </Link>
                     ))}
                 </div>
-            </div>
-
-            {/* Active Clinical Alerts */}
-            <div className="surface-card bg-rose-50/30 p-5">
-                <div className="flex items-center gap-2 mb-2">
-                    <Icon name="warning" className="w-5 h-5 text-rose-700" />
-                    <h3 className="text-sm font-bold text-rose-900">Priority Clinical & Supply Alerts</h3>
-                </div>
-                <ul className="space-y-1.5 text-xs text-txt-secondary">
-                    <li>• <strong>3 referrals</strong> unacknowledged &gt; 24 hours — auto-escalated to District Health Officer (DHO).</li>
-                    <li>• <strong>Paracetamol 500mg IP</strong> low stock (42 tabs remaining, threshold: 100) — requisition auto-drafted.</li>
-                    <li>• <strong>2 High-Risk ANC Mothers</strong> overdue for blood pressure monitoring in Village 1 sub-centre.</li>
-                </ul>
             </div>
         </div>
     );

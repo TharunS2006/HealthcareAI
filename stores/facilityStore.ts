@@ -9,7 +9,8 @@ import {
     getAllMedicines,
     getAllDiagnostics,
     saveMedicine,
-    saveDiagnostic
+    saveDiagnostic,
+    saveFacility as persistFacility,
 } from '@/lib/db';
 import toast from 'react-hot-toast';
 
@@ -24,6 +25,8 @@ interface FacilityStore {
     loadAll: () => Promise<void>;
     setSelectedFacilityId: (id: string) => void;
     restockMedicine: (id: string, amount: number) => Promise<void>;
+    /** Super Admin edits to the facility directory. Throws on a failed write. */
+    saveFacility: (facility: Facility) => Promise<void>;
     updateDiagnosticResult: (id: string, result: string, isAbnormal: boolean) => Promise<void>;
 }
 
@@ -35,6 +38,15 @@ export const useFacilityStore = create<FacilityStore>((set, get) => ({
     isLoading: false,
 
     setSelectedFacilityId: (id) => set({ selectedFacilityId: id }),
+
+    saveFacility: async (facility) => {
+        await persistFacility(facility);
+        set(state => ({
+            facilities: state.facilities.some(f => f.id === facility.id)
+                ? state.facilities.map(f => (f.id === facility.id ? facility : f))
+                : [...state.facilities, facility],
+        }));
+    },
 
     loadAll: async () => {
         set({ isLoading: true });

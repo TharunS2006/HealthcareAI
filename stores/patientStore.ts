@@ -100,8 +100,10 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
             socket.off('data:reset');
             socket.on('data:reset', () => {
-                resetToDefaultSeed().then(() => {
+                resetToDefaultSeed().then(async () => {
                     get().loadPatients();
+                    const { announceReset } = await import('@/lib/referrals/transport');
+                    announceReset();
                     toast.success('System Data Reset Received');
                 });
             });
@@ -114,6 +116,8 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
         try {
             await resetToDefaultSeed();
             await get().loadPatients();
+            const { announceReset } = await import('@/lib/referrals/transport');
+            announceReset();
             try {
                 const { getSocket } = await import('@/lib/socket');
                 const socket = getSocket();
@@ -128,6 +132,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
     },
 
     addPatient: async (patient: Patient) => {
+        const previous = get().patients;
         set(state => ({
             patients: [patient, ...state.patients.filter(p => p.id !== patient.id)],
             unsyncedCount: state.unsyncedCount + 1,
@@ -135,22 +140,25 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
         try {
             await savePatient(patient);
-            try {
-                const { getSocket } = await import('@/lib/socket');
-                const socket = getSocket();
-                socket.emit('patient:sync', patient);
-            } catch (err) {
-                console.warn('Socket emit failed:', err);
-            }
-            // Queue for the district cloud. The socket above only reaches devices on
-            // the same mesh; this is what lets a hospital in another town open the
-            // record before the patient arrives. Not awaited — it is durable and
-            // uploads itself whenever connectivity returns.
-            void queuePatient(patient);
         } catch (error) {
+            // Take the optimistic row back off the screen: a patient shown as
+            // registered who is not stored would vanish on the next reload.
             console.error('Failed to save patient:', error);
+            set({ patients: previous, unsyncedCount: Math.max(0, get().unsyncedCount - 1) });
             throw error;
         }
+        try {
+            const { getSocket } = await import('@/lib/socket');
+            const socket = getSocket();
+            socket.emit('patient:sync', patient);
+        } catch (err) {
+            console.warn('Socket emit failed:', err);
+        }
+        // Queue for the district cloud. The socket above only reaches devices on
+        // the same mesh; this is what lets a hospital in another town open the
+        // record before the patient arrives. Not awaited — it is durable and
+        // uploads itself whenever connectivity returns.
+        void queuePatient(patient);
     },
 
     loadPatients: async () => {
@@ -180,6 +188,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
     },
 
     updatePatient: async (updatedPatient: Patient) => {
+        const previous = get().patients;
         set(state => ({
             patients: state.patients.map(p =>
                 p.id === updatedPatient.id ? updatedPatient : p
@@ -188,17 +197,21 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
         try {
             await savePatient(updatedPatient);
-            try {
-                const { getSocket } = await import('@/lib/socket');
-                const socket = getSocket();
-                socket.emit('patient:sync', updatedPatient);
-            } catch (err) {
-                console.warn('Socket emit update failed:', err);
-            }
-            void queuePatient(updatedPatient);
         } catch (error) {
+            // Roll back and tell the caller — a vitals update that silently
+            // fails leaves the screen showing readings the record does not hold.
             console.error('Failed to update patient:', error);
+            set({ patients: previous });
+            throw error;
         }
+        try {
+            const { getSocket } = await import('@/lib/socket');
+            const socket = getSocket();
+            socket.emit('patient:sync', updatedPatient);
+        } catch (err) {
+            console.warn('Socket emit update failed:', err);
+        }
+        void queuePatient(updatedPatient);
     },
 
     refreshUnsyncedCount: async () => {

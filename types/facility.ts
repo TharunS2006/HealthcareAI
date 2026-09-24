@@ -141,11 +141,25 @@ export interface TeleconsultSession {
  * "who changed this, when, and from what to what." Snapshots are small JSON strings. */
 export interface AuditLogEntry {
     id: string;
-    entityType: 'PATIENT' | 'REFERRAL' | 'QUEUE' | 'MEDICINE' | 'APPOINTMENT';
+    entityType:
+        | 'PATIENT'
+        | 'REFERRAL'
+        | 'QUEUE'
+        | 'MEDICINE'
+        | 'APPOINTMENT'
+        | 'RESOURCES'
+        | 'MAINTENANCE'
+        | 'USER'
+        | 'FACILITY'
+        | 'SESSION';
     entityId: string;
-    action: string;              // e.g. "CREATE", "STATUS → IN_TRANSIT", "STOCK_UPDATE"
+    action: string;              // e.g. "CREATE", "STATUS → ACCEPTED", "STOCK_UPDATE"
     actorId: string;             // staff id, or "system" when unattributed
     actorRole: string;           // e.g. "MO", "DHO", "SYSTEM"
+    /** Display name at the time of the action — ids alone do not answer "who". */
+    actorName?: string;
+    /** The actor's posting. Spec: every audit row names the facility. */
+    actorFacilityId?: string | null;
     timestamp: string;           // ISO
     before?: string;             // JSON snapshot of the changed fields, pre-change
     after?: string;              // JSON snapshot, post-change

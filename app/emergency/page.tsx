@@ -12,6 +12,9 @@ import Icon from '@/components/gov/Icon';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { useSession } from '@/lib/auth/session';
+import { can } from '@/lib/auth/permissions';
+import { STATUS_LABELS } from '@/lib/referrals/workflow';
 import { flushOutbox, uploadStatusOf, type UploadStatus } from '@/lib/sync/outbox';
 import { Patient, ReferralRecord } from '@/types/patient';
 import toast from 'react-hot-toast';
@@ -69,7 +72,11 @@ export default function EmergencyPage() {
     const [uploadStatus, setUploadStatus] = useState<UploadStatus>('UNKNOWN');
 
     const { patients, addPatient, loadPatients } = usePatientStore();
-    const { addReferral } = useReferralStore();
+    const createReferral = useReferralStore(s => s.create);
+    const session = useSession();
+    // The live copy, so the panel shows the referral moving from Created to
+    // Sent and on, rather than the snapshot taken at the moment of dispatch.
+    const liveReferral = useReferralStore(s => (dispatchSummary ? s.referrals.find(r => r.id === dispatchSummary.id) : undefined));
 
     // Without this the selector is empty and every dispatch falls back to the
     // unknown-patient stub below, so the receiving hospital gets a referral with
@@ -86,45 +93,55 @@ export default function EmergencyPage() {
             ? FACILITY_NETWORK[1]
             : FACILITY_NETWORK[0];
 
-        const emergencyRecord: ReferralRecord = {
-            id: `SOS-${Date.now().toString().slice(-6)}`,
-            patientId: activePatient.id,
-            patientName: activePatient.name,
-            patientAge: activePatient.age,
-            patientGender: activePatient.gender,
-            fromFacilityId: 'sc-kothi',
-            fromFacilityName: 'Sub-Centre Village 1 (Field Station)',
-            fromFacilityType: 'SC',
-            toFacilityId: targetFacility.id,
-            toFacilityName: targetFacility.name,
-            toFacilityType: targetFacility.type,
-            reason: selectedType === '102_MATERNAL'
-                ? 'EMERGENCY OBSTETRIC ESCALATION: Severe Preeclampsia / Hemorrhage'
-                : '108 TRAUMA / ACUTE LIFE-THREATENING CRISIS',
-            priority: 'EMERGENCY',
-            status: 'IN_TRANSIT',
-            referredBy: 'Frontline Worker / Universal Emergency SOS',
-            referredAt: new Date().toISOString(),
-            transportMode: selectedType === '102_MATERNAL' ? 'AMBULANCE_102' : 'AMBULANCE_108',
-            ambulanceVehicleNo: selectedType === '102_MATERNAL' ? 'AMB-T-1021 (Janani Shishu 102)' : 'AMB-G-1088 (MEMS ALS Ambulance 108)',
-            clinicalSummary: `CRITICAL ALERT: SpO2 ${activePatient.vitals?.spo2 || 88}%, BP ${activePatient.vitals?.bloodPressure?.systolic || 160}/${activePatient.vitals?.bloodPressure?.diastolic || 100}, HR ${activePatient.vitals?.heartRate || 120} BPM. Condition: ${activePatient.vitals?.injuryType || 'Acute Emergency'}. ABHA: ${activePatient.abhaId || 'ABHA-LINKED'}. Immediate team mobilization requested.`,
-            notes: selectedType === '102_MATERNAL' ? 'Obstetrics & Gynecology (CEmONC)' : 'Trauma & Emergency Care (ICU)',
-        };
+        // A signed-in worker who may raise referrals dispatches from their own
+        // facility, as themselves. Anyone else — this is the public SOS screen —
+        // dispatches as the automatic 108/102 service from the field station.
+        const staffOrigin = session && can(session.role, 'referral:create') && session.facilityId
+            ? FACILITY_NETWORK.find(f => f.id === session.facilityId)
+            : undefined;
+        const origin = staffOrigin ?? FACILITY_NETWORK.find(f => f.id === 'sc-kothi')!;
+        const maternal = selectedType === '102_MATERNAL';
+        const vitals = activePatient.vitals;
 
         // The record has to go up with the referral, not just the referral.
         // A referral alone is a name and a reason; what lets the trauma team
         // ready a resus bay is the vitals and risk flags behind it. Saving the
         // patient here also covers the unidentified-patient case, which exists
         // only in this component's memory until someone dispatches on it.
-        await addPatient({
-            ...activePatient,
-            activeReferral: emergencyRecord,
-            transportStatus: 'IN_TRANSIT',
-            isSynced: false,
-            timestamp: new Date().toISOString(),
-        });
+        try {
+            await addPatient({
+                ...activePatient,
+                transportStatus: 'IN_TRANSIT',
+                isSynced: false,
+                timestamp: new Date().toISOString(),
+                registeredAtFacilityId: activePatient.registeredAtFacilityId ?? origin.id,
+            });
+        } catch {
+            toast.error('Could not save the patient record on this device — call 108 / 102 directly');
+            return;
+        }
 
-        await addReferral(emergencyRecord);
+        const result = await createReferral(
+            {
+                patient: { id: activePatient.id, name: activePatient.name, age: activePatient.age, gender: activePatient.gender },
+                from: { id: origin.id, name: origin.name, type: origin.type },
+                to: { id: targetFacility.id, name: targetFacility.name, type: targetFacility.type },
+                reason: maternal
+                    ? 'EMERGENCY OBSTETRIC ESCALATION: Severe Preeclampsia / Hemorrhage'
+                    : '108 TRAUMA / ACUTE LIFE-THREATENING CRISIS',
+                priority: 'EMERGENCY',
+                transportMode: maternal ? 'AMBULANCE_102' : 'AMBULANCE_108',
+                clinicalSummary: `SpO2 ${vitals?.spo2 || '—'}%, BP ${vitals?.bloodPressure ? `${vitals.bloodPressure.systolic}/${vitals.bloodPressure.diastolic}` : '—'}, HR ${vitals?.heartRate || '—'}. ${vitals?.injuryType || ''}`.trim(),
+                vitals,
+                dispatch: { vehicleNo: maternal ? 'AMB-T-1021 (102)' : 'AMB-G-1088 (108 ALS)' },
+            },
+            staffOrigin ? session : null
+        );
+        if (!result.ok) {
+            toast.error(result.message);
+            return;
+        }
+        const emergencyRecord = result.value;
         setDispatchSummary(emergencyRecord);
         setUploadStatus('PENDING');
         setIsDispatched(true);
@@ -190,7 +207,7 @@ export default function EmergencyPage() {
                                 </div>
                                 <div>
                                     <span className="text-txt-muted block">Status</span>
-                                    <strong className="text-status-green text-sm">{dispatchSummary.status.replace('_', ' ')}</strong>
+                                    <strong className="text-status-green text-sm">{STATUS_LABELS[(liveReferral ?? dispatchSummary).status]}</strong>
                                     <span className="block text-[10px] text-txt-muted">
                                         ETA pending crew confirmation
                                     </span>

@@ -18,7 +18,8 @@
  * Uses tsx (already a devDependency) rather than a test framework, so it adds no deps.
  */
 // Dynamic import: lib/ is CJS under this package.json, so named ESM bindings aren't static.
-const { SEED_PATIENTS, SEED_REFERRALS, FACILITY_NETWORK } = await import('../lib/data/facilities');
+const { SEED_PATIENTS, FACILITY_NETWORK } = await import('../lib/data/facilities');
+const { SEED_REFERRALS } = await import('../lib/data/referralSeed');
 const {
     computeTravelSavings,
     computeDangerSignTelemetry,

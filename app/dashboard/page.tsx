@@ -24,8 +24,16 @@ import {
     computeTravelSavings,
 } from '@/lib/analytics/facilityMetrics';
 import Link from 'next/link';
+import ReferralCommand from '@/components/dashboard/ReferralCommand';
+import { isOpenReferral } from '@/lib/referrals/workflow';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide, ROLE_LABELS } from '@/lib/auth/permissions';
 
 export default function DashboardPage() {
+    const session = useSession();
+    // DHO and Super Admin see the district; a Hospital Admin gets a read-only
+    // Command Center for their own facility — no district patient lists.
+    const districtWide = isDistrictWide(session?.role ?? null);
     const { patients, loadPatients } = usePatientStore();
     const { referrals, loadReferrals } = useReferralStore();
     const { queue, loadQueue } = useQueueStore();
@@ -48,8 +56,8 @@ export default function DashboardPage() {
     const yellowCount = patients.filter(p => p.triageStatus === 'YELLOW').length;
     const greenCount = patients.filter(p => p.triageStatus === 'GREEN').length;
 
-    const pendingRefs = referrals.filter(r => r.status === 'INITIATED' || r.status === 'ACCEPTED' || r.status === 'IN_TRANSIT').length;
-    const inTransitCount = referrals.filter(r => r.status === 'IN_TRANSIT').length;
+    const pendingRefs = referrals.filter(r => isOpenReferral(r.status)).length;
+    const inTransitCount = referrals.filter(r => r.status === 'ACCEPTED' && Boolean(r.inTransitAt)).length;
     const waitingQueue = queue.filter(q => q.status === 'WAITING').length;
 
     // Collect High Risk Flagged Patients
@@ -69,10 +77,14 @@ export default function DashboardPage() {
     );
 
     // IPHS quality indicators, measured rather than asserted.
-    const completedRefs = referrals.filter(r => r.status === 'COMPLETED').length;
-    const referralCompletionRate = referrals.length === 0
+    // Completion: of referrals that have reached a decision, the share whose
+    // patient was admitted. Still-open referrals are left out of the
+    // denominator rather than counted as failures.
+    const decided = referrals.filter(r => !isOpenReferral(r.status) && r.status !== 'CREATED');
+    const completedRefs = decided.filter(r => ['PATIENT_ARRIVED', 'ADMITTED', 'DISCHARGED'].includes(r.status)).length;
+    const referralCompletionRate = decided.length === 0
         ? 0
-        : Math.round((completedRefs / referrals.length) * 100);
+        : Math.round((completedRefs / decided.length) * 100);
 
     // Measured from the clock, not from the estimate shown to the patient at check-in:
     // `estimatedWaitMinutes` is a forecast and is zeroed once a token is called, so
@@ -307,7 +319,7 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <DemoModeToggle />
+                            {districtWide && <DemoModeToggle />}
                             {/* Reflects the actual relay socket — see lib/socket.ts for why this must
                                 never be hardcoded to "Online". */}
                             <div
@@ -329,6 +341,24 @@ export default function DashboardPage() {
                         </div>
                     </header>
 
+                    {/* Referral Command — live facilities, referrals, beds, emergencies and escalations. */}
+                    <section aria-label="Referral command" className="space-y-2">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
+                            <h2 className="text-base font-bold text-[#1F3A6E]">
+                                {districtWide ? 'Referral Command — district, live' : `Referral Command — ${session?.facilityName ?? ''} (read-only)`}
+                            </h2>
+                            {session && <span className="text-[11px] text-slate-500">{ROLE_LABELS[session.role]} · {session.name}</span>}
+                        </div>
+                        <ReferralCommand scopeFacilityId={districtWide ? undefined : session?.facilityId ?? undefined} />
+                    </section>
+
+                    {!districtWide && (
+                        <p className="text-[12px] text-slate-600 bg-white border border-slate-300 px-3 py-2">
+                            District-wide indicators, high-risk patient lists and facility scorecards are shown to the District Health Officer.
+                        </p>
+                    )}
+
+                    {districtWide && (<>
                     {/* Row 1: Key Performance Metrics — Sober Government Administrative KPI Grid */}
                     {/* District indicators — a bordered register, not KPI tiles.
                         Large display numbers in a card grid read as a product dashboard;
@@ -585,7 +615,7 @@ export default function DashboardPage() {
                                     <div className="bg-[#B45309] h-full rounded" style={{ width: `${referralCompletionRate}%` }} />
                                 </div>
                                 <span className="text-[10px] text-txt-muted">
-                                    {completedRefs} of {referrals.length} referrals closed
+                                    {completedRefs} of {decided.length} decided referrals reached the receiving facility ({referrals.length - decided.length} still open)
                                 </span>
                             </div>
 
@@ -794,6 +824,7 @@ export default function DashboardPage() {
                             </table>
                         </div>
                     </div>
+                    </>)}
 
                 </div>
             </div>
