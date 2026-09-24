@@ -15,7 +15,13 @@
  *     refuses as malformed must not be, or it blocks the queue behind it.
  */
 
-import { reportingBaseUrl } from '@/lib/cloudEndpoint';
+import { blockedAsMixedContent, reportingBaseUrl } from '@/lib/cloudEndpoint';
+
+/** The URL, or the same failure fetch would give if the browser is going to block it. */
+function reachable(url: string): string {
+    if (blockedAsMixedContent(url)) throw new TypeError(`Blocked by the browser: ${url} is plain HTTP from an HTTPS page`);
+    return url;
+}
 import { colourForPatient, colourForPriority } from '@/lib/care/priority';
 import type { Patient, ReferralRecord } from '@/types/patient';
 
@@ -89,7 +95,7 @@ async function post(path: string, body: unknown): Promise<UploadOutcome> {
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
-        const response = await fetch(`${reportingBaseUrl()}${path}`, {
+        const response = await fetch(reachable(`${reportingBaseUrl()}${path}`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...identityProvider() },
             body: JSON.stringify(body),
@@ -226,7 +232,7 @@ export async function fetchIncoming(facilityId: string): Promise<IncomingResult>
 
     try {
         const url = `${reportingBaseUrl()}/api/v1/records/incoming?facility_id=${encodeURIComponent(facilityId)}`;
-        const response = await fetch(url, { signal: controller.signal, headers: identityProvider() });
+        const response = await fetch(reachable(url), { signal: controller.signal, headers: identityProvider() });
         if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
         if (!response.ok) return { ok: false, reason: 'error' };
 
@@ -304,7 +310,7 @@ export async function fetchStore(limit = 50): Promise<StoreResult> {
 
     try {
         const url = `${reportingBaseUrl()}/api/v1/store?limit=${encodeURIComponent(String(limit))}`;
-        const response = await fetch(url, { signal: controller.signal, headers: identityProvider() });
+        const response = await fetch(reachable(url), { signal: controller.signal, headers: identityProvider() });
         if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
         if (!response.ok) return { ok: false, reason: 'error' };
 

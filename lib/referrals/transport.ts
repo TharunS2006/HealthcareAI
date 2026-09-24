@@ -19,6 +19,7 @@
 
 import { getSocket, relayBaseUrl } from '@/lib/socket';
 import { useAuthStore } from '@/stores/authStore';
+import { blockedAsMixedContent } from '@/lib/cloudEndpoint';
 import { REFERRAL_TIMING } from './config';
 import type { ReferralRecord } from '@/types/patient';
 import type { NotificationRecord } from '@/types/referral';
@@ -130,6 +131,8 @@ export function relayConnected(): boolean {
 }
 
 async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Promise<Response> {
+    // Fails the way fetch would, without the browser's console error each retry.
+    if (blockedAsMixedContent(url)) throw new TypeError(`Blocked by the browser: ${url} is plain HTTP from an HTTPS page`);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ms);
     try {

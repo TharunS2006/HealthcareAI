@@ -239,10 +239,10 @@ export default function TeleconsultPage() {
                                 </span>
                                 <div className="space-y-2 text-xs max-h-32 overflow-y-auto">
                                     <div className="p-2 bg-gray-50 rounded-lg">
-                                        <strong className="text-emerald-deep">Dr. Priya Sharma:</strong> "Check fetal heart sounds with Doppler. Is patient experiencing visual disturbance or epigastric pain?"
+                                        <strong className="text-emerald-deep">Dr. Priya Sharma:</strong> &ldquo;Check fetal heart sounds with Doppler. Is patient experiencing visual disturbance or epigastric pain?&rdquo;
                                     </div>
                                     <div className="p-2 bg-teal-50 rounded-lg">
-                                        <strong className="text-teal-800">CHO Sunita (Village 1):</strong> "Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours."
+                                        <strong className="text-teal-800">CHO Sunita (Village 1):</strong> &ldquo;Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours.&rdquo;
                                     </div>
                                 </div>
                             </div>

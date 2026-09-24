@@ -33,7 +33,7 @@ export default function LoginPage() {
 
     const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Citizen authenticated successfully via ABHA Sandbox', { icon: <Icon name="check-circle" className="w-4 h-4" /> });
+        toast.success('Signed in (demo) — ABHA and OTP are not verified in this build', { icon: <Icon name="check-circle" className="w-4 h-4" /> });
         router.push('/');
     };
 

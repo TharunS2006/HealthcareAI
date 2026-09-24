@@ -9,6 +9,26 @@
  * Nothing here implies the service is reachable. Every caller must work when it
  * is not: this app's whole premise is that connectivity is the exception.
  */
+/**
+ * Would the browser refuse this request from the current page?
+ *
+ * An HTTPS page may not call a plain-HTTP address (mixed content), except
+ * loopback, which browsers allow. The hosted site has no relay or district
+ * service, so without this check it retried blocked calls every few seconds and
+ * filled the console with errors. Callers treat a blocked address exactly as an
+ * unreachable one — the request would have failed the same way, just loudly.
+ */
+export function blockedAsMixedContent(url: string): boolean {
+    if (typeof window === 'undefined' || window.location.protocol !== 'https:') return false;
+    try {
+        const target = new URL(url);
+        if (target.protocol !== 'http:') return false;
+        return !['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
+    } catch {
+        return false;
+    }
+}
+
 export function reportingBaseUrl(): string {
     const configured = process.env.NEXT_PUBLIC_REPORTING_URL?.trim();
     if (configured) return configured.replace(/\/+$/, '');

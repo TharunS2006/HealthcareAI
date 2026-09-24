@@ -241,8 +241,13 @@ export default function DashboardPage() {
 
         // Emergency Dispatch Banner
         dispatchTitle: isEn ? '108 / 102 Emergency Dispatch' : isHi ? '१०८ / १०२ आपातकालीन एम्बुलेंस नियंत्रण' : '१०८ / १०२ आपत्कालीन रुग्णवाहिका नियंत्रण',
-        dispatchSub: isEn ? '2 ambulances active in Block A-Block A corridor' : isHi ? 'ब्लॉक अ-ब्लॉक अ मार्ग पर २ एम्बुलेंस सक्रिय' : 'ब्लॉक अ-ब्लॉक अ मार्गावर २ रुग्णवाहिका सक्रिय',
-        trackBtn: isEn ? 'Track' : isHi ? 'ट्रैक करें' : 'ट्रॅक करा',
+        // Counted from dispatched referrals — nothing in this build tracks vehicles.
+        dispatchSub: isEn
+            ? `${inTransitCount} ${inTransitCount === 1 ? 'patient' : 'patients'} dispatched and on the way to a receiving facility`
+            : isHi
+            ? `${inTransitCount} मरीज़ रवाना, प्राप्तकर्ता केंद्र की ओर मार्ग में`
+            : `${inTransitCount} रुग्ण रवाना, स्वीकारणाऱ्या केंद्राकडे मार्गावर`,
+        trackBtn: isEn ? 'View referrals' : isHi ? 'रेफरल देखें' : 'संदर्भ पहा',
 
         // IPHS Quality Indicators
         iphsTitle: isEn ? 'Indian Public Health Standards (IPHS) Quality Indicators' : isHi ? 'भारतीय सार्वजनिक स्वास्थ्य मानक (IPHS) गुणवत्ता सूचकांक' : 'भारतीय सार्वजनिक आरोग्य मानक (IPHS) गुणवत्ता निर्देशांक',

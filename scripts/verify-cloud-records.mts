@@ -318,6 +318,32 @@ check('an unreachable store reads as unreachable, not as "the cloud is empty"',
     deadStore.ok === false && deadStore.reason === 'unreachable', JSON.stringify(deadStore));
 process.env.NEXT_PUBLIC_REPORTING_URL = `http://127.0.0.1:${PORT}`;
 
+// ── 8. The hosted site does not dial what the browser will block ─────────────
+// On the HTTPS deployment there is no district service; a plain-HTTP address is
+// blocked by the browser as mixed content. It must read as unreachable — with
+// no request made, so the console does not fill with blocked calls.
+console.log('\nOn an HTTPS page, a plain-HTTP service is unreachable and never called:');
+const { blockedAsMixedContent } = await import('../lib/cloudEndpoint');
+const g = globalThis as unknown as { window?: unknown };
+const hadWindow = 'window' in g;
+g.window = { location: { protocol: 'https:', hostname: 'healthcare-ai-beryl.vercel.app' } };
+let calls = 0;
+globalThis.fetch = (async () => { calls += 1; return new Response('{}'); }) as typeof fetch;
+process.env.NEXT_PUBLIC_REPORTING_URL = 'http://healthcare-ai-beryl.vercel.app:8000';
+const blockedStore = await fetchStore(50);
+const blockedUpload = await uploadPatientRecord(patient, NOW);
+check('a blocked address reads as unreachable', blockedStore.ok === false && blockedStore.reason === 'unreachable', JSON.stringify(blockedStore));
+check('… an upload to it stays queued for retry', !blockedUpload.ok && blockedUpload.retryable === true, JSON.stringify(blockedUpload));
+check('… and no request is sent', calls === 0, `${calls} request(s)`);
+check('HTTPS and loopback addresses are not treated as blocked',
+    !blockedAsMixedContent('https://nalammesh-chat.vercel.app/api') && !blockedAsMixedContent('http://localhost:3001') &&
+    blockedAsMixedContent('http://192.168.1.9:3001'));
+g.window = { location: { protocol: 'http:', hostname: 'localhost' } };
+check('an HTTP page (local demo, APK over LAN) may call HTTP addresses', !blockedAsMixedContent('http://192.168.1.9:3001'));
+if (hadWindow) g.window = undefined; else delete g.window;
+globalThis.fetch = realFetch;
+process.env.NEXT_PUBLIC_REPORTING_URL = `http://127.0.0.1:${PORT}`;
+
 function check(label: string, condition: boolean | undefined, detail = '') {
     if (condition) pass(label);
     else fail(label, detail);

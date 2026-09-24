@@ -112,11 +112,12 @@ export default function GovPortalHeader() {
         staffLogin: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
         signOut: isEn ? 'Sign out' : isHi ? 'साइन आउट' : 'साइन आउट',
         noticeLabel: isEn ? 'IMPORTANT NOTICE' : isHi ? 'महत्वपूर्ण सूचना' : 'महत्त्वाची सूचना',
+        // No ambulance-tracking claim: nothing in this build tracks vehicles.
         noticeText: isEn
-            ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at Sub-District Hospital and District Hospital. Live 108 Ambulance GPS tracking active.'
+            ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at Sub-District Hospital and District Hospital. For an ambulance, call 108 (emergency) or 102 (mother & child).'
             : isHi
-            ? 'उप-जिला अस्पताल उपविभाग और जिला अस्पताल गढ़चिरौली में २४ घंटे आपातकालीन प्रसूति सेवाएं (CEmONC व BEmONC) पूर्णतः सक्रिय हैं। १०८ एम्बुलेंस का लाइव जीपीएस ट्रैकिंग चालू है।'
-            : 'उपजिल्हा रुग्णालय उपविभाग व जिल्हा रुग्णालय येथे २४ तास आपत्कालीन प्रसूती सेवा (CEmONC व BEmONC) पूर्णपणे सुरू आहेत. १०८ रुग्णवाहिकांचे थेट जीपीएस ट्रॅकिंग सक्रिय आहे.',
+            ? 'उप-जिला अस्पताल और जिला अस्पताल में २४ घंटे आपातकालीन प्रसूति सेवाएं (CEmONC व BEmONC) पूर्णतः सक्रिय हैं। एम्बुलेंस के लिए १०८ (आपातकाल) या १०२ (माँ और शिशु) पर कॉल करें।'
+            : 'उपजिल्हा रुग्णालय व जिल्हा रुग्णालय येथे २४ तास आपत्कालीन प्रसूती सेवा (CEmONC व BEmONC) पूर्णपणे सुरू आहेत. रुग्णवाहिकेसाठी १०८ (आपत्कालीन) किंवा १०२ (माता व बालक) वर कॉल करा.',
     };
 
     return (

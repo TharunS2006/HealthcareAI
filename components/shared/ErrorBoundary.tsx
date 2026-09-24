@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
                                 System Encountered an Error
                             </h2>
                             <p className="text-gray-500 text-sm">
-                                The application encountered an unexpected state. Our team has been notified.
+                                The application encountered an unexpected state. Nothing is reported automatically — reload the module, and if it happens again, note what you were doing and tell your system administrator.
                             </p>
                         </div>
 

@@ -1,4 +1,5 @@
 import { io, Socket } from 'socket.io-client';
+import { blockedAsMixedContent } from '@/lib/cloudEndpoint';
 
 /**
  * Live relay status, published separately from the Socket so the UI can show real
@@ -58,10 +59,13 @@ export const relayBaseUrl = (): string => {
 export const getSocket = (): Socket => {
     if (!socket) {
         const SERVER_URL = relayBaseUrl();
+        // A relay the browser will refuse (plain HTTP from an HTTPS page) is never
+        // dialled: it could only fail, and would retry with a console error each time.
+        const reachable = !blockedAsMixedContent(SERVER_URL);
 
         socket = io(SERVER_URL, {
             transports: ['polling', 'websocket'],
-            autoConnect: true,
+            autoConnect: reachable,
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 3000,
@@ -82,6 +86,7 @@ export const getSocket = (): Socket => {
             setMeshStatus('STANDALONE');
             console.log('Disconnected from Mesh Server');
         });
+        if (!reachable) setMeshStatus('STANDALONE');
     }
     return socket;
 };
