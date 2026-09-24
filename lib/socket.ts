@@ -5,9 +5,12 @@ let socket: Socket | null = null;
 
 export const getSocket = (): Socket => {
     if (!socket) {
-        const SERVER_URL = typeof window !== 'undefined'
-            ? `http://${window.location.hostname}:3001`
-            : 'http://localhost:3001';
+        // Native apps are served from localhost, so point them at the mesh server
+        // explicitly via NEXT_PUBLIC_MESH_SERVER_URL (e.g. http://192.168.1.10:3001).
+        const SERVER_URL = process.env.NEXT_PUBLIC_MESH_SERVER_URL
+            || (typeof window !== 'undefined'
+                ? `http://${window.location.hostname}:3001`
+                : 'http://localhost:3001');
 
         socket = io(SERVER_URL, {
             transports: ['polling', 'websocket'],

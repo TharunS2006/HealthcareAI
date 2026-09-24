@@ -5,7 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Patient } from '@/types/patient';
 import { getPatient } from '@/lib/db';
@@ -17,13 +17,15 @@ import toast from 'react-hot-toast';
 
 export default function PatientDetailClient() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
+    const patientId = searchParams?.get('id') || (params?.id as string | undefined);
     const { patients } = usePatientStore();
     const [patient, setPatient] = useState<Patient | null>(null);
     const [showQR, setShowQR] = useState(false);
 
     useEffect(() => {
-        const id = params?.id as string;
+        const id = patientId;
         if (!id) return;
 
         // Try from store first (faster), then from DB
@@ -35,13 +37,13 @@ export default function PatientDetailClient() {
                 if (p) setPatient(p);
             });
         }
-    }, [params?.id, patients]);
+    }, [patientId, patients]);
 
     if (!patient) {
         return (
             <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
                 <Sidebar />
-                <main className="flex-1 md:ml-64 p-8 flex items-center justify-center">
+                <main className="app-main flex items-center justify-center">
                     <div className="text-center space-y-4">
                         <div className="w-16 h-16 border-4 border-teal-accent border-t-transparent rounded-full animate-spin mx-auto" />
                         <p className="text-txt-secondary">Loading patient record...</p>
@@ -85,34 +87,35 @@ export default function PatientDetailClient() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
+            <main className="app-main">
+                <div className="hidden lg:block absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
 
                 <div className="max-w-5xl mx-auto">
                     {/* Back Button & Header */}
-                    <div className="flex items-center gap-4 mb-6">
+                    <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6">
                         <button
-                            onClick={() => router.push('/dashboard')}
-                            className="p-2 bg-white border border-border-subtle rounded-xl hover:bg-gray-50 transition-colors"
+                            onClick={() => (window.history.length > 1 ? router.back() : router.push('/dashboard'))}
+                            aria-label="Back to dashboard"
+                            className="p-2.5 bg-white border border-border-subtle rounded-xl hover:bg-gray-50 transition-colors tap-target"
                         >
                             <svg className="w-5 h-5 text-txt-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <div className="flex-1">
-                            <h1 className="text-2xl font-bold text-emerald-deep">Patient #{patient.id.slice(0, 6)}</h1>
+                        <div className="flex-1 min-w-0">
+                            <h1 className="text-xl md:text-2xl font-bold text-emerald-deep">Patient #{patient.id.slice(0, 6)}</h1>
                             <p className="text-sm text-txt-secondary">
                                 Registered: {new Date(patient.timestamp).toLocaleString()}
                             </p>
                         </div>
-                        <span className={`px-4 py-2 rounded-full text-sm font-bold ${colors.badge}`}>
+                        <span className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-bold ${colors.badge}`}>
                             {patient.triageStatus} PRIORITY
                         </span>
                     </div>
 
-                    <div className="grid lg:grid-cols-3 gap-6">
+                    <div className="grid xl:grid-cols-3 gap-6">
                         {/* Column 1-2: Patient Details */}
-                        <div className="lg:col-span-2 space-y-6">
+                        <div className="xl:col-span-2 space-y-6">
                             {/* Vitals Card */}
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
@@ -123,19 +126,19 @@ export default function PatientDetailClient() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="bg-gray-50 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-txt-muted uppercase block">SpO2</span>
-                                        <span className={`text-3xl font-bold font-mono ${patient.vitals.spo2 < 90 ? 'text-status-red' : 'text-emerald-deep'}`}>
+                                        <span className={`text-2xl md:text-3xl font-bold font-mono ${patient.vitals.spo2 < 90 ? 'text-status-red' : 'text-emerald-deep'}`}>
                                             {patient.vitals.spo2}%
                                         </span>
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-txt-muted uppercase block">Pulse</span>
-                                        <span className={`text-3xl font-bold font-mono ${patient.vitals.heartRate > 120 ? 'text-status-red' : 'text-emerald-deep'}`}>
+                                        <span className={`text-2xl md:text-3xl font-bold font-mono ${patient.vitals.heartRate > 120 ? 'text-status-red' : 'text-emerald-deep'}`}>
                                             {patient.vitals.heartRate}
                                         </span>
                                     </div>
                                     <div className="bg-gray-50 p-4 rounded-xl text-center">
                                         <span className="text-xs font-bold text-txt-muted uppercase block">Blood Pressure</span>
-                                        <span className="text-3xl font-bold font-mono text-emerald-deep">
+                                        <span className="text-2xl md:text-3xl font-bold font-mono text-emerald-deep">
                                             {patient.vitals.bloodPressure ? `${patient.vitals.bloodPressure.systolic}/${patient.vitals.bloodPressure.diastolic}` : 'N/A'}
                                         </span>
                                     </div>

@@ -31,14 +31,26 @@ export default function TopologyView({ nodes: propNodes }: TopologyViewProps) {
 
     const nodes = propNodes || defaultNodes;
 
+    // Node coordinates are authored in a 360x260 space and scaled to the container,
+    // so the graph fits phones as well as desktop.
+    const VIEW_W = 360;
+    const VIEW_H = 260;
+    const pct = (v: number, max: number) => `${(v / max) * 100}%`;
+
     return (
-        <div className="relative w-full h-[400px] bg-white/50 backdrop-blur-sm rounded-xl border border-border-subtle overflow-hidden">
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
+        <div className="relative w-full h-[300px] md:h-[400px] bg-white/50 backdrop-blur-sm rounded-xl border border-border-subtle overflow-hidden">
+            <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+                preserveAspectRatio="none"
+            >
                 {/* Connections */}
                 <motion.path
                     d={`M${nodes[0].x},${nodes[0].y} L${nodes[1].x},${nodes[1].y} L${nodes[2].x},${nodes[2].y} L${nodes[0].x},${nodes[0].y}`}
+                    fill="none"
                     stroke="var(--border-active)"
                     strokeWidth="2"
+                    vectorEffect="non-scaling-stroke"
                     strokeDasharray="5,5"
                     initial={{ pathLength: 0, opacity: 0 }}
                     animate={{ pathLength: 1, opacity: 1 }}
@@ -47,13 +59,17 @@ export default function TopologyView({ nodes: propNodes }: TopologyViewProps) {
             </svg>
 
             {nodes.map((node) => (
-                <motion.div
+                // Positioning wrapper: framer-motion owns `transform` on the inner node.
+                <div
                     key={node.id}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: pct(node.x, VIEW_W), top: pct(node.y, VIEW_H) }}
+                >
+                <motion.div
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: 'spring', stiffness: 200, delay: Math.random() * 0.5 }}
-                    className="absolute group cursor-pointer"
-                    style={{ left: node.x, top: node.y, transform: 'translate(-50%, -50%)' }}
+                    className="relative group cursor-pointer"
                 >
                     {/* Ripple Effect for Active Nodes */}
                     {node.status === 'active' && (
@@ -67,10 +83,11 @@ export default function TopologyView({ nodes: propNodes }: TopologyViewProps) {
                         }`} />
 
                     {/* Label */}
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white px-2 py-1 rounded shadow-sm border border-border-subtle text-[10px] font-semibold text-txt-secondary opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white px-2 py-1 rounded shadow-sm border border-border-subtle text-[10px] font-semibold text-txt-secondary z-20">
                         {node.label}
                     </div>
                 </motion.div>
+                </div>
             ))}
         </div>
     );

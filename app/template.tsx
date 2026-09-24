@@ -1,17 +1,21 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 
+// Opacity-only transition: a transform here would become the containing block
+// for the fixed sidebar / tab bar and make them slide with every navigation.
 export default function Template({ children }: { children: React.ReactNode }) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="w-full h-full"
-        >
-            {children}
-        </motion.div>
+        <MotionConfig reducedMotion="user">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="w-full h-full"
+            >
+                {children}
+            </motion.div>
+        </MotionConfig>
     );
 }

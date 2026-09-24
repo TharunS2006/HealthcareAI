@@ -11,7 +11,8 @@ import { Toaster } from 'react-hot-toast';
 export function ToastProvider() {
     return (
         <Toaster
-            position="top-right"
+            position="top-center"
+            containerStyle={{ top: 'calc(var(--sat) + 12px)' }}
             toastOptions={{
                 duration: 4000,
                 style: {

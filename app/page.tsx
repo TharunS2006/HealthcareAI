@@ -11,7 +11,10 @@ import { motion } from 'framer-motion';
 
 export default function Home() {
     return (
-        <main className="min-h-screen bg-bg-page flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden">
+        <main
+            className="min-h-screen min-h-[100dvh] bg-bg-page flex flex-col items-center justify-center px-safe relative overflow-hidden"
+            style={{ paddingTop: 'calc(var(--sat) + 1.5rem)', paddingBottom: 'calc(var(--sab) + 1.5rem)' }}
+        >
             {/* Subtle geometric background — not the standard radial blob */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
                 <div className="absolute top-[10%] left-[5%] w-[600px] h-[1px] bg-gradient-to-r from-transparent via-teal-accent/20 to-transparent rotate-[25deg]" />
@@ -24,10 +27,10 @@ export default function Home() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-center mb-14 relative z-10"
+                className="text-center mb-8 md:mb-14 px-4 relative z-10"
             >
                 <Logo size="lg" className="mb-5" />
-                <p className="text-txt-secondary text-base max-w-md mx-auto leading-relaxed">
+                <p className="text-txt-secondary text-sm sm:text-base max-w-md mx-auto leading-relaxed">
                     Offline-first mesh networking for disaster medical coordination.
                     AI triage, real-time tracking, zero-infrastructure deployment.
                 </p>
@@ -35,7 +38,7 @@ export default function Home() {
 
             {/* Asymmetric layout — featured card + two smaller cards */}
             <div className="w-full max-w-5xl px-4">
-                <div className="grid md:grid-cols-5 gap-5">
+                <div className="grid md:grid-cols-5 gap-4 md:gap-5">
 
                     {/* Featured: Triage Station — spans 3 cols */}
                     <motion.div
@@ -45,7 +48,7 @@ export default function Home() {
                         className="md:col-span-3"
                     >
                         <Link href="/triage" className="group block h-full">
-                            <div className="surface-card h-full p-8 md:p-10 border-l-4 border-l-teal-accent hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+                            <div className="surface-card h-full p-6 md:p-10 border-l-4 border-l-teal-accent hover:shadow-xl transition-all duration-300 relative overflow-hidden">
                                 {/* Subtle corner accent */}
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-accent/5 to-transparent rounded-bl-[80px]" />
 
@@ -88,7 +91,7 @@ export default function Home() {
                     </motion.div>
 
                     {/* Right column: stacked cards */}
-                    <div className="md:col-span-2 flex flex-col gap-5">
+                    <div className="md:col-span-2 flex flex-col gap-4 md:gap-5">
                         {/* Command Center */}
                         <motion.div
                             initial={{ opacity: 0, y: 15 }}

@@ -79,62 +79,64 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-8 relative">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-8 relative">
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="space-y-8"
+                className="space-y-5 md:space-y-8"
             >
                 {/* Section 1: Core Vitals */}
-                <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-8">
+                <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-5 md:gap-8">
                     {/* SpO2 */}
-                    <div className="surface-card p-6 border-l-4 border-l-teal-accent relative overflow-hidden group">
+                    <div className="surface-card p-5 md:p-6 border-l-4 border-l-teal-accent relative overflow-hidden group">
                         <div className="absolute top-3 right-4 opacity-[0.06] group-hover:opacity-[0.1] transition-opacity">
                             <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                         </div>
-                        <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide flex justify-between">
+                        <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide flex flex-wrap justify-between gap-2">
                             Oxygen Saturation (SpO2)
                             <span className="text-xs text-txt-muted bg-white px-2 py-0.5 rounded-full border font-medium normal-case tracking-normal">Normal: 95-100%</span>
                         </label>
-                        <div className="flex items-center gap-6 relative z-10">
+                        <div className="flex items-center gap-4 md:gap-6 relative z-10">
                             <input
                                 type="range"
                                 min="60"
                                 max="100"
                                 value={vitals.spo2}
                                 onChange={(e) => setVitals({ ...vitals, spo2: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-teal-accent"
+                                aria-label="Oxygen saturation"
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-teal-accent text-teal-accent touch-pan-y"
                             />
-                            <div className={`text-4xl font-bold font-mono w-24 text-right transition-colors ${vitals.spo2 < 90 ? 'text-status-red' : 'text-emerald-deep'}`}>
+                            <div className={`text-3xl md:text-4xl font-bold font-mono w-20 md:w-24 shrink-0 text-right transition-colors ${vitals.spo2 < 90 ? 'text-status-red' : 'text-emerald-deep'}`}>
                                 {vitals.spo2}%
                             </div>
                         </div>
                     </div>
 
                     {/* Pulse Rate */}
-                    <div className="surface-card p-6 border-l-4 border-l-status-red relative overflow-hidden group">
+                    <div className="surface-card p-5 md:p-6 border-l-4 border-l-status-red relative overflow-hidden group">
                         <div className="absolute top-3 right-4 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
                             <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h2l3-9 4 18 3-9h2" />
                             </svg>
                         </div>
-                        <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide flex justify-between">
+                        <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide flex flex-wrap justify-between gap-2">
                             Pulse Rate (BPM)
                             <span className="text-xs text-txt-muted bg-white px-2 py-0.5 rounded-full border font-medium normal-case tracking-normal">Normal: 60-100</span>
                         </label>
-                        <div className="flex items-center gap-6 relative z-10">
+                        <div className="flex items-center gap-4 md:gap-6 relative z-10">
                             <input
                                 type="range"
                                 min="30"
                                 max="200"
                                 value={vitals.heartRate}
                                 onChange={(e) => setVitals({ ...vitals, heartRate: parseInt(e.target.value) })}
-                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-status-red"
+                                aria-label="Pulse rate"
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-status-red text-status-red touch-pan-y"
                             />
-                            <div className={`text-4xl font-bold font-mono w-24 text-right transition-colors ${vitals.heartRate > 100 || vitals.heartRate < 50 ? 'text-status-yellow' : 'text-emerald-deep'}`}>
+                            <div className={`text-3xl md:text-4xl font-bold font-mono w-20 md:w-24 shrink-0 text-right transition-colors ${vitals.heartRate > 100 || vitals.heartRate < 50 ? 'text-status-yellow' : 'text-emerald-deep'}`}>
                                 {vitals.heartRate}
                             </div>
                         </div>
@@ -142,9 +144,9 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                 </motion.div>
 
                 {/* Section 2: Blood Pressure & Consciousness */}
-                <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-8">
+                <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-5 md:gap-8">
                     {/* Blood Pressure */}
-                    <div className="surface-card p-6 border-l-4 border-l-indigo-400">
+                    <div className="surface-card p-5 md:p-6 border-l-4 border-l-indigo-400">
                         <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide">
                             Blood Pressure (mmHg)
                         </label>
@@ -153,6 +155,8 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                                 <span className="text-xs text-txt-muted mb-1 block">Systolic</span>
                                 <input
                                     type="number"
+                                    inputMode="numeric"
+                                    enterKeyHint="next"
                                     value={vitals.bloodPressure?.systolic}
                                     onChange={(e) => setVitals({ ...vitals, bloodPressure: { ...vitals.bloodPressure!, systolic: parseInt(e.target.value) } })}
                                     className="w-full text-2xl font-mono font-bold text-center p-3 bg-white border border-border-active rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition-all"
@@ -163,6 +167,8 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                                 <span className="text-xs text-txt-muted mb-1 block">Diastolic</span>
                                 <input
                                     type="number"
+                                    inputMode="numeric"
+                                    enterKeyHint="next"
                                     value={vitals.bloodPressure?.diastolic}
                                     onChange={(e) => setVitals({ ...vitals, bloodPressure: { ...vitals.bloodPressure!, diastolic: parseInt(e.target.value) } })}
                                     className="w-full text-2xl font-mono font-bold text-center p-3 bg-white border border-border-active rounded-xl focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 outline-none transition-all"
@@ -172,7 +178,7 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                     </div>
 
                     {/* Consciousness (AVPU) */}
-                    <div className="surface-card p-6 border-t-4 border-t-purple-400">
+                    <div className="surface-card p-5 md:p-6 border-t-4 border-t-purple-400">
                         <label className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide">
                             Consciousness (AVPU)
                         </label>
@@ -182,7 +188,7 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                                     key={status}
                                     type="button"
                                     onClick={() => setVitals({ ...vitals, consciousness: status as any })}
-                                    className={`p-3 rounded-xl font-bold text-sm transition-all border-2 ${vitals.consciousness === status
+                                    className={`p-3 min-h-[48px] rounded-xl font-bold text-sm transition-all border-2 tap-target ${vitals.consciousness === status
                                             ? 'bg-emerald-deep text-white border-emerald-deep shadow-lg scale-[1.03]'
                                             : 'bg-white text-txt-secondary border-border-subtle hover:border-emerald-200'
                                         }`}
@@ -207,7 +213,7 @@ export default function VitalsForm({ onSubmit, onVoiceInput }: VitalsFormProps) 
                             onBlur={() => setFocusedField(null)}
                             placeholder="Describe injury mechanism, visible wounds, or patient complaints..."
                             rows={3}
-                            className={`w-full px-6 py-4 bg-white border-2 rounded-2xl text-txt-primary focus:outline-none transition-all resize-none shadow-sm ${focusedField === 'notes'
+                            className={`w-full px-4 md:px-6 py-4 text-base bg-white border-2 rounded-2xl text-txt-primary focus:outline-none transition-all resize-none shadow-sm ${focusedField === 'notes'
                                     ? 'border-teal-accent ring-4 ring-teal-accent/10 shadow-lg'
                                     : 'border-border-subtle'
                                 }`}

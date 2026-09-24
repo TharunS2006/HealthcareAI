@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- NalamMesh brand palette (matches tailwind.config.ts) -->
+    <color name="colorPrimary">#0E4D45</color>
+    <color name="colorPrimaryDark">#093630</color>
+    <color name="colorAccent">#2AA198</color>
+    <color name="splashBackground">#055643</color>
+    <color name="pageBackground">#F7F9FB</color>
+</resources>

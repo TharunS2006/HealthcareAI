@@ -27,6 +27,11 @@ export const DICTIONARY = {
         demoMode: 'Start Live Demo Flow',
         stopDemo: 'Stop Demo Mode',
         systemOnline: 'Mesh Network Online',
+        tabCommand: 'Command',
+        tabTriage: 'Triage',
+        tabMesh: 'Mesh',
+        tabAmbulance: 'Ambulance',
+        tabMore: 'More',
     },
     ta: {
         appTitle: 'நலம்மேஷ்',
@@ -49,6 +54,11 @@ export const DICTIONARY = {
         demoMode: 'நேரலை செயல்முறை தொடங்கு',
         stopDemo: 'செயல்முறை நிறுத்து',
         systemOnline: 'வலைப்பின்னல் இயங்குகிறது',
+        tabCommand: 'கட்டுப்பாடு',
+        tabTriage: 'பரிசோதனை',
+        tabMesh: 'வலைப்பின்னல்',
+        tabAmbulance: 'ஆம்புலன்ஸ்',
+        tabMore: 'மேலும்',
     },
     hi: {
         appTitle: 'नलममेश',
@@ -71,6 +81,11 @@ export const DICTIONARY = {
         demoMode: 'लाइव डेमो शुरू करें',
         stopDemo: 'डेमो रोकें',
         systemOnline: 'नेटवर्क सक्रिय है',
+        tabCommand: 'कमान',
+        tabTriage: 'ट्राइएज',
+        tabMesh: 'नेटवर्क',
+        tabAmbulance: 'एम्बुलेंस',
+        tabMore: 'और',
     },
 };
 

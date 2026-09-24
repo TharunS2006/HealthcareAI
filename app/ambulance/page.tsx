@@ -11,6 +11,7 @@ import { usePatientStore } from '@/stores/patientStore';
 import { getRecommendedHospital, getResourceChecklist, HOSPITALS } from '@/lib/data/hospitals';
 import Sidebar from '@/components/shared/Sidebar';
 import toast from 'react-hot-toast';
+import { hapticAlert } from '@/lib/native';
 
 export default function AmbulancePage() {
     const { patients, loadPatients, updatePatient } = usePatientStore();
@@ -50,6 +51,7 @@ export default function AmbulancePage() {
             await updatePatient({ ...p, transportStatus: 'COMPLETED' });
         }
         toast.success('Transport Completed. Patient Handover Done.');
+        hapticAlert('success');
         setAssignedPatients(prev => prev.filter(task => task.id !== id));
     };
 
@@ -57,12 +59,12 @@ export default function AmbulancePage() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -z-10" />
+            <main className="app-main">
+                <div className="hidden lg:block absolute top-0 right-0 w-64 h-64 bg-yellow-400/10 rounded-full blur-3xl -z-10" />
 
-                <header className="mb-8">
-                    <h1 className="text-3xl font-bold text-emerald-deep tracking-tight flex items-center gap-3">
-                        <svg className="w-8 h-8 text-emerald-deep" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <header className="mb-6 md:mb-8">
+                    <h1 className="text-2xl md:text-3xl font-bold text-emerald-deep tracking-tight flex items-center gap-3">
+                        <svg className="w-7 h-7 md:w-8 md:h-8 shrink-0 text-emerald-deep" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h6l2-2zm0 0l2 2h2a1 1 0 001-1v-5a1 1 0 00-.29-.71l-3-3A1 1 0 0014 9h-1m-6 8h.01M17 16h.01" />
                         </svg>
                         Ambulance Crew Portal
@@ -70,9 +72,9 @@ export default function AmbulancePage() {
                     <p className="text-txt-secondary text-sm mt-1">Vehicle ID: TN-02-G-108 • Unit 42 • Active</p>
                 </header>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                     {assignedPatients.length === 0 ? (
-                        <div className="surface-card p-12 text-center opacity-70">
+                        <div className="surface-card p-8 md:p-12 text-center opacity-70">
                             <h3 className="text-xl font-bold text-txt-secondary">No Active Transport Tasks</h3>
                             <p className="text-sm">Standby for dispatch.</p>
                         </div>
@@ -82,7 +84,7 @@ export default function AmbulancePage() {
                                 key={task.id}
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`surface-card p-6 border-l-8 ${task.triageStatus === 'RED' ? 'border-l-status-red' :
+                                className={`surface-card p-4 pt-6 md:p-6 border-l-8 ${task.triageStatus === 'RED' ? 'border-l-status-red' :
                                     task.triageStatus === 'YELLOW' ? 'border-l-status-yellow' : 'border-l-emerald-500'
                                     } shadow-lg relative overflow-hidden`}
                             >
@@ -93,7 +95,7 @@ export default function AmbulancePage() {
                                     </div>
                                 )}
 
-                                <div className="grid md:grid-cols-3 gap-6">
+                                <div className="grid md:grid-cols-3 gap-4 md:gap-6">
                                     {/* Column 1: Patient & Vitals */}
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-start">
@@ -153,7 +155,7 @@ export default function AmbulancePage() {
 
                                         <button
                                             onClick={() => handleCallHospital(task.destination.contact)}
-                                            className="w-full py-2 bg-white border-2 border-emerald-500 text-emerald-600 font-bold rounded-lg hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2 text-sm"
+                                            className="w-full py-3 min-h-[48px] bg-white border-2 border-emerald-500 text-emerald-600 font-bold rounded-lg hover:bg-emerald-50 transition-colors flex items-center justify-center gap-2 text-sm"
                                         >
                                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
@@ -176,7 +178,7 @@ export default function AmbulancePage() {
 
                                         <button
                                             onClick={() => handleCompleteTask(task.id)}
-                                            className="w-full mt-4 py-3 bg-emerald-deep text-white font-bold rounded-xl shadow-lg hover:bg-emerald-800 transition-all flex items-center justify-center gap-2"
+                                            className="w-full mt-4 py-3.5 min-h-[48px] bg-emerald-deep text-white font-bold rounded-xl shadow-lg hover:bg-emerald-800 transition-all flex items-center justify-center gap-2"
                                         >
                                             <span>Complete Transport</span>
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

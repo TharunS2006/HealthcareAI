@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
 import { classifyTriage } from '@/lib/triage/model';
+import { hapticAlert } from '@/lib/native';
 
 export default function TriagePage() {
     const { addPatient } = usePatientStore();
@@ -72,6 +73,7 @@ export default function TriagePage() {
 
         await addPatient(newPatient);
         toast.success('Patient Record Saved & Synced');
+        hapticAlert(result.status === 'RED' ? 'warning' : 'success');
 
         // Play alert sound for RED patients
         if (result.status === 'RED') {
@@ -92,12 +94,12 @@ export default function TriagePage() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-8 overflow-y-auto h-screen relative">
+            <main className="app-main">
                 {/* Background decoration */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
+                <div className="hidden lg:block absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
 
                 <div className="max-w-5xl mx-auto">
-                    <header className="mb-8 flex justify-between items-end">
+                    <header className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
                         <div>
                             <div className="flex items-center gap-3 text-emerald-deep mb-2">
                                 <div className="p-2 bg-emerald-100 rounded-lg">
@@ -107,12 +109,12 @@ export default function TriagePage() {
                                 </div>
                                 <h1 className="text-2xl font-bold tracking-tight">New Patient Entry</h1>
                             </div>
-                            <p className="text-txt-secondary text-sm ml-14">
+                            <p className="text-txt-secondary text-sm sm:ml-14">
                                 Step 1: Manual Vitals & AI Analysis
                             </p>
                         </div>
                         {/* GPS Status Badge */}
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${
+                        <div className={`self-start sm:self-auto flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border ${
                             gpsStatus === 'acquired' ? 'bg-green-50 text-green-700 border-green-200' :
                             gpsStatus === 'denied' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                             'bg-blue-50 text-blue-700 border-blue-200 animate-pulse'
@@ -127,9 +129,9 @@ export default function TriagePage() {
                         </div>
                     </header>
 
-                    <div className="grid lg:grid-cols-3 gap-8 items-start">
+                    <div className="grid xl:grid-cols-3 gap-6 md:gap-8 items-start">
                         {/* Main Form Area */}
-                        <div className="lg:col-span-2">
+                        <div className="xl:col-span-2">
                             <AnimatePresence mode="wait">
                                 {step === 'form' && (
                                     <motion.div
@@ -149,7 +151,7 @@ export default function TriagePage() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        className="surface-card p-12 flex flex-col items-center justify-center min-h-[400px] text-center"
+                                        className="surface-card p-8 md:p-12 flex flex-col items-center justify-center min-h-[320px] md:min-h-[400px] text-center"
                                     >
                                         <div className="relative w-28 h-28 mb-8">
                                             <div className="absolute inset-0 border-[3px] border-emerald-100 rounded-full" />
@@ -170,7 +172,7 @@ export default function TriagePage() {
                                         key="result"
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="surface-card p-8 bg-white shadow-card border-t-4 border-emerald-500"
+                                        className="surface-card p-4 md:p-8 bg-white shadow-card border-t-4 border-emerald-500"
                                     >
                                         <TriageResult
                                             status={result.status}
@@ -190,7 +192,7 @@ export default function TriagePage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="hidden lg:block space-y-6"
+                            className="hidden xl:block space-y-6"
                         >
                             <div className="surface-card p-6 bg-white/80 backdrop-blur">
                                 <h3 className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide border-b border-border-subtle pb-2">

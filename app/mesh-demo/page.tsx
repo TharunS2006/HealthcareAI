@@ -28,16 +28,16 @@ export default function MeshDemoPage() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-8 h-screen flex flex-col">
-                <header className="mb-6">
+            <main className="app-main flex flex-col">
+                <header className="mb-4 md:mb-6">
                     <h1 className="text-2xl font-bold text-emerald-deep tracking-tight">Mesh Network Status</h1>
                     <p className="text-txt-secondary text-sm">Real-time local connection topology</p>
                 </header>
 
-                <div className="grid lg:grid-cols-3 gap-6 flex-1 overflow-hidden">
+                <div className="grid xl:grid-cols-3 gap-4 md:gap-6 xl:flex-1 xl:min-h-0 xl:overflow-hidden">
                     {/* Topology Visualizer */}
-                    <div className="lg:col-span-2 surface-card p-6 bg-white shadow-card flex flex-col">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="xl:col-span-2 surface-card p-4 md:p-6 bg-white shadow-card flex flex-col min-h-[340px] md:min-h-[420px]">
+                        <div className="flex justify-between items-center mb-4 md:mb-6">
                             <h2 className="text-lg font-bold text-emerald-deep">Network Topology</h2>
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-status-green animate-pulse" />
@@ -50,7 +50,7 @@ export default function MeshDemoPage() {
                     </div>
 
                     {/* Chat / Log */}
-                    <div className="surface-card bg-white shadow-card flex flex-col overflow-hidden">
+                    <div className="surface-card bg-white shadow-card flex flex-col overflow-hidden h-[460px] xl:h-auto">
                         <div className="p-4 border-b border-border-subtle bg-gray-50/50">
                             <h2 className="text-sm font-bold text-emerald-deep uppercase tracking-wide">Secure Broadcast</h2>
                         </div>
@@ -83,11 +83,14 @@ export default function MeshDemoPage() {
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder="Type broadcast message..."
-                                    className="flex-1 px-4 py-2 bg-gray-50 border border-border-active rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent/20 focus:border-teal-accent transition-all"
+                                    enterKeyHint="send"
+                                    aria-label="Broadcast message"
+                                    className="flex-1 min-w-0 px-4 py-2.5 bg-gray-50 border border-border-active rounded-xl text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-teal-accent/20 focus:border-teal-accent transition-all"
                                 />
                                 <button
                                     type="submit"
-                                    className="p-2 bg-emerald-deep text-white rounded-xl hover:bg-emerald-800 transition-colors"
+                                    aria-label="Send"
+                                    className="p-2.5 min-w-[44px] flex items-center justify-center bg-emerald-deep text-white rounded-xl hover:bg-emerald-800 transition-colors"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

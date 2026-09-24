@@ -70,11 +70,11 @@ export default function DashboardPage() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative overflow-x-hidden w-full">
+            <main className="app-main">
                 {/* Background decoration */}
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-teal-accent/5 rounded-full blur-3xl -z-10" />
+                <div className="hidden lg:block absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-teal-accent/5 rounded-full blur-3xl -z-10" />
 
-                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 md:mb-8">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-bold text-emerald-deep tracking-tight">Main Command</h1>
                         <p className="text-txt-secondary text-sm mt-1 flex items-center gap-2">
@@ -83,7 +83,7 @@ export default function DashboardPage() {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-3 flex-wrap">
                         <DemoModeToggle />
                         {unsyncedCount > 0 && (
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg text-xs font-bold shadow-sm">
@@ -97,15 +97,15 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
                     {/* Stat Card: Total */}
-                    <motion.div variants={itemVariants} className="surface-card p-6 flex flex-col justify-between h-36 border-l-4 border-l-blue-500">
+                    <motion.div variants={itemVariants} className="surface-card p-4 md:p-6 flex flex-col justify-between h-32 md:h-36 border-l-4 border-l-blue-500">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-xs font-bold text-txt-muted uppercase tracking-wider">Total Census</p>
-                                <h3 className="text-4xl font-bold text-emerald-deep mt-2">{stats.total}</h3>
+                                <p className="text-[11px] md:text-xs font-bold text-txt-muted uppercase tracking-wider">Total Census</p>
+                                <h3 className="text-3xl md:text-4xl font-bold text-emerald-deep mt-2">{stats.total}</h3>
                             </div>
-                            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                            <div className="hidden sm:block p-2.5 bg-blue-50 text-blue-600 rounded-xl">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
@@ -117,13 +117,13 @@ export default function DashboardPage() {
                     </motion.div>
 
                     {/* Stat Card: Critical */}
-                    <motion.div variants={itemVariants} className="surface-card p-6 flex flex-col justify-between h-36 border-l-4 border-l-status-red">
+                    <motion.div variants={itemVariants} className="surface-card p-4 md:p-6 flex flex-col justify-between h-32 md:h-36 border-l-4 border-l-status-red">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-xs font-bold text-txt-muted uppercase tracking-wider">Critical (Red)</p>
-                                <h3 className="text-4xl font-bold text-status-red mt-2">{stats.red}</h3>
+                                <p className="text-[11px] md:text-xs font-bold text-txt-muted uppercase tracking-wider">Critical (Red)</p>
+                                <h3 className="text-3xl md:text-4xl font-bold text-status-red mt-2">{stats.red}</h3>
                             </div>
-                            <div className="p-2.5 bg-red-50 text-status-red rounded-xl">
+                            <div className="hidden sm:block p-2.5 bg-red-50 text-status-red rounded-xl">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                 </svg>
@@ -135,13 +135,13 @@ export default function DashboardPage() {
                     </motion.div>
 
                     {/* Stat Card: Urgent */}
-                    <motion.div variants={itemVariants} className="surface-card p-6 flex flex-col justify-between h-36 border-l-4 border-l-status-yellow">
+                    <motion.div variants={itemVariants} className="surface-card p-4 md:p-6 flex flex-col justify-between h-32 md:h-36 border-l-4 border-l-status-yellow">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-xs font-bold text-txt-muted uppercase tracking-wider">Urgent (Yellow)</p>
-                                <h3 className="text-4xl font-bold text-status-yellow mt-2">{stats.yellow}</h3>
+                                <p className="text-[11px] md:text-xs font-bold text-txt-muted uppercase tracking-wider">Urgent (Yellow)</p>
+                                <h3 className="text-3xl md:text-4xl font-bold text-status-yellow mt-2">{stats.yellow}</h3>
                             </div>
-                            <div className="p-2.5 bg-yellow-50 text-status-yellow rounded-xl">
+                            <div className="hidden sm:block p-2.5 bg-yellow-50 text-status-yellow rounded-xl">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -153,13 +153,13 @@ export default function DashboardPage() {
                     </motion.div>
 
                     {/* Stat Card: Stable */}
-                    <motion.div variants={itemVariants} className="surface-card p-6 flex flex-col justify-between h-36 border-l-4 border-l-status-green">
+                    <motion.div variants={itemVariants} className="surface-card p-4 md:p-6 flex flex-col justify-between h-32 md:h-36 border-l-4 border-l-status-green">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-xs font-bold text-txt-muted uppercase tracking-wider">Stable (Green)</p>
-                                <h3 className="text-4xl font-bold text-status-green mt-2">{stats.green}</h3>
+                                <p className="text-[11px] md:text-xs font-bold text-txt-muted uppercase tracking-wider">Stable (Green)</p>
+                                <h3 className="text-3xl md:text-4xl font-bold text-status-green mt-2">{stats.green}</h3>
                             </div>
-                            <div className="p-2.5 bg-green-50 text-status-green rounded-xl">
+                            <div className="hidden sm:block p-2.5 bg-green-50 text-status-green rounded-xl">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                             {patients.filter(p => p.gps.lat !== 0).length} active pins
                         </span>
                     </div>
-                    <div className="surface-card overflow-hidden h-[400px]">
+                    <div className="surface-card overflow-hidden isolate h-[280px] md:h-[400px]">
                         <LiveMap patients={patients} className="h-full" />
                     </div>
                 </motion.div>
@@ -207,29 +207,73 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-6">
+                    <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                         {HOSPITALS.map(hospital => (
                             <HospitalCard key={hospital.id} hospital={hospital} />
                         ))}
                     </div>
                 </motion.div>
 
-                <div className="grid lg:grid-cols-3 gap-6">
+                <div className="grid xl:grid-cols-3 gap-6">
                     {/* Patient List */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="lg:col-span-2 surface-card p-6 bg-white/90 backdrop-blur"
+                        className="xl:col-span-2 surface-card p-4 md:p-6 bg-white/90 backdrop-blur"
                     >
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex justify-between items-center mb-4 md:mb-6">
                             <h2 className="text-lg font-bold text-emerald-deep">Active Patient Queue</h2>
                             <button className="text-xs font-bold text-teal-accent border border-teal-accent px-3 py-1.5 rounded-lg hover:bg-teal-50 transition-colors">
                                 EXPORT DATA
                             </button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Phone / tablet: card list */}
+                        <ul className="md:hidden divide-y divide-border-subtle -mx-1">
+                            {patients.length === 0 ? (
+                                <li className="py-10 text-center text-txt-muted text-sm">
+                                    No active patients. Waiting for new triage data...
+                                </li>
+                            ) : (
+                                patients.slice().reverse().slice(0, 8).map((patient) => (
+                                    <li key={patient.id}>
+                                        <Link
+                                            href={`/patient?id=${patient.id}`}
+                                            className="flex items-center gap-3 px-1 py-3.5 active:bg-teal-50/50 rounded-lg transition-colors"
+                                        >
+                                            <span className={`w-1.5 self-stretch rounded-full ${patient.triageStatus === 'RED' ? 'bg-status-red' : patient.triageStatus === 'YELLOW' ? 'bg-status-yellow' : 'bg-status-green'}`} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm font-semibold text-emerald-deep">
+                                                        {new Date(patient.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <span className="font-mono text-[11px] text-txt-muted">#{patient.id.slice(0, 6)}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 text-xs text-txt-secondary mt-0.5">
+                                                    <span>SpO2 <b className="text-emerald-deep">{patient.vitals.spo2}%</b></span>
+                                                    <span>Pulse <b className="text-emerald-deep">{patient.vitals.heartRate}</b></span>
+                                                    {patient.vitals.bloodPressure && (
+                                                        <span>BP <b className="text-emerald-deep">{patient.vitals.bloodPressure.systolic}/{patient.vitals.bloodPressure.diastolic}</b></span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1 shrink-0">
+                                                {getStatusBadge(patient.triageStatus)}
+                                                <span className="text-[10px] font-bold text-txt-muted">
+                                                    {patient.transportStatus === 'COMPLETED' ? '✓ ADMITTED' : '🚑 IN TRANSIT'}
+                                                </span>
+                                            </div>
+                                            <svg className="w-4 h-4 text-txt-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </Link>
+                                    </li>
+                                ))
+                            )}
+                        </ul>
+
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
                                 <thead>
                                     <tr className="border-b border-border-subtle text-left">
@@ -297,7 +341,7 @@ export default function DashboardPage() {
                                                     </div>
                                                 </td>
                                                 <td className="py-4 text-right pr-2">
-                                                    <Link href={`/dashboard/${patient.id}`} className="text-teal-accent hover:text-teal-hover bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
+                                                    <Link href={`/patient?id=${patient.id}`} className="text-teal-accent hover:text-teal-hover bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-all">
                                                         VIEW
                                                     </Link>
                                                 </td>
@@ -314,7 +358,7 @@ export default function DashboardPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="surface-card p-6 bg-white/90 backdrop-blur flex flex-col"
+                        className="surface-card p-4 md:p-6 bg-white/90 backdrop-blur flex flex-col"
                     >
                         <h2 className="text-lg font-bold text-emerald-deep mb-6">Triage Distribution</h2>
                         <div className="flex-1 min-h-[250px] w-full flex items-end justify-center px-2 gap-8 pb-6 border-b border-border-subtle">

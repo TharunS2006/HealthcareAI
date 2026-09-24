@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isNative } from '@/lib/native';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -19,6 +20,13 @@ export default function PWAInstall() {
     const [isInstalled, setIsInstalled] = useState(false);
 
     useEffect(() => {
+        // The native apps bundle every asset locally; a service worker would only
+        // cache stale builds (and is unsupported on iOS custom schemes).
+        if (isNative()) {
+            setIsInstalled(true);
+            return;
+        }
+
         // Register service worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker
@@ -66,7 +74,8 @@ export default function PWAInstall() {
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: 80, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="fixed bottom-4 right-4 md:right-6 z-[9999] bg-white border border-border-subtle rounded-xl shadow-lg p-3.5 flex items-center gap-3 max-w-[320px]"
+                style={{ bottom: 'calc(var(--sab) + var(--tabbar-h) + 0.75rem)' }}
+                className="fixed right-4 md:right-6 lg:!bottom-4 z-[9999] bg-white border border-border-subtle rounded-xl shadow-lg p-3.5 flex items-center gap-3 max-w-[320px]"
             >
                 <div className="w-9 h-9 bg-emerald-deep rounded-lg flex items-center justify-center text-white shrink-0">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

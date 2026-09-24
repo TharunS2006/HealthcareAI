@@ -81,12 +81,12 @@ export default function TriageResult({
             className="space-y-6"
         >
             {/* Status Card with Confidence Gauge */}
-            <div className={`${config.bg} border-2 ${config.border} rounded-2xl p-8 relative overflow-hidden`}>
+            <div className={`${config.bg} border-2 ${config.border} rounded-2xl p-5 md:p-8 relative overflow-hidden`}>
                 <div className="relative z-10 flex items-center gap-8">
                     {/* Left: Status */}
                     <div className="flex-1 text-center md:text-left">
-                        <div className={`${config.text} mb-4`}>{config.icon}</div>
-                        <h2 className={`text-3xl font-bold ${config.text} mb-2 tracking-tight`}>{config.label} PRIORITY</h2>
+                        <div className={`${config.text} mb-4 flex justify-center md:justify-start`}>{config.icon}</div>
+                        <h2 className={`text-2xl md:text-3xl font-bold ${config.text} mb-2 tracking-tight`}>{config.label} PRIORITY</h2>
                         <p className="text-txt-secondary font-medium">
                             {status === 'RED' ? 'Immediate life-saving intervention required' :
                              status === 'YELLOW' ? 'Urgent attention — observation needed' :
@@ -187,7 +187,7 @@ export default function TriageResult({
                     )}
                     <button
                         onClick={onEdit}
-                        className="py-3.5 bg-white border border-border-active text-txt-secondary font-bold rounded-xl hover:bg-gray-50 transition-all"
+                        className={`${onRelay ? '' : 'col-span-2 '}py-3.5 bg-white border border-border-active text-txt-secondary font-bold rounded-xl hover:bg-gray-50 transition-all`}
                     >
                         Edit Vitals
                     </button>

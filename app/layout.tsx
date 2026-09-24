@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { ToastProvider } from "@/components/shared/Toast";
 import SocketInit from "@/components/shared/SocketInit";
+import NativeInit from "@/components/shared/NativeInit";
 import PWAInstall from "@/components/shared/PWAInstall";
-import { Toaster } from 'react-hot-toast';
 
 const jakarta = Plus_Jakarta_Sans({
     subsets: ["latin"],
@@ -26,6 +27,8 @@ export const viewport: Viewport = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
+    // Draw under the notch / home indicator; insets are handled in CSS (--sat etc.)
+    viewportFit: "cover",
     themeColor: "#0E4D45", // Deep Emerald
 };
 
@@ -48,17 +51,14 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" className={`${jakarta.variable} ${jetbrains.variable}`}>
-            <head>
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
-                />
-            </head>
             <body className="antialiased bg-bg-page text-txt-primary">
                 <ErrorBoundary>
+                    <NativeInit />
+                    {/* Solid backdrop behind the status bar / notch so content scrolls under it cleanly */}
+                    <div aria-hidden className="status-scrim" />
                     <SocketInit />
                     {children}
-                    <Toaster position="top-right" />
+                    <ToastProvider />
                     <PWAInstall />
                 </ErrorBoundary>
             </body>

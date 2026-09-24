@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import PatientDetailClient from '@/components/dashboard/PatientDetailClient';
 
 export function generateStaticParams() {
@@ -5,5 +6,9 @@ export function generateStaticParams() {
 }
 
 export default function PatientDetailPage() {
-    return <PatientDetailClient />;
+    return (
+        <Suspense fallback={null}>
+            <PatientDetailClient />
+        </Suspense>
+    );
 }
