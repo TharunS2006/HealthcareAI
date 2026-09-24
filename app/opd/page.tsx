@@ -65,7 +65,7 @@ export default function OPDPage() {
     });
 
     // Voice Input Integration
-    const { isListening, isSupported, transcript, startListening, stopListening } = useVoiceInput();
+    const { isListening, isSupported, isTranscribing, engine, error: voiceError, transcript, startListening, stopListening } = useVoiceInput();
 
     useEffect(() => {
         if (transcript) {
@@ -663,16 +663,22 @@ export default function OPDPage() {
                                             {isSupported && (
                                                 <button
                                                     type="button"
+                                                    disabled={isTranscribing}
+                                                    title={engine === 'BHASHINI' ? 'Speech recognition by Bhashini (Government of India)' : 'Speech recognition by this browser'}
                                                     onClick={() => (isListening ? stopListening() : startListening(language === 'mr' ? 'mr-IN' : language === 'hi' ? 'hi-IN' : 'en-IN'))}
-                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
+                                                    className={`px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 disabled:opacity-60 ${
                                                         isListening ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                                                     }`}
                                                 >
-                                                    <Icon name={isListening ? 'mic' : 'mic'} className="w-3 h-3" />
-                                                    {isListening ? L.voiceListening : L.voicePrompt}
+                                                    <Icon name="mic" className="w-3 h-3" />
+                                                    {isTranscribing ? (isEn ? 'Transcribing…' : isHi ? 'लिख रहे हैं…' : 'लिहित आहे…') : isListening ? (engine === 'BHASHINI' ? (isEn ? 'Stop & transcribe' : isHi ? 'रोकें' : 'थांबा') : L.voiceListening) : L.voicePrompt}
+                                                    {engine === 'BHASHINI' && <span className="font-normal opacity-80">· Bhashini</span>}
                                                 </button>
                                             )}
                                         </div>
+                                        {voiceError && (
+                                            <p role="alert" className="text-[11px] text-red-700 mb-1">{voiceError}</p>
+                                        )}
                                         <textarea
                                             rows={2}
                                             value={vitals.injuryType}

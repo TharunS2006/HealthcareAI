@@ -32,6 +32,8 @@ import { useDirectoryStore } from '@/stores/directoryStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import type { StaffUser } from '@/lib/auth/users';
+import { hashPin, PIN_PATTERN } from '@/lib/auth/pin';
+import { wireOf } from '@/lib/referrals/transport';
 import type { Facility } from '@/types/facility';
 
 type Tab = 'USERS' | 'ROLES' | 'FACILITIES';
@@ -54,6 +56,8 @@ export default function AdminPage() {
     const [tab, setTab] = useState<Tab>('USERS');
     const [editing, setEditing] = useState<StaffUser | null>(null);
     const [isNew, setIsNew] = useState(false);
+    /** A new PIN typed for the user being edited — hashed before it is saved, never stored as typed. */
+    const [pinDraft, setPinDraft] = useState('');
     const [facilityDraft, setFacilityDraft] = useState<Facility | null>(null);
     const [filter, setFilter] = useState('');
 
@@ -65,7 +69,7 @@ export default function AdminPage() {
     );
 
     if (!session) return null;
-    const wire = { userId: session.userId, name: session.name, role: session.role, facilityId: session.facilityId };
+    const wire = wireOf(session)!;
     const facilityName = (id: string | null) => (id ? facilities.find(f => f.id === id)?.name ?? id : 'District / system');
 
     const saveUser = async () => {
@@ -81,7 +85,10 @@ export default function AdminPage() {
             if (!f || !tiers.includes(f.type)) return toast.error(`${ROLE_LABELS[u.role]} must be posted at a ${tiers.join(' / ')}`);
         }
         if (!u.active && u.id === session.userId) return toast.error('You cannot deactivate your own account');
+        if (pinDraft && !PIN_PATTERN.test(pinDraft)) return toast.error('A PIN is 4 to 6 digits');
+        if (!pinDraft && !u.pinHash) return toast.error('Set a PIN — without one this user cannot sign in');
         try {
+            if (pinDraft) u.pinHash = await hashPin(pinDraft);
             await upsert(u, wire);
             toast.success(`${u.name} saved`);
             if (u.facilityId && u.active && !users.some(x => x.id !== u.id && x.active && x.role === u.role && x.facilityId === u.facilityId)) {
@@ -92,6 +99,7 @@ export default function AdminPage() {
                 toast.error(`No active ${ROLE_LABELS[editing.role]} is left at ${facilityName(editing.facilityId)} — referrals there will reach nobody`, { duration: 9000 });
             }
             setEditing(null);
+            setPinDraft('');
         } catch (e) {
             toast.error(`Could not save: ${(e as Error).message}`);
         }
@@ -136,6 +144,7 @@ export default function AdminPage() {
                                 <input className={`${field} flex-1 min-w-[12rem]`} placeholder="Search name, staff ID, role, facility" value={filter} onChange={e => setFilter(e.target.value)} />
                                 <button type="button" className={primary} onClick={() => {
                                     setIsNew(true);
+                                    setPinDraft('');
                                     setEditing({ id: `u-${Date.now().toString(36)}`, name: '', role: 'ANM', facilityId: postingOptions('ANM')[0]?.id ?? null, staffId: '', active: true });
                                 }}>+ Add user</button>
                             </div>
@@ -169,12 +178,17 @@ export default function AdminPage() {
                                             </select>
                                         )}
                                     </label>
+                                    <label>
+                                        <span className="block text-[11px] font-bold text-slate-600">{editing.pinHash ? 'New PIN (leave blank to keep)' : 'PIN (4–6 digits)'}</span>
+                                        <input className={`${field} w-full font-mono`} type="password" inputMode="numeric" autoComplete="new-password" maxLength={6}
+                                            value={pinDraft} onChange={e => setPinDraft(e.target.value.replace(/\D/g, ''))} />
+                                    </label>
                                     <label className="flex items-center gap-1.5">
                                         <input type="checkbox" checked={editing.active} onChange={e => setEditing({ ...editing, active: e.target.checked })} /> Active
                                     </label>
                                     <div className="flex gap-2 lg:col-span-4">
                                         <button type="button" className={primary} onClick={() => void saveUser()}>{isNew ? 'Add user' : 'Save changes'}</button>
-                                        <button type="button" className={secondary} onClick={() => setEditing(null)}>Cancel</button>
+                                        <button type="button" className={secondary} onClick={() => { setEditing(null); setPinDraft(''); }}>Cancel</button>
                                     </div>
                                 </div>
                             )}
@@ -199,7 +213,7 @@ export default function AdminPage() {
                                                 <td className="font-mono">{u.staffId}</td>
                                                 <td>{u.active ? 'Active' : 'Deactivated'}</td>
                                                 <td className="text-right">
-                                                    <button type="button" className={secondary} onClick={() => { setIsNew(false); setEditing(u); }}>Edit</button>
+                                                    <button type="button" className={secondary} onClick={() => { setIsNew(false); setPinDraft(''); setEditing(u); }}>Edit</button>
                                                 </td>
                                             </tr>
                                         ))}

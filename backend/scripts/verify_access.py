@@ -5,7 +5,8 @@ Drives the FastAPI app through its HTTP layer (TestClient) against a
 throwaway database and checks that every data route applies the role rules
 exported from lib/auth/permissions.ts:
 
-  1. identity  no headers → 401 on every data route; health and chat stay open
+  1. identity  no token → 401 on every data route; health and chat stay open;
+               claimed headers, tampered, expired or foreign tokens → 401
   2. roles     the full record store is DHO / Super Admin only; analytics
                likewise; uploads need a signed-in staff role
   3. scope     a facility reads only its own pre-arrival board; district roles
@@ -21,6 +22,11 @@ import tempfile
 _tmp = tempfile.mkdtemp()
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/verify_access.db"
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from session_tokens import TEST_SECRET, bearer, mint  # noqa: E402
+
+os.environ["NALAMMESH_AUTH_SECRET"] = TEST_SECRET
 
 from fastapi.testclient import TestClient  # noqa: E402
 
@@ -37,10 +43,7 @@ def check(label, condition, detail=""):
 
 
 def who(user, role, facility=None):
-    headers = {"x-nalammesh-user": user, "x-nalammesh-role": role}
-    if facility:
-        headers["x-nalammesh-facility"] = facility
-    return headers
+    return bearer(user, role, facility)
 
 
 ANM = who("u-anm-kothi", "ANM", "sc-kothi")
@@ -72,6 +75,19 @@ with TestClient(app) as client:
     check("the citizen assistant is not behind sign-in", r.status_code != 401 and r.status_code != 403, str(r.status_code))
     r = client.get("/api/v1/store", headers=who("x", "NOT_A_ROLE"))
     check("an unknown role is treated as no identity (401)", r.status_code == 401, str(r.status_code))
+    claimed = {"x-nalammesh-user": "u-dho", "x-nalammesh-role": "DHO"}
+    check("claimed identity headers are not identity (401)", client.get("/api/v1/store", headers=claimed).status_code == 401)
+    good = mint("u-dho", "DHO")
+    head, body, sig = good.split(".")
+    import base64 as _b, json as _j
+    raised = _b.urlsafe_b64encode(_j.dumps({**_j.loads(_b.urlsafe_b64decode(body + "==")), "role": "SUPER_ADMIN"}).encode()).rstrip(b"=").decode()
+    check("a token whose role was edited is refused (401)",
+          client.get("/api/v1/store", headers={"Authorization": f"Bearer {head}.{raised}.{sig}"}).status_code == 401)
+    check("an expired token is refused (401)",
+          client.get("/api/v1/store", headers=bearer("u-dho", "DHO", ttl=-10)).status_code == 401)
+    check("a token signed with another secret is refused (401)",
+          client.get("/api/v1/store", headers=bearer("u-dho", "DHO", secret="another-secret-" + "y" * 30)).status_code == 401)
+    check("a valid relay token is accepted (200)", client.get("/api/v1/store", headers={"Authorization": f"Bearer {good}"}).status_code == 200)
 
     print("\n2. ROLES")
     check("an ANM cannot read the full record store (403)", client.get("/api/v1/store", headers=ANM).status_code == 403)

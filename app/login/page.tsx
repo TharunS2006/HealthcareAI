@@ -1,6 +1,9 @@
 /**
  * Citizen Authentication & Consent Portal — Module 0
- * Implements OTP / ABHA authentication with DPDP Act & ABDM consent flags. */
+ *
+ * ABHA login is real: the ABDM sandbox texts an OTP to the mobile number linked
+ * to the ABHA number and checks it (lib/abha/client.ts → server/relay/abha.ts).
+ * Mobile OTP has no SMS gateway in this build and is labelled a demo. */
 
 'use client';
 
@@ -9,14 +12,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
+import { requestAbhaOtp, verifyAbhaOtp } from '@/lib/abha/client';
 
 export default function LoginPage() {
     const router = useRouter();
-    const [loginMethod, setLoginMethod] = useState<'PHONE_OTP' | 'ABHA'>('PHONE_OTP');
+    const [loginMethod, setLoginMethod] = useState<'PHONE_OTP' | 'ABHA'>('ABHA');
     const [phone, setPhone] = useState('9876543210');
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
-    const [abhaId, setAbhaId] = useState('91-8842-1002-4912');
+    const [abhaId, setAbhaId] = useState('');
+    const [abhaTxn, setAbhaTxn] = useState<string | null>(null);
+    const [abhaOtp, setAbhaOtp] = useState('');
+    const [abhaNote, setAbhaNote] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
+    const [busy, setBusy] = useState(false);
     const [consentRecordSharing, setConsentRecordSharing] = useState(true);
     const [consentSmsReminders, setConsentSmsReminders] = useState(true);
     const [consentTeleconsult, setConsentTeleconsult] = useState(true);
@@ -33,7 +41,37 @@ export default function LoginPage() {
 
     const handleVerify = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Signed in (demo) — ABHA and OTP are not verified in this build', { icon: <Icon name="check-circle" className="w-4 h-4" /> });
+        toast.success('Signed in (demo) — mobile OTP is not verified in this build', { icon: <Icon name="check-circle" className="w-4 h-4" /> });
+        router.push('/');
+    };
+
+    const sendAbhaOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBusy(true);
+        setAbhaNote(null);
+        const answer = await requestAbhaOtp(abhaId);
+        setBusy(false);
+        if (!answer.ok) {
+            setAbhaNote({ tone: 'error', text: answer.message });
+            return;
+        }
+        setAbhaTxn(answer.value.txnId);
+        setAbhaOtp('');
+        setAbhaNote({ tone: 'info', text: answer.value.message });
+    };
+
+    const confirmAbhaOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!abhaTxn) return;
+        setBusy(true);
+        setAbhaNote(null);
+        const answer = await verifyAbhaOtp(abhaTxn, abhaOtp);
+        setBusy(false);
+        if (!answer.ok) {
+            setAbhaNote({ tone: 'error', text: answer.message });
+            return;
+        }
+        toast.success(`ABHA verified — welcome, ${answer.value.name} (${answer.value.abhaNumber})`, { icon: <Icon name="check-circle" className="w-4 h-4" />, duration: 6000 });
         router.push('/');
     };
 
@@ -61,7 +99,7 @@ export default function LoginPage() {
                                 : 'border-transparent text-txt-secondary hover:text-gov-navy'
                         }`}
                     >
-                        Mobile OTP
+                        Mobile OTP (demo)
                     </button>
                     <button
                         type="button"
@@ -126,29 +164,59 @@ export default function LoginPage() {
                         </button>
                     </form>
                 ) : (
-                    <form onSubmit={handleVerify} className="space-y-4">
+                    <form onSubmit={abhaTxn ? confirmAbhaOtp : sendAbhaOtp} className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
-                                14-Digit ABHA ID or ABHA Address
+                            <label htmlFor="abha" className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
+                                14-Digit ABHA Number
                             </label>
                             <input
+                                id="abha"
                                 type="text"
+                                inputMode="numeric"
                                 value={abhaId}
-                                onChange={(e) => setAbhaId(e.target.value)}
-                                placeholder="91-8842-1002-4912 (demo ABHA)"
+                                onChange={(e) => { setAbhaId(e.target.value.replace(/[^\d-]/g, '')); setAbhaTxn(null); }}
+                                placeholder="91-XXXX-XXXX-XXXX"
+                                maxLength={17}
                                 className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none font-mono"
                                 required
                             />
                             <span className="text-[11px] text-txt-muted block mt-1">
-                                Example: 91-8842-1002-4912 (demo — no live ABDM connection)
+                                Verified with the ABDM sandbox: an OTP is sent to the mobile number linked to this ABHA.
                             </span>
                         </div>
 
+                        {abhaTxn && (
+                            <div className="space-y-2 animate-fade-in">
+                                <label htmlFor="abha-otp" className="block text-xs font-bold text-txt-secondary uppercase tracking-wider">
+                                    6-Digit OTP
+                                </label>
+                                <input
+                                    id="abha-otp"
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={6}
+                                    value={abhaOtp}
+                                    onChange={(e) => setAbhaOtp(e.target.value.replace(/\D/g, ''))}
+                                    className="w-full px-3 py-2 text-center tracking-widest text-lg font-mono bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-gov-navy focus:outline-none"
+                                    required
+                                />
+                            </div>
+                        )}
+
+                        {abhaNote && (
+                            <p role={abhaNote.tone === 'error' ? 'alert' : 'status'}
+                                className={`px-3 py-2 text-xs rounded border ${abhaNote.tone === 'error' ? 'bg-red-50 border-red-300 text-red-800' : 'bg-emerald-50 border-emerald-300 text-emerald-900'}`}>
+                                {abhaNote.text}
+                            </p>
+                        )}
+
                         <button
                             type="submit"
-                            className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5"
+                            disabled={busy}
+                            className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50"
                         >
-                            Authenticate (ABHA / OTP — Demo)
+                            {busy ? 'Contacting ABDM…' : abhaTxn ? 'Verify OTP & Continue' : 'Send OTP to ABHA-linked mobile'}
                         </button>
                     </form>
                 )}

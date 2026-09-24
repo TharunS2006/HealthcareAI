@@ -11,14 +11,14 @@
  * something was delivered: every publish reports ACKED, REFUSED (the relay's
  * role check said no) or UNAVAILABLE, and the caller shows the difference.
  *
- * Identity travels with each request as x-nalammesh-* headers (HTTP) or a
- * `session:identify` event (websocket). This is mock auth — the relay checks
- * that the claimed role may do the thing, not that the claim is true — but it
- * is the same check a real backend would make with a verified token.
+ * Identity is the signed session token the relay issued at sign-in
+ * (lib/auth/signIn.ts): `Authorization: Bearer` over HTTP, the socket's `auth`
+ * on connecting. A session signed in offline has no token, so its changes stay
+ * on the device (UNAVAILABLE) until the user re-enters their PIN online.
  */
 
-import { getSocket, relayBaseUrl } from '@/lib/socket';
-import { useAuthStore } from '@/stores/authStore';
+import { getSocket, relayBaseUrl, relayUsesSockets, reportRelayReachable } from '@/lib/socket';
+import { useAuthStore, type StaffSession } from '@/stores/authStore';
 import { blockedAsMixedContent } from '@/lib/cloudEndpoint';
 import { REFERRAL_TIMING } from './config';
 import type { ReferralRecord } from '@/types/patient';
@@ -36,22 +36,32 @@ export type SyncMessage =
 export type RelayOutcome =
     | { status: 'ACKED' }
     | { status: 'REFUSED'; reason: string }
+    /** The change includes another user's that has not reached the relay yet — retry shortly. */
+    | { status: 'DEFERRED'; reason: string }
     | { status: 'UNAVAILABLE' };
 
 /**
- * The answers with which the relay says no (server/mesh-server.ts): a bad
- * request, no identity, or a role that may not do this. Any other failure — a
- * 404 from whatever else is listening on the relay's port, a 5xx — means the
- * relay never took the change, which is UNAVAILABLE, not a refusal.
+ * The answers with which the relay says no (server/relay/app.ts): a bad
+ * request, or a role that may not do this. 401 is different — the session's
+ * token is missing or no longer accepted — and is handled as "not sent yet"
+ * while the user signs in again. Any other failure — a 404 from whatever else
+ * is listening on the relay's port, a 5xx — means the relay never took the
+ * change, which is UNAVAILABLE, not a refusal.
  */
-export const RELAY_REFUSAL_STATUSES: ReadonlySet<number> = new Set([400, 401, 403]);
+export const RELAY_REFUSAL_STATUSES: ReadonlySet<number> = new Set([400, 403]);
 
-/** Who is asking — sent with every publish so the relay can apply the role rules. */
+/** Who is acting, and the token that proves it. */
 export interface WireActor {
     userId: string;
     name: string;
     role: string;
     facilityId: string | null;
+    token?: string | null;
+}
+
+/** The actor for a session — the tab's own, or a simulation pane's. */
+export function wireOf(s: StaffSession | null): WireActor | null {
+    return s ? { userId: s.userId, name: s.name, role: s.role, facilityId: s.facilityId, token: s.token ?? null } : null;
 }
 
 const CHANNEL_NAME = 'nalammesh-sync';
@@ -88,18 +98,20 @@ export function onSyncMessage(handler: (message: SyncMessage) => void): () => vo
     };
 }
 
-function tabIdentity(): WireActor | null {
+function tabToken(): string | null {
     const s = useAuthStore.getState().session;
-    return s ? { userId: s.userId, name: s.name, role: s.role, facilityId: s.facilityId } : null;
+    return s?.token && (s.tokenExpiresAt ?? 0) > Date.now() ? s.token : null;
 }
 
-export function identityHeaders(actor: WireActor | null = tabIdentity()): Record<string, string> {
-    if (!actor) return {};
-    return {
-        'x-nalammesh-user': actor.userId,
-        'x-nalammesh-role': actor.role,
-        ...(actor.facilityId ? { 'x-nalammesh-facility': actor.facilityId } : {}),
-    };
+/** Headers proving who is asking — empty when the session has no token. */
+export function identityHeaders(token: string | null = tabToken()): Record<string, string> {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/** The relay stopped accepting this tab's token: drop it so the user is asked for their PIN. */
+function tokenRejected(token: string | null): void {
+    const s = useAuthStore.getState().session;
+    if (token && s?.token === token) useAuthStore.getState().dropToken();
 }
 
 function readLastSeen(): number {
@@ -142,14 +154,22 @@ async function fetchWithTimeout(url: string, init: RequestInit, ms: number): Pro
     }
 }
 
-/** Send to the relay: websocket with an acknowledgement, else one HTTP attempt. */
+/**
+ * Send to the relay as `actor`: over the tab's websocket when the actor is the
+ * tab's own user, otherwise (and when the socket is down) over HTTP with the
+ * actor's own token. No token, nothing sent — the change waits on this device.
+ */
 async function toRelay(event: string, path: string, payload: object, actor: WireActor | null): Promise<RelayOutcome> {
+    const own = tabToken();
+    const token = actor ? (actor.token ?? null) : own;
+    if (!token) return { status: 'UNAVAILABLE' };
     const socket = socketOrNull();
-    if (socket?.connected) {
+    if (socket?.connected && token === own) {
         return new Promise(resolve => {
-            socket.timeout(5000).emit(event, { ...payload, actor }, (err: Error | null, ack?: { ok: boolean; reason?: string }) => {
+            socket.timeout(5000).emit(event, payload, (err: Error | null, ack?: { ok: boolean; reason?: string; retry?: boolean }) => {
                 if (err) resolve({ status: 'UNAVAILABLE' });
                 else if (ack?.ok) resolve({ status: 'ACKED' });
+                else if (ack?.retry) resolve({ status: 'DEFERRED', reason: ack.reason ?? 'Waiting for another change to arrive' });
                 else resolve({ status: 'REFUSED', reason: ack?.reason ?? 'Refused by the relay' });
             });
         });
@@ -159,16 +179,19 @@ async function toRelay(event: string, path: string, payload: object, actor: Wire
             `${relayBaseUrl()}${path}`,
             {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...identityHeaders(actor) },
+                headers: { 'Content-Type': 'application/json', ...identityHeaders(token) },
                 body: JSON.stringify(payload),
             },
-            4000
+            6000
         );
         if (response.ok) return { status: 'ACKED' };
-        if (RELAY_REFUSAL_STATUSES.has(response.status)) {
-            const body = (await response.json().catch(() => ({}))) as { error?: string };
-            return { status: 'REFUSED', reason: body.error ?? `HTTP ${response.status}` };
+        const body = (await response.json().catch(() => ({}))) as { error?: string; retry?: boolean };
+        if (response.status === 401) {
+            tokenRejected(token);
+            return { status: 'UNAVAILABLE' };
         }
+        if (response.status === 409 && body.retry) return { status: 'DEFERRED', reason: body.error ?? 'Waiting for another change to arrive' };
+        if (RELAY_REFUSAL_STATUSES.has(response.status)) return { status: 'REFUSED', reason: body.error ?? `HTTP ${response.status}` };
         return { status: 'UNAVAILABLE' };
     } catch {
         return { status: 'UNAVAILABLE' };
@@ -243,11 +266,11 @@ export function startTransport(onReachable: () => void): () => void {
     if (!socket) return () => undefined;
 
     const identify = () => {
-        if (socket.connected) socket.emit('session:identify', tabIdentity());
+        if (socket.connected) socket.emit('session:identify', { token: tabToken() });
     };
     const catchUp = () => {
         identify();
-        socket.timeout(8000).emit('referral:catchup', { since: readLastSeen(), actor: tabIdentity() }, (err: Error | null, batch?: CatchUpBatch) => {
+        socket.timeout(8000).emit('referral:catchup', { since: readLastSeen() }, (err: Error | null, batch?: CatchUpBatch) => {
             if (!err) applyBatch(batch);
         });
         onReachable();
@@ -269,34 +292,55 @@ export function startTransport(onReachable: () => void): () => void {
     // Re-identify whenever the tab's user changes, so the relay scopes what it
     // forwards to this socket to what this user may see.
     const unsubscribeSession = useAuthStore.subscribe((state, previous) => {
-        if (state.session !== previous.session) {
+        if (state.session?.userId !== previous.session?.userId || state.session?.token !== previous.session?.token) {
             identify();
             if (state.session) catchUp();
+            if (!socket.connected) void poll();
         }
     });
 
-    // Fallback: the websocket can be blocked where plain HTTP is not (some
-    // proxies, some captive networks). Poll while it is down.
-    const poll = setInterval(async () => {
-        if (socket.connected) return;
-        const identity = tabIdentity();
-        if (!identity) return;
+    // The websocket can be blocked where plain HTTP is not (some proxies, some
+    // captive networks), and a hosted relay has none: poll while it is down.
+    // With no token there is nothing to fetch, so the poll only checks the
+    // relay is there — which is what offers the user a network sign-in.
+    let polling = false;
+    const poll = async () => {
+        if (socket.connected || polling) return;
+        polling = true;
+        const token = tabToken();
         try {
+            // socket.io gives up after a few failed attempts; when the relay is
+            // back, dial again rather than stay standalone until a reload.
+            // connect() is a no-op while socket.io is itself still reconnecting.
+            const redial = () => { if (relayUsesSockets() && !socket.connected) socket.connect(); };
+            if (!token) {
+                const health = await fetchWithTimeout(`${relayBaseUrl()}/health`, {}, 4000);
+                if (!relayUsesSockets()) reportRelayReachable(health.ok);
+                if (health.ok) redial();
+                return;
+            }
             const response = await fetchWithTimeout(
                 `${relayBaseUrl()}/api/referrals/since/${readLastSeen()}`,
-                { headers: identityHeaders(identity) },
-                4000
+                { headers: identityHeaders(token) },
+                6000
             );
+            if (!relayUsesSockets()) reportRelayReachable(response.ok || response.status === 401 || response.status === 403);
+            if (response.status === 401) return tokenRejected(token);
             if (!response.ok) return;
+            redial();
             applyBatch((await response.json()) as CatchUpBatch);
             onReachable();
         } catch {
-            /* relay unreachable — the mesh indicator already says STANDALONE */
+            if (!relayUsesSockets()) reportRelayReachable(false);
+        } finally {
+            polling = false;
         }
-    }, REFERRAL_TIMING.POLL_INTERVAL_MS);
+    };
+    void poll();
+    const pollTimer = setInterval(() => void poll(), REFERRAL_TIMING.POLL_INTERVAL_MS);
 
     return () => {
-        clearInterval(poll);
+        clearInterval(pollTimer);
         unsubscribeSession();
         socket.off('connect', catchUp);
         socket.off('referral:update', onReferral);

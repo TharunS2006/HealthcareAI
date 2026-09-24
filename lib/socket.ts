@@ -1,5 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { blockedAsMixedContent } from '@/lib/cloudEndpoint';
+import { useAuthStore } from '@/stores/authStore';
 
 /**
  * Live relay status, published separately from the Socket so the UI can show real
@@ -28,6 +29,16 @@ const setMeshStatus = (next: MeshStatus): void => {
 };
 
 export const getMeshStatus = (): MeshStatus => meshStatus;
+
+/**
+ * Websockets, or HTTP polling only. A hosted relay on serverless functions has
+ * no websockets (server/relay/vercel.ts), so a build pointed at one sets
+ * NEXT_PUBLIC_MESH_TRANSPORT=http and never dials a socket it cannot open.
+ */
+export const relayUsesSockets = (): boolean => process.env.NEXT_PUBLIC_MESH_TRANSPORT?.trim() !== 'http';
+
+/** HTTP polling reports what it found, so the status chip is true without a socket. */
+export const reportRelayReachable = (reachable: boolean): void => setMeshStatus(reachable ? 'ONLINE' : 'STANDALONE');
 
 /** Subscribe to relay status changes. Returns an unsubscribe function. */
 export const subscribeMeshStatus = (notify: (status: MeshStatus) => void): (() => void) => {
@@ -61,11 +72,14 @@ export const getSocket = (): Socket => {
         const SERVER_URL = relayBaseUrl();
         // A relay the browser will refuse (plain HTTP from an HTTPS page) is never
         // dialled: it could only fail, and would retry with a console error each time.
-        const reachable = !blockedAsMixedContent(SERVER_URL);
+        // Neither is a relay that has no websockets.
+        const reachable = relayUsesSockets() && !blockedAsMixedContent(SERVER_URL);
 
         socket = io(SERVER_URL, {
             transports: ['polling', 'websocket'],
             autoConnect: reachable,
+            // Sent on every (re)connection, so the relay knows who this socket is.
+            auth: (cb) => cb({ token: useAuthStore.getState().session?.token ?? null }),
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 3000,
@@ -86,7 +100,9 @@ export const getSocket = (): Socket => {
             setMeshStatus('STANDALONE');
             console.log('Disconnected from Mesh Server');
         });
-        if (!reachable) setMeshStatus('STANDALONE');
+        // HTTP-only: the poll in lib/referrals/transport.ts reports reachability.
+        if (!reachable && !relayUsesSockets()) setMeshStatus('CONNECTING');
+        else if (!reachable) setMeshStatus('STANDALONE');
     }
     return socket;
 };

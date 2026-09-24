@@ -31,7 +31,7 @@ import {
     saveReferral,
 } from '@/lib/db';
 import { actorOf } from '@/lib/auth/session';
-import { publishReferral, type RelayOutcome, type WireActor } from '@/lib/referrals/transport';
+import { publishReferral, wireOf, type RelayOutcome, type WireActor } from '@/lib/referrals/transport';
 import { queueReferral } from '@/lib/sync/outbox';
 import { useDirectoryStore } from './directoryStore';
 import { useResourceStore } from './resourceStore';
@@ -54,8 +54,18 @@ const PUSHED_AT_KEY = 'nalammesh-referrals-pushed-at';
 /** Referrals being opened right now — two views of one referral must not record two openings. */
 const opening = new Set<string>();
 
-const wire = (s: StaffSession | null): WireActor | null =>
-    s ? { userId: s.userId, name: s.name, role: s.role, facilityId: s.facilityId } : null;
+const wire = (s: StaffSession | null): WireActor | null => wireOf(s);
+
+/**
+ * Changes the relay deferred: this referral also holds another user's change
+ * that has not reached the network under their own sign-in yet. Retried as the
+ * user who made them (the tab's user, or a simulation pane's), backing off from
+ * 3 s to a minute, until the relay accepts or refuses — then forgotten.
+ */
+const RETRY_FIRST_MS = 3000;
+const RETRY_MAX_MS = 60_000;
+const RETRY_GIVE_UP_AFTER = 30;
+const deferred = new Map<string, { actor: WireActor | null; attempts: number; timer: ReturnType<typeof setTimeout> }>();
 
 const byNewest = (a: NotificationRecord, b: NotificationRecord) => Date.parse(b.created_at) - Date.parse(a.created_at);
 
@@ -94,7 +104,8 @@ interface ReferralStore {
         session: StaffSession
     ) => Promise<StoreResult>;
     /** Record that a CREATED referral left the device (relay ack, or received by a peer at the target). */
-    confirmDelivery: (referralId: string, via: 'RELAY' | 'LOCAL_PEER', receivedBy?: string) => Promise<void>;
+    /** `actor`: who publishes the "sent" step — the creator whose publish was acknowledged; the tab's user by default. */
+    confirmDelivery: (referralId: string, via: 'RELAY' | 'LOCAL_PEER', receivedBy?: string, actor?: WireActor | null) => Promise<void>;
     markRead: (ids: string[]) => Promise<void>;
     ingest: (referral: ReferralRecord, notifications: NotificationRecord[]) => Promise<void>;
     /** Run the escalation / reservation clock. Returns how many referrals it changed. */
@@ -119,6 +130,31 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
         }));
     };
 
+    function forgetRetry(id: string): void {
+        const entry = deferred.get(id);
+        if (entry) clearTimeout(entry.timer);
+        deferred.delete(id);
+    }
+
+    function scheduleRetry(id: string, actor: WireActor | null): void {
+        const attempts = (deferred.get(id)?.attempts ?? 0) + 1;
+        forgetRetry(id);
+        if (attempts > RETRY_GIVE_UP_AFTER) return; // pushPending picks it up on the next reconnect
+        const delay = Math.min(RETRY_FIRST_MS * 2 ** (attempts - 1), RETRY_MAX_MS);
+        const timer = setTimeout(() => {
+            const current = get().referrals.find(r => r.id === id);
+            if (!current) return forgetRetry(id);
+            void publishReferral(current, [], actor).then(outcome => {
+                if (outcome.status === 'DEFERRED') scheduleRetry(id, actor);
+                else if (outcome.status === 'UNAVAILABLE') deferred.set(id, { actor, attempts, timer: setTimeout(() => scheduleRetry(id, actor), RETRY_MAX_MS) });
+                else forgetRetry(id);
+                set(state => ({ delivery: { ...state.delivery, [id]: { status: outcome.status, reason: outcome.status === 'REFUSED' || outcome.status === 'DEFERRED' ? outcome.reason : undefined, at: new Date().toISOString() } } }));
+                if (outcome.status === 'ACKED' && current.status === 'CREATED') void get().confirmDelivery(id, 'RELAY', undefined, actor);
+            });
+        }, delay);
+        deferred.set(id, { actor, attempts, timer });
+    }
+
     /** Step 4. */
     const broadcast = async (next: ReferralRecord, notifications: NotificationRecord[], actor: WireActor | null) => {
         void queueReferral(next);
@@ -126,9 +162,11 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
         set(state => ({
             delivery: {
                 ...state.delivery,
-                [next.id]: { status: outcome.status, reason: outcome.status === 'REFUSED' ? outcome.reason : undefined, at: new Date().toISOString() },
+                [next.id]: { status: outcome.status, reason: outcome.status === 'REFUSED' || outcome.status === 'DEFERRED' ? outcome.reason : undefined, at: new Date().toISOString() },
             },
         }));
+        if (outcome.status === 'DEFERRED') scheduleRetry(next.id, actor);
+        else forgetRetry(next.id);
         if (outcome.status === 'REFUSED') {
             // The relay applies the same role rules; a refusal means this device
             // and the network disagree about who may do what. Say so loudly.
@@ -136,7 +174,7 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
         }
         if (outcome.status === 'ACKED') {
             const current = get().referrals.find(r => r.id === next.id);
-            if (current?.status === 'CREATED') await get().confirmDelivery(next.id, 'RELAY');
+            if (current?.status === 'CREATED') await get().confirmDelivery(next.id, 'RELAY', undefined, actor);
         }
     };
 
@@ -264,7 +302,7 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
             return { ok: true, value: onward.value };
         },
 
-        confirmDelivery: async (referralId, via, receivedBy) => {
+        confirmDelivery: async (referralId, via, receivedBy, publisher = null) => {
             const ref = get().referrals.find(r => r.id === referralId);
             if (!ref || ref.status !== 'CREATED') return;
             // The send belongs to whoever raised (or re-routed) the referral.
@@ -291,8 +329,9 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
                 return;
             }
             void queueReferral(result.referral);
-            const outcome = await publishReferral(result.referral, notifications, null);
+            const outcome = await publishReferral(result.referral, notifications, publisher);
             set(state => ({ delivery: { ...state.delivery, [referralId]: { status: outcome.status, at: new Date().toISOString() } } }));
+            if (outcome.status === 'DEFERRED') scheduleRetry(referralId, publisher);
         },
 
         markRead: async (ids) => {
@@ -357,12 +396,18 @@ export const useReferralStore = create<ReferralStore>((set, get) => {
                 /* private mode */
             }
             const startedAt = Date.now();
-            const pending = get().referrals.filter(r => r.status === 'CREATED' || Date.parse(r.updatedAt) > pushedAt);
+            // Referrals with a retry of their own in flight are that retry's job.
+            const pending = get().referrals.filter(r => !deferred.has(r.id) && (r.status === 'CREATED' || Date.parse(r.updatedAt) > pushedAt));
+            let complete = true;
             for (const ref of pending) {
                 const outcome = await publishReferral(ref, [], null);
                 if (outcome.status === 'UNAVAILABLE') return; // try again on the next reconnect
+                // Another user's change in it has not arrived yet: carry on with the
+                // rest, and keep the mark where it is so this one is pushed again.
+                if (outcome.status === 'DEFERRED') complete = false;
                 if (outcome.status === 'ACKED' && ref.status === 'CREATED') await get().confirmDelivery(ref.id, 'RELAY');
             }
+            if (!complete) return;
             try {
                 localStorage.setItem(PUSHED_AT_KEY, String(startedAt));
             } catch {

@@ -30,6 +30,11 @@ from datetime import datetime, timedelta, timezone
 _tmp = tempfile.mkdtemp()
 os.environ["DATABASE_URL"] = f"sqlite:///{_tmp}/verify_store.db"
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from session_tokens import TEST_SECRET, bearer  # noqa: E402
+
+os.environ["NALAMMESH_AUTH_SECRET"] = TEST_SECRET
 
 from fastapi.testclient import TestClient  # noqa: E402
 from sqlmodel import Session, SQLModel  # noqa: E402
@@ -151,7 +156,7 @@ with Session(engine) as s:
     # ── 3. The payload is the record — over HTTP, not just in Python ─────────
     print("\nThe device payload survives the trip, in the JSON the browser reads:")
     # The full store is District Health Officer / Super Admin only (data:inspect).
-    client = TestClient(app, headers={"x-nalammesh-user": "u-dho", "x-nalammesh-role": "DHO"})
+    client = TestClient(app, headers=bearer("u-dho", "DHO"))
     body = client.get("/api/v1/store", params={"limit": 50}).json()
 
     check("the response carries both tables as arrays",

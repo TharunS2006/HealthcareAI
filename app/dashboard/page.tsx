@@ -25,6 +25,7 @@ import {
 } from '@/lib/analytics/facilityMetrics';
 import Link from 'next/link';
 import ReferralCommand from '@/components/dashboard/ReferralCommand';
+import OfficialHealthContext from '@/components/dashboard/OfficialHealthContext';
 import { isOpenReferral } from '@/lib/referrals/workflow';
 import { useSession } from '@/lib/auth/session';
 import { isDistrictWide, ROLE_LABELS } from '@/lib/auth/permissions';
@@ -355,6 +356,7 @@ export default function DashboardPage() {
                             {session && <span className="text-[11px] text-slate-500">{ROLE_LABELS[session.role]} · {session.name}</span>}
                         </div>
                         <ReferralCommand scopeFacilityId={districtWide ? undefined : session?.facilityId ?? undefined} />
+                        <OfficialHealthContext />
                     </section>
 
                     {!districtWide && (

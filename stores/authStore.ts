@@ -1,9 +1,12 @@
 /**
  * Staff session — who is signed in on this tab, at which facility.
  *
- * Mock auth: signing in chooses a user from the staff directory; there is no
- * password. What matters is that the session carries a *facility*, not just a
- * role. Almost every rule in this app is two questions — "may this role do
+ * Signing in checks the user's PIN (lib/auth/signIn.ts). Online, the mesh
+ * relay checks it and returns a signed token that the relay and the district
+ * service require on every request; offline, this device checks it and the
+ * session has no token until the user re-enters their PIN while connected —
+ * until then nothing it does reaches the network. The session carries a
+ * *facility*, not just a role. Almost every rule in this app is two questions — "may this role do
  * this" and "to whose patients" — and the second cannot be answered from a
  * role. The permission model lives in lib/auth/permissions.ts; this file only
  * holds the session and decides nothing.
@@ -33,12 +36,20 @@ export interface StaffSession {
     facilityName: string;
     facilityType: FacilityType | null;
     signedInAt: string;
+    /** Signed session token from the relay; absent after an offline sign-in or once it expires. */
+    token?: string;
+    /** When the token stops being accepted, Unix ms. */
+    tokenExpiresAt?: number;
 }
 
 interface AuthState {
     session: StaffSession | null;
     login: (session: Omit<StaffSession, 'signedInAt'>) => void;
     logout: () => void;
+    /** Attach a token after re-entering the PIN while connected. */
+    setToken: (token: string, expiresAt: number) => void;
+    /** The relay no longer accepts the token (expired, or the user was changed). */
+    dropToken: () => void;
 }
 
 const attribute = (s: StaffSession | null) => {
@@ -61,6 +72,16 @@ export const useAuthStore = create<AuthState>()(
                 void logAudit('SESSION', session.userId, 'SIGN IN', { after: { role: session.role, facility: session.facilityId } });
             },
 
+            setToken: (token, tokenExpiresAt) => {
+                const current = get().session;
+                if (current) set({ session: { ...current, token, tokenExpiresAt } });
+            },
+
+            dropToken: () => {
+                const current = get().session;
+                if (current?.token) set({ session: { ...current, token: undefined, tokenExpiresAt: undefined } });
+            },
+
             logout: () => {
                 const previous = get().session;
                 if (previous) void logAudit('SESSION', previous.userId, 'SIGN OUT', { after: { role: previous.role } });
@@ -76,12 +97,12 @@ export const useAuthStore = create<AuthState>()(
             // import would make the first client render disagree with the server
             // markup. components/auth/RouteGuard.tsx triggers the read.
             skipHydration: true,
-            // v3: the six-role model. Sessions from before carry roles that no
-            // longer exist (ASHA, PHARMACIST, LAB_TECH) or no facility at all;
-            // they are discarded rather than mapped to a guessed role.
-            version: 3,
+            // v3: the six-role model. v4: PIN-verified sign-in — a session from
+            // before was never verified, so it is discarded and the user signs
+            // in again rather than carrying on unproven.
+            version: 4,
             migrate: (persisted, fromVersion) =>
-                (fromVersion < 3 ? { session: null } : persisted) as AuthState,
+                (fromVersion < 4 ? { session: null } : persisted) as AuthState,
             partialize: (state) => ({ session: state.session }) as AuthState,
             onRehydrateStorage: () => (state) => attribute(state?.session ?? null),
         }

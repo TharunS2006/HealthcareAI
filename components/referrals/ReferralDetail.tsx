@@ -31,6 +31,7 @@ import { PriorityBadge, StatusBadge } from './Badges';
 import CapacityCheckPanel from '@/components/capacity/CapacityCheckPanel';
 import FacilityAvailabilityList from '@/components/capacity/FacilityAvailabilityList';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
+import TranslatableText from '@/components/shared/TranslatableText';
 
 interface Props {
     referralId: string;
@@ -277,8 +278,8 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                 {/* Clinical */}
                 <section className="text-[12px] space-y-1">
                     <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Reason for referral</h3>
-                    <p className="text-slate-800">{ref.reason}</p>
-                    {ref.clinicalSummary && <p className="text-slate-600">{ref.clinicalSummary}</p>}
+                    <TranslatableText text={ref.reason} className="text-slate-800" />
+                    {ref.clinicalSummary && <TranslatableText text={ref.clinicalSummary} className="text-slate-600" />}
                     {ref.vitalsAtReferral && (
                         <p className="text-[11px] text-slate-600 font-mono">
                             SpO2 {ref.vitalsAtReferral.spo2 || '—'}% · HR {ref.vitalsAtReferral.heartRate || '—'}
@@ -663,7 +664,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                     <span className="block text-[10px] text-slate-500">
                                         {c.actor.name}{c.actor.facilityName ? ` · ${c.actor.facilityName}` : ''} · {clockTime(c.at)}
                                     </span>
-                                    {c.text}
+                                    <TranslatableText text={c.text} />
                                 </li>
                             );
                         })}

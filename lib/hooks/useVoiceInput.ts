@@ -1,12 +1,20 @@
 /**
- * Voice Input Hook — Web Speech API (Multilingual Support)
- * Parses spoken vitals input for field medics in English, Marathi (mr-IN), and Hindi (hi-IN)
- * Works OFFLINE on Android Chrome (built into browser)
+ * Voice Input Hook — Bhashini, with the browser's speech recognition as fallback
+ * Parses spoken vitals input for field medics in English, Marathi and Hindi.
+ *
+ * Bhashini (the Government of India's National Language Translation Mission)
+ * is used when the relay has it configured and the user is signed in to the
+ * network: the voice note is recorded here and transcribed by Bhashini
+ * (lib/bhashini/client.ts). Otherwise the browser's Web Speech API is used —
+ * which, in Chrome, sends audio to Google's servers and needs a connection:
+ * neither engine works offline, and the manual field always stays usable.
  */
 
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { bhashiniAvailable, startRecording, transcribe, type AppLanguage, type Recording } from '@/lib/bhashini/client';
+import { useAuthStore } from '@/stores/authStore';
 
 interface VoiceParsedVitals {
     spo2?: number;
@@ -19,6 +27,10 @@ interface VoiceParsedVitals {
 
 interface UseVoiceInputReturn {
     isListening: boolean;
+    /** Bhashini is turning the recording into text. */
+    isTranscribing: boolean;
+    /** Which engine the next recording uses. */
+    engine: 'BHASHINI' | 'BROWSER' | null;
     transcript: string;
     parsedVitals: VoiceParsedVitals;
     startListening: (lang?: string) => void;
@@ -114,6 +126,11 @@ export function useVoiceInput(): UseVoiceInputReturn {
     const [parsedVitals, setParsedVitals] = useState<VoiceParsedVitals>({});
     const [error, setError] = useState<string | null>(null);
     const recognitionRef = useRef<any>(null);
+    const recordingRef = useRef<Recording | null>(null);
+    const languageRef = useRef<AppLanguage>('en');
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const [bhashini, setBhashini] = useState(false);
+    const hasToken = useAuthStore(st => Boolean(st.session?.token));
 
     /**
      * Detected AFTER mount, never during render.
@@ -126,12 +143,54 @@ export function useVoiceInput(): UseVoiceInputReturn {
      */
     const [isSupported, setIsSupported] = useState(false);
 
+    const browserSupported = useRef(false);
     useEffect(() => {
-        setIsSupported('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+        browserSupported.current = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+        let cancelled = false;
+        const canRecord = typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia);
+        void (hasToken && canRecord ? bhashiniAvailable() : Promise.resolve(false)).then(ok => {
+            if (cancelled) return;
+            setBhashini(ok);
+            setIsSupported(ok || browserSupported.current);
+        });
+        return () => { cancelled = true; };
+    }, [hasToken]);
+
+    const finishBhashini = useCallback(async () => {
+        const recording = recordingRef.current;
+        recordingRef.current = null;
+        if (!recording) return;
+        setIsListening(false);
+        setIsTranscribing(true);
+        try {
+            const { audio, samplingRate, seconds } = await recording.stop();
+            if (seconds < 0.5) throw new Error('The recording was too short — hold the button and speak');
+            const text = await transcribe(audio, languageRef.current, samplingRate);
+            setTranscript(text);
+            setParsedVitals(parseVitals(text));
+        } catch (e) {
+            setError(e instanceof Error ? e.message : 'Bhashini could not transcribe the recording');
+        } finally {
+            setIsTranscribing(false);
+        }
     }, []);
 
     const startListening = useCallback((lang = 'en-IN') => {
-        if (!isSupported) {
+        const code: AppLanguage = lang.startsWith('mr') ? 'mr' : lang.startsWith('hi') ? 'hi' : 'en';
+        if (bhashini) {
+            setError(null);
+            setTranscript('');
+            setParsedVitals({});
+            languageRef.current = code;
+            void startRecording(() => void finishBhashini())
+                .then(recording => {
+                    recordingRef.current = recording;
+                    setIsListening(true);
+                })
+                .catch(() => setError('Microphone permission was refused or no microphone is available'));
+            return;
+        }
+        if (!browserSupported.current) {
             setError('Speech recognition not supported in this browser');
             return;
         }
@@ -183,17 +242,26 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
         recognitionRef.current = recognition;
         recognition.start();
-    }, [isSupported]);
+    }, [bhashini, finishBhashini]);
+
+    // Never leave the microphone open when the screen goes away.
+    useEffect(() => () => recordingRef.current?.cancel(), []);
 
     const stopListening = useCallback(() => {
+        if (recordingRef.current) {
+            void finishBhashini();
+            return;
+        }
         if (recognitionRef.current) {
             recognitionRef.current.stop();
             setIsListening(false);
         }
-    }, []);
+    }, [finishBhashini]);
 
     return {
         isListening,
+        isTranscribing,
+        engine: !isSupported ? null : bhashini ? 'BHASHINI' : 'BROWSER',
         transcript,
         parsedVitals,
         startListening,

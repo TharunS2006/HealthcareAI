@@ -31,6 +31,12 @@ export interface DeploymentConfig {
     stationCode: string;
     /** Nodal officer named on the statutory pages and the portal right rail */
     nodalOfficer: { en: string; hi: string; mr: string };
+    /**
+     * State whose official Rural Health Statistics the Command Center opens on,
+     * spelled as in lib/data/official/rhs.json (e.g. "Maharashtra"). Blank shows
+     * the all-India figures; the panel lets the reader pick any state either way.
+     */
+    statisticsState: string;
 }
 
 export const DEPLOYMENT: DeploymentConfig = {
@@ -55,6 +61,7 @@ export const DEPLOYMENT: DeploymentConfig = {
     district: { en: '', hi: '', mr: '' },
     subDivision: { en: '', hi: '', mr: '' },
     stationCode: 'PHC-01',
+    statisticsState: '',
 
     nodalOfficer: {
         en: 'Chief Medical Officer, District Health Office',
@@ -66,7 +73,7 @@ export const DEPLOYMENT: DeploymentConfig = {
 type Lang = 'en' | 'hi' | 'mr';
 
 /** Resolve a localized config field for the active language. */
-export function dep(field: keyof Omit<DeploymentConfig, 'programmeShort' | 'stationCode'>, lang: string): string {
+export function dep(field: keyof Omit<DeploymentConfig, 'programmeShort' | 'stationCode' | 'statisticsState'>, lang: string): string {
     const l: Lang = lang === 'hi' || lang === 'mr' ? lang : 'en';
     return DEPLOYMENT[field][l];
 }

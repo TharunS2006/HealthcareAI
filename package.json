@@ -18,7 +18,7 @@
     "verify:chat-retrieval": "tsx scripts/verify-chat-retrieval.mts",
     "verify:chat-render": "tsx scripts/verify-chat-render.mts",
     "verify:chat-scope": "tsx scripts/verify-chat-scope.mts",
-    "cap:sync": "next build && npx cap sync",
+    "cap:sync": "next build && tsx scripts/android-network-config.mts && npx cap sync",
     "cap:open": "npx cap open android",
     "verify:cloud-records": "tsx scripts/verify-cloud-records.mts",
     "verify:records-api": "python3 backend/scripts/verify_records.py",
@@ -30,6 +30,11 @@
     "verify:capacity": "tsx scripts/verify-capacity.mts",
     "verify:relay": "tsx scripts/verify-relay-rbac.mts",
     "verify:db-upgrade": "tsx scripts/verify-db-upgrade.mts",
+    "verify:abha": "tsx scripts/verify-abha.mts",
+    "verify:bhashini": "tsx scripts/verify-bhashini.mts",
+    "verify:official-data": "tsx scripts/verify-official-data.mts",
+    "fetch:rhs": "tsx scripts/fetch-rhs.mts",
+    "android:network-config": "tsx scripts/android-network-config.mts",
     "export:permissions": "tsx scripts/export-permissions.mts",
     "verify:access-api": "cd backend && python3 scripts/verify_access.py"
   },
@@ -38,7 +43,7 @@
     "@capacitor/cli": "^8.5.0",
     "@capacitor/core": "^8.5.0",
     "@tensorflow/tfjs": "^4.10.0",
-    "crypto-js": "^4.2.0",
+    "@upstash/redis": "^1.39.0",
     "framer-motion": "^11.0.0",
     "idb": "^7.1.1",
     "leaflet": "^1.9.4",
@@ -52,7 +57,6 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
-    "@types/crypto-js": "^4.2.2",
     "@types/express": "^4.17.21",
     "@types/leaflet": "^1.9.8",
     "@types/node": "^20",

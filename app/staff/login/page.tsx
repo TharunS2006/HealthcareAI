@@ -1,11 +1,13 @@
 /**
- * Staff sign-in — role, posting, person.
+ * Staff sign-in — role, posting, person, PIN.
  *
- * Mock authentication: no password is verified. What sign-in establishes is
- * the session every other screen relies on — the role (what you may do) and
- * the facility (whose patients). Postings offered follow the role's tier, and
- * the person must exist in the staff directory at that posting, so a session
- * can never claim a role at a facility that has no such post.
+ * The PIN is verified (lib/auth/signIn.ts): by the mesh relay when it can be
+ * reached, which returns the token the network requires, else on this device.
+ * What sign-in establishes is the session every other screen relies on — the
+ * role (what you may do) and the facility (whose patients). Postings offered
+ * follow the role's tier, and the person must exist in the staff directory at
+ * that posting, so a session can never claim a role at a facility that has no
+ * such post.
  */
 
 'use client';
@@ -17,7 +19,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useDirectoryStore } from '@/stores/directoryStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
-import { DEMO_LOGIN_USER_IDS, type StaffUser } from '@/lib/auth/users';
+import { DEMO_LOGIN_USER_IDS, DEMO_PIN, type StaffUser } from '@/lib/auth/users';
+import { signInStaff } from '@/lib/auth/signIn';
 import {
     ROLE_FACILITY_TIERS,
     ROLE_HOME,
@@ -53,6 +56,8 @@ function LoginForm() {
     const [facilityId, setFacilityId] = useState<string>('');
     const [userId, setUserId] = useState<string>('');
     const [pin, setPin] = useState('');
+    const [busy, setBusy] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const tiers = ROLE_FACILITY_TIERS[role];
     const postings = useMemo(() => facilities.filter(f => tiers.includes(f.type)), [facilities, tiers]);
@@ -81,7 +86,15 @@ function LoginForm() {
         if (!staff.some(u => u.id === userId)) setUserId(staff[0]?.id ?? '');
     }, [staff, userId]);
 
-    const signIn = (user: StaffUser) => {
+    const signIn = async (user: StaffUser, enteredPin: string) => {
+        setBusy(user.id);
+        setError(null);
+        const result = await signInStaff(user, enteredPin);
+        setBusy(null);
+        if (!result.ok) {
+            setError(result.message);
+            return;
+        }
         const facility = facilities.find(f => f.id === user.facilityId);
         login({
             userId: user.id,
@@ -91,8 +104,14 @@ function LoginForm() {
             facilityId: user.facilityId,
             facilityName: facility?.name ?? ROLE_POSTING_LABEL[user.role] ?? 'Unassigned',
             facilityType: facility?.type ?? null,
+            ...(result.mode === 'NETWORK' ? { token: result.token, tokenExpiresAt: result.expiresAt } : {}),
         });
-        toast.success(`Signed in as ${user.name} — ${ROLE_LABELS[user.role]}`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
+        setPin('');
+        if (result.mode === 'NETWORK') {
+            toast.success(`Signed in as ${user.name} — ${ROLE_LABELS[user.role]}`, { icon: <Icon name="clinician" className="w-4 h-4" /> });
+        } else {
+            toast(`Signed in on this device only — the network could not be reached. Your work is kept here and syncs once you re-enter your PIN while connected.`, { duration: 8000 });
+        }
         router.replace(next && canAccessRoute(user.role, next) ? next : ROLE_HOME[user.role]);
     };
 
@@ -104,10 +123,10 @@ function LoginForm() {
             return;
         }
         if (!/^\d{4,6}$/.test(pin)) {
-            toast.error('Enter a 4–6 digit PIN');
+            setError('Enter your 4–6 digit PIN');
             return;
         }
-        signIn(user);
+        void signIn(user, pin);
     };
 
     const quick = DEMO_LOGIN_USER_IDS.map(id => users.find(u => u.id === id)).filter((u): u is StaffUser => Boolean(u && u.active));
@@ -168,26 +187,32 @@ function LoginForm() {
                             inputMode="numeric"
                             autoComplete="off"
                             value={pin}
-                            onChange={e => setPin(e.target.value)}
+                            onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+                            maxLength={6}
                             placeholder="4–6 digits"
                             className={field}
                         />
                     </div>
 
-                    <button type="submit" disabled={staff.length === 0} className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50">
-                        Sign in →
+                    {error && (
+                        <p role="alert" className="px-3 py-2 text-xs bg-red-50 border border-red-300 rounded text-red-800">{error}</p>
+                    )}
+
+                    <button type="submit" disabled={staff.length === 0 || busy !== null} className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50">
+                        {busy ? 'Checking PIN…' : 'Sign in →'}
                     </button>
 
                     <p className="text-[11px] text-slate-500 leading-relaxed">
-                        Demonstration sign-in: the PIN is not verified against any account. Your role and posting
-                        decide which modules you see and whose patients you can act on.
+                        Your PIN is checked by the referral network, which then admits only your role at your posting;
+                        with no network it is checked on this device and your work syncs after you sign in online.
+                        Five wrong PINs lock the account for five minutes.
                     </p>
                 </form>
             </section>
 
             <section className="border border-[#B9C5D6] bg-white">
                 <div className="bg-[#EDF1F7] text-[#1F3A6E] border-b border-[#B9C5D6] px-3 py-2">
-                    <h2 className="text-[13px] font-bold">Demo accounts — one per role</h2>
+                    <h2 className="text-[13px] font-bold">Demo accounts — one per role · PIN {DEMO_PIN}</h2>
                 </div>
                 <ul className="divide-y divide-slate-200">
                     {quick.map(u => {
@@ -196,7 +221,8 @@ function LoginForm() {
                             <li key={u.id}>
                                 <button
                                     type="button"
-                                    onClick={() => signIn(u)}
+                                    onClick={() => void signIn(u, DEMO_PIN)}
+                                    disabled={busy !== null}
                                     className="w-full text-left px-3 py-2.5 hover:bg-slate-50 flex items-center justify-between gap-3"
                                 >
                                     <span className="min-w-0">
@@ -206,7 +232,7 @@ function LoginForm() {
                                         </span>
                                     </span>
                                     <span className="shrink-0 text-[11px] font-bold text-[#1F3A6E] border border-[#1F3A6E] px-2 py-1 rounded">
-                                        Sign in
+                                        {busy === u.id ? 'Checking…' : 'Sign in'}
                                     </span>
                                 </button>
                             </li>
@@ -214,6 +240,10 @@ function LoginForm() {
                     })}
                 </ul>
                 <div className="px-3 py-3 border-t border-slate-200 text-[11px] text-slate-600 space-y-1">
+                    <p>
+                        These accounts exist for evaluation and share the public PIN {DEMO_PIN}; the buttons enter it for
+                        you through the same check as the form. Accounts the Super Admin creates have their own PINs.
+                    </p>
                     <p>
                         Tip: sessions are per browser tab. Sign in as the ANM in one tab and the PHC Medical Officer in
                         another to watch a referral travel between them — or use the Two-User Simulation (DHO / Super Admin).

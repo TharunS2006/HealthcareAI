@@ -22,7 +22,7 @@ import {
 } from '@/lib/db';
 import { can, isDistrictWide } from '@/lib/auth/permissions';
 import { auditActorOf } from '@/lib/auth/session';
-import { publishResources, publishTicket, type WireActor } from '@/lib/referrals/transport';
+import { publishResources, publishTicket, wireOf, type WireActor } from '@/lib/referrals/transport';
 import type { StaffSession } from './authStore';
 import type {
     FacilityResources,
@@ -33,7 +33,7 @@ import type {
 } from '@/types/resources';
 import type { ResourceDelta } from '@/lib/referrals/workflow';
 
-const wire = (s: StaffSession): WireActor => ({ userId: s.userId, name: s.name, role: s.role, facilityId: s.facilityId });
+const wire = (s: StaffSession): WireActor => wireOf(s)!;
 
 const STATUS_RANK: Record<MaintenanceTicket['status'], number> = { OPEN: 0, ASSIGNED: 1, RESOLVED: 2 };
 

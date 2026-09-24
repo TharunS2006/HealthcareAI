@@ -16,7 +16,7 @@
 
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { SessionProvider } from '@/lib/auth/session';
@@ -26,6 +26,8 @@ import { useReferralStore } from '@/stores/referralStore';
 import { useResourceStore } from '@/stores/resourceStore';
 import { useAuthStore, type StaffSession } from '@/stores/authStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { DEMO_PIN } from '@/lib/auth/users';
+import { relaySignIn } from '@/lib/auth/signIn';
 import * as wf from '@/lib/referrals/workflow';
 import { REFERRAL_TIMING } from '@/lib/referrals/config';
 import { requirementsFor } from '@/lib/capacity/requirements';
@@ -55,7 +57,9 @@ const STEPS = [
     'MO records treatment and discharges — the bed is freed',
 ] as const;
 
-function sessionFor(userId: string, users: ReturnType<typeof useDirectoryStore.getState>['users']): StaffSession | null {
+type PaneToken = { token: string; expiresAt: number };
+
+function sessionFor(userId: string, users: ReturnType<typeof useDirectoryStore.getState>['users'], auth?: PaneToken): StaffSession | null {
     const u = users.find(x => x.id === userId);
     if (!u) return null;
     const f = FACILITY_NETWORK.find(x => x.id === u.facilityId);
@@ -68,6 +72,7 @@ function sessionFor(userId: string, users: ReturnType<typeof useDirectoryStore.g
         facilityName: f?.name ?? 'Unassigned',
         facilityType: f?.type ?? null,
         signedInAt: new Date().toISOString(),
+        ...(auth ? { token: auth.token, tokenExpiresAt: auth.expiresAt } : {}),
     };
 }
 
@@ -121,8 +126,25 @@ function Pane({ session, view, setView, tone }: { session: StaffSession; view: V
 export default function SimulationPage() {
     const users = useDirectoryStore(s => s.users);
     const viewer = useAuthStore(s => s.session);
-    const left = useMemo(() => sessionFor(LEFT_USER, users), [users]);
-    const right = useMemo(() => sessionFor(RIGHT_USER, users), [users]);
+    // Each pane signs in to the network as its own user, with the public demo
+    // PIN, so the relay accepts each pane's actions under that user's token. If
+    // the network is out of reach (or a Super Admin changed those PINs) the
+    // panes still work here — they share this device — and say so.
+    const [paneAuth, setPaneAuth] = useState<{ left?: PaneToken; right?: PaneToken; checked: boolean }>({ checked: false });
+    useEffect(() => {
+        let cancelledSignIn = false;
+        void Promise.all([relaySignIn(LEFT_USER, DEMO_PIN), relaySignIn(RIGHT_USER, DEMO_PIN)]).then(([l, r]) => {
+            if (cancelledSignIn) return;
+            setPaneAuth({
+                left: l.kind === 'token' ? { token: l.token, expiresAt: l.expiresAt } : undefined,
+                right: r.kind === 'token' ? { token: r.token, expiresAt: r.expiresAt } : undefined,
+                checked: true,
+            });
+        });
+        return () => { cancelledSignIn = true; };
+    }, []);
+    const left = useMemo(() => sessionFor(LEFT_USER, users, paneAuth.left), [users, paneAuth.left]);
+    const right = useMemo(() => sessionFor(RIGHT_USER, users, paneAuth.right), [users, paneAuth.right]);
 
     const [leftView, setLeftView] = useState<View>({ mode: 'board' });
     const [rightView, setRightView] = useState<View>({ mode: 'board' });
@@ -296,6 +318,13 @@ export default function SimulationPage() {
                         <p className="text-[12px] text-slate-600 max-w-3xl">
                             Each pane is the real app signed in as that user. Act on one side and watch it arrive on the other —
                             notification, status change and acknowledgement. Records created here are real records on this device.
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-1" aria-live="polite">
+                            {!paneAuth.checked
+                                ? 'Signing both panes in to the referral network…'
+                                : paneAuth.left && paneAuth.right
+                                    ? 'Both panes are signed in to the referral network: their changes also reach other devices.'
+                                    : 'The referral network is not reachable, so the panes work on this device only.'}
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">

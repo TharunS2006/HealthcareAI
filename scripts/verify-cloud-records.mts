@@ -42,13 +42,19 @@ const fail = (label: string, detail: string) => {
     failures.push(label);
 };
 
+// Tokens are minted by the relay's own signer, with a secret the service is started with.
+const AUTH_SECRET = 'verify-cloud-records-secret-' + 'z'.repeat(20);
+const { signToken } = await import('../server/relay/auth');
+const bearerFor = (sub: string, role: 'MO' | 'DHO', fac: string | null) =>
+    ({ Authorization: `Bearer ${signToken({ sub, role, fac, name: sub }, AUTH_SECRET).token}` });
+
 const dbDir = mkdtempSync(join(tmpdir(), 'nalammesh-verify-'));
 const backend = spawn(
     'python3',
     ['-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', String(PORT), '--log-level', 'warning'],
     {
         cwd: new URL('../backend', import.meta.url).pathname,
-        env: { ...process.env, DATABASE_URL: `sqlite:///${join(dbDir, 'verify.db')}` },
+        env: { ...process.env, DATABASE_URL: `sqlite:///${join(dbDir, 'verify.db')}`, NALAMMESH_AUTH_SECRET: AUTH_SECRET },
         stdio: ['ignore', 'ignore', 'pipe'],
     }
 );
@@ -86,7 +92,7 @@ const { uploadPatientRecord, uploadCareReferral, fetchIncoming, fetchStore, setI
 // The district service answers only a signed-in role (backend/app/access.py).
 // Checks 1–6 run as the District Health Officer, who may upload and read any
 // facility's board and the full store; section 0 checks what happens without.
-const DHO = { 'x-nalammesh-user': 'u-dho', 'x-nalammesh-role': 'DHO' };
+const DHO = bearerFor('u-dho', 'DHO', null);
 setIdentityProvider(() => ({}));
 
 const NOW = new Date().toISOString();
@@ -145,7 +151,11 @@ check('an upload with no session stays queued (retryable), not refused',
 const anonymousStore = await fetchStore(50);
 check('the store refuses a caller with no session, and says so',
     anonymousStore.ok === false && anonymousStore.reason === 'forbidden', JSON.stringify(anonymousStore));
-setIdentityProvider(() => ({ 'x-nalammesh-user': 'u-mo-bhamragad', 'x-nalammesh-role': 'MO', 'x-nalammesh-facility': 'phc-bhamragad' }));
+setIdentityProvider(() => ({ 'x-nalammesh-user': 'u-dho', 'x-nalammesh-role': 'DHO' }));
+const claimed = await fetchStore(50);
+check('claimed identity headers are not a session — the store refuses them',
+    claimed.ok === false && claimed.reason === 'forbidden', JSON.stringify(claimed));
+setIdentityProvider(() => bearerFor('u-mo-bhamragad', 'MO', 'phc-bhamragad'));
 const otherBoard = await fetchIncoming('dh-gadchiroli');
 check('a PHC cannot read another facility\'s pre-arrival board',
     otherBoard.ok === false && otherBoard.reason === 'forbidden', JSON.stringify(otherBoard));

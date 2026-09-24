@@ -137,6 +137,49 @@ says it could not reach the service rather than showing an empty store, since
 > authenticated. That is a known gap in this build, fine for a laptop demo and
 > not for a host anyone else can reach.
 
+### Staff sign-in
+
+Staff sign in with a role, a posting, their name and a **PIN**. The mesh relay
+checks the PIN (five wrong tries lock the account for five minutes) and returns a
+signed session token; the relay and the district service accept only that token,
+and a referral event is only accepted from the user it names. The demo accounts on
+the sign-in screen share the public PIN **2468**; accounts the Super Admin creates
+(at `/admin`) get their own. With no relay reachable, the PIN is checked on the
+device and work stays there until the user re-enters their PIN while connected.
+
+### Hosting the relay (cross-device referrals on the live site)
+
+```bash
+bash scripts/build-relay-deploy.sh          # bundles server/relay/vercel.ts into ~/nalammesh-relay-deploy
+cd ~/nalammesh-relay-deploy && npx vercel@latest deploy --prod
+```
+
+The project needs `NALAMMESH_AUTH_SECRET` and Upstash for Redis (Vercel Marketplace,
+`upstash/upstash-kv`). Rebuild the frontend with `NEXT_PUBLIC_MESH_URL=<relay URL>`
+and `NEXT_PUBLIC_MESH_TRANSPORT=http`; devices then poll it every 10 seconds.
+
+### Government services
+
+| Service | What it does here | Settings |
+|---|---|---|
+| ABDM sandbox (ABHA V3) | Citizen sign-in: an OTP to the ABHA-linked mobile, verified by ABDM | `ABDM_CLIENT_ID`, `ABDM_CLIENT_SECRET` |
+| Bhashini | Voice input in OPD triage; translating referral notes between English, Hindi and Marathi | `BHASHINI_USER_ID`, `BHASHINI_ULCA_API_KEY`, `BHASHINI_PIPELINE_ID` |
+| data.gov.in | Rural Health Statistics on the Command Center (committed in `lib/data/official/rhs.json`) | `DATA_GOV_IN_API_KEY` (only to refresh) |
+
+All three run through the relay, so no key reaches a browser. Without their
+settings, each says it is not configured rather than pretending.
+
+### Android build
+
+```bash
+export NEXT_PUBLIC_MESH_URL=http://<LAN IP>:3001 NEXT_PUBLIC_REPORTING_URL=http://<LAN IP>:8000
+npm run build && npm run android:network-config && npx cap sync android
+cd android && ./gradlew assembleDebug        # needs a JDK (Android Studio's: Contents/jbr/Contents/Home)
+```
+
+The app runs from `http://localhost` inside the phone and may use plain HTTP only
+to the relay and district hosts above.
+
 ### Other scripts
 
 ```bash
@@ -151,6 +194,13 @@ npm run verify:chat-provider   # cloud provider selection, attribution and failu
 npm run verify:records-api     # pre-arrival record sync: upload → receiving facility's board
 npm run verify:store-api       # the Data Inspector's totals, ordering and payload round-trip
 npm run verify:cloud-records   # the device → cloud wire, against a real FastAPI on a spare port
+npm run verify:relay           # relay sign-in, tokens, authorship, sockets, hosted (Upstash-protocol) mode
+npm run verify:access-api      # district service accepts only relay-signed tokens
+npm run verify:abha            # ABHA V3 contract: headers, RSA-OAEP encryption, OTP flow, throttling
+npm run verify:bhashini        # Bhashini config + compute contract, staff-only access
+npm run verify:official-data   # RHS figures sum to the published totals; ratios as published
+npm run verify:db-upgrade      # every on-device database version a phone may hold upgrades cleanly
+npm run fetch:rhs              # refresh the official data from data.gov.in
 npm run cap:sync        # build + sync into the Android Capacitor project
 npm run cap:open        # open the Android project in Android Studio
 ```

@@ -42,13 +42,6 @@ export const SYNC_CONFIG = {
     MAX_BACKOFF_MS: 60000,
 } as const;
 
-export const MESH_CONFIG = {
-    SERVER_URL: process.env.NEXT_PUBLIC_MESH_SERVER_URL || 'ws://localhost:3001',
-    HEARTBEAT_INTERVAL_MS: 5000,
-    CONNECTION_TIMEOUT_MS: 10000,
-    MAX_NODES: 100,
-} as const;
-
 export const SMS_CONFIG = {
     ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID,
     AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN,
