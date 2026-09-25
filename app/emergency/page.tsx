@@ -1,10 +1,18 @@
 /**
- * Emergency Escalation Portal — Module 13
- * Provides 1-tap 108 / 102 emergency ambulance dispatch with Longitudinal Health Record sharing. */
+ * Emergency referral — raised the moment a worker has a life-threatening case.
+ *
+ * This app does not dispatch ambulances: 108 and 102 are run by their own
+ * control rooms, reached by phone. What it does is get the patient's record
+ * and a referral to the facility that can treat them before the ambulance
+ * arrives there. So staff raise an emergency referral here and phone 108/102;
+ * the vehicle number goes on the referral when the control room gives one.
+ * Anyone not signed in as staff is shown the numbers to call, and nothing
+ * pretends a request went anywhere.
+ */
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -15,154 +23,213 @@ import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { useSession } from '@/lib/auth/session';
 import { can } from '@/lib/auth/permissions';
 import { STATUS_LABELS } from '@/lib/referrals/workflow';
+import { requirementsFor } from '@/lib/capacity/requirements';
+import { defaultReferralTarget, referralTargets } from '@/lib/capacity/availability';
+import { useAvailability } from '@/lib/capacity/useAvailability';
+import { travelMinutes } from '@/lib/analytics/facilityMetrics';
 import { flushOutbox, uploadStatusOf, type UploadStatus } from '@/lib/sync/outbox';
-import { Patient, ReferralRecord } from '@/types/patient';
+import { Patient, ReferralRecord, Vitals } from '@/types/patient';
+import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 
-/**
- * The patient a dispatch is raised against when nobody has been registered yet.
- *
- * A roadside 108 call is often placed before any intake happens, so this has to
- * be a complete, storable record rather than a display-only stub: it is written
- * to the device and uploaded like any other, which is what puts the case on the
- * receiving hospital's pre-arrival board. The vitals are the worst-case
- * assumptions an unassessed emergency is treated on — deliberately pessimistic,
- * because over-preparing a resus bay costs a trolley and under-preparing costs
- * more. The name says plainly that this person is unidentified so nobody
- * mistakes the placeholder for a real record.
- */
-const UNIDENTIFIED_PATIENT: Patient = {
-    id: 'p-gad-emergency',
-    name: 'Unidentified emergency patient',
-    age: 30,
-    gender: 'F',
-    village: 'Bhamragad Tribal Sub-Centre',
-    tehsil: 'Bhamragad',
-    district: 'Gadchiroli',
-    vitals: {
-        spo2: 88,
-        heartRate: 124,
-        bloodPressure: { systolic: 168, diastolic: 104 },
-        injuryType: 'Acute Shock / Obstetric Crisis',
-    },
-    triageStatus: 'RED',
-    triagePriority: 'EMERGENCY',
-    abhaId: 'ABHA-9188-EMERGENCY',
-    gps: { lat: 19.4981, lng: 80.4512 },
-    isSynced: false,
-    timestamp: '',
+type EmergencyKind = '108_TRAUMA' | '102_MATERNAL' | 'PEDIATRIC_EMERGENCY';
+
+/** What each kind of emergency needs, in the words the capacity rules read (lib/capacity/requirements.ts). */
+const KIND: Record<EmergencyKind, { reason: string; transport: ReferralRecord['transportMode']; call: '108' | '102' }> = {
+    '108_TRAUMA': { reason: 'Life-threatening emergency — trauma, stroke, shock or cardiac', transport: 'AMBULANCE_108', call: '108' },
+    '102_MATERNAL': { reason: 'Obstetric emergency — pregnancy complication (eclampsia, bleeding, obstructed labour)', transport: 'AMBULANCE_102', call: '102' },
+    PEDIATRIC_EMERGENCY: { reason: 'Paediatric emergency — child in danger (newborn asphyxia, severe malnutrition with shock)', transport: 'AMBULANCE_108', call: '108' },
+};
+
+const UNIDENTIFIED = '__unidentified__';
+
+const reading = (text: string) => {
+    const n = Number(text);
+    return text.trim() !== '' && Number.isFinite(n) && n > 0 ? n : undefined;
 };
 
 export default function EmergencyPage() {
-    const [selectedType, setSelectedType] = useState<'108_TRAUMA' | '102_MATERNAL' | 'PEDIATRIC_EMERGENCY'>('108_TRAUMA');
-    const [selectedPatientId, setSelectedPatientId] = useState<string>('');
-    const [isDispatched, setIsDispatched] = useState(false);
-    const [dispatchSummary, setDispatchSummary] = useState<ReferralRecord | null>(null);
+    const [kind, setKind] = useState<EmergencyKind>('108_TRAUMA');
+    const [selectedPatientId, setSelectedPatientId] = useState('');
+    const [unknownAge, setUnknownAge] = useState('');
+    const [unknownGender, setUnknownGender] = useState<'M' | 'F' | 'O' | ''>('');
+    const [unknownSpo2, setUnknownSpo2] = useState('');
+    const [unknownPulse, setUnknownPulse] = useState('');
+    const [unknownSys, setUnknownSys] = useState('');
+    const [unknownDia, setUnknownDia] = useState('');
+    const [targetId, setTargetId] = useState('');
+    const [raising, setRaising] = useState(false);
+    const [raised, setRaised] = useState<ReferralRecord | null>(null);
     /**
-     * Whether this escalation has actually reached the district cloud.
-     *
-     * The old copy on this panel claimed the record had been "securely
-     * transmitted" the instant the button was pressed. On a field device that is
-     * almost never true: the record is written locally and queued, and the
-     * upload happens whenever there is a network. Telling a worker the trauma
-     * team can already see the patient — when the record is sitting in an outbox
-     * under a tree in Bhamragad — is the difference between phoning ahead and
-     * not bothering.
+     * Whether this referral has actually reached the district cloud. Pressing
+     * the button writes it to this device and queues it; the upload happens
+     * whenever there is a network, and the panel says which.
      */
     const [uploadStatus, setUploadStatus] = useState<UploadStatus>('UNKNOWN');
-
     const { patients, addPatient, loadPatients } = usePatientStore();
     const createReferral = useReferralStore(s => s.create);
     const session = useSession();
-    // The live copy, so the panel shows the referral moving from Created to
-    // Sent and on, rather than the snapshot taken at the moment of dispatch.
-    const liveReferral = useReferralStore(s => (dispatchSummary ? s.referrals.find(r => r.id === dispatchSummary.id) : undefined));
+    const availabilityOf = useAvailability();
+    // The live copy, so the panel follows the referral from Created to Sent and on.
+    const liveReferral = useReferralStore(s => (raised ? s.referrals.find(r => r.id === raised.id) : undefined));
 
-    // Without this the selector is empty and every dispatch falls back to the
-    // unknown-patient stub below, so the receiving hospital gets a referral with
-    // no clinical record behind it — the one case where it matters most.
     useEffect(() => {
         void loadPatients();
     }, [loadPatients]);
 
-    const activePatient: Patient =
-        patients.find(p => p.id === selectedPatientId) || patients[0] || UNIDENTIFIED_PATIENT;
+    const origin = session && can(session.role, 'referral:create') && session.facilityId
+        ? FACILITY_NETWORK.find(f => f.id === session.facilityId)
+        : undefined;
+    const call = KIND[kind].call;
 
-    const handleTriggerEmergency = async () => {
-        const targetFacility = selectedType === '102_MATERNAL'
-            ? FACILITY_NETWORK[1]
-            : FACILITY_NETWORK[0];
+    // This facility's patients first, newest first; then anyone else on the device.
+    const choices = useMemo(() => {
+        const newest = (a: Patient, b: Patient) => String(b.timestamp).localeCompare(String(a.timestamp));
+        const here = patients.filter(p => p.registeredAtFacilityId === origin?.id).sort(newest);
+        const elsewhere = patients.filter(p => p.registeredAtFacilityId !== origin?.id).sort(newest);
+        return { here, elsewhere };
+    }, [patients, origin?.id]);
+    const chosen = selectedPatientId && selectedPatientId !== UNIDENTIFIED ? patients.find(p => p.id === selectedPatientId) : undefined;
 
-        // A signed-in worker who may raise referrals dispatches from their own
-        // facility, as themselves. Anyone else — this is the public SOS screen —
-        // dispatches as the automatic 108/102 service from the field station.
-        const staffOrigin = session && can(session.role, 'referral:create') && session.facilityId
-            ? FACILITY_NETWORK.find(f => f.id === session.facilityId)
-            : undefined;
-        const origin = staffOrigin ?? FACILITY_NETWORK.find(f => f.id === 'sc-kothi')!;
-        const maternal = selectedType === '102_MATERNAL';
-        const vitals = activePatient.vitals;
+    const unknownVitals: Vitals = {
+        spo2: reading(unknownSpo2) ?? 0,
+        heartRate: reading(unknownPulse) ?? 0,
+        ...(reading(unknownSys) && reading(unknownDia) ? { bloodPressure: { systolic: reading(unknownSys)!, diastolic: reading(unknownDia)! } } : {}),
+        injuryType: KIND[kind].reason,
+        ...(kind === '102_MATERNAL' ? { isPregnant: true } : {}),
+    };
+    const vitals: Vitals | undefined = chosen?.vitals ?? (selectedPatientId === UNIDENTIFIED ? unknownVitals : undefined);
+    const age = chosen?.age ?? reading(unknownAge);
 
-        // The record has to go up with the referral, not just the referral.
-        // A referral alone is a name and a reason; what lets the trauma team
-        // ready a resus bay is the vitals and risk flags behind it. Saving the
-        // patient here also covers the unidentified-patient case, which exists
-        // only in this component's memory until someone dispatches on it.
+    // Where the patient can be treated: the same rule as every other referral.
+    const options = useMemo(() => {
+        if (!origin) return [];
+        const requirements = requirementsFor({ reason: KIND[kind].reason, priority: 'EMERGENCY', vitals, patientAge: age });
+        return referralTargets(requirements, origin, FACILITY_NETWORK, availabilityOf);
+    }, [origin, kind, vitals, age, availabilityOf]);
+    const suggested = origin ? defaultReferralTarget(options, origin) : undefined;
+    const target = options.find(o => o.facility.id === targetId) ?? suggested;
+
+    const raise = async () => {
+        if (!origin || !session || !target) return;
+        const problems: string[] = [];
+        if (!selectedPatientId) problems.push('choose the patient, or "Unidentified patient"');
+        if (selectedPatientId === UNIDENTIFIED) {
+            const a = Number(unknownAge);
+            if (unknownAge.trim() === '' || !Number.isInteger(a) || a < 0 || a > 120) problems.push('approximate age in years');
+            if (!unknownGender) problems.push('sex');
+        }
+        if (problems.length > 0) {
+            toast.error(`Before raising the referral: ${problems.join(', ')}`);
+            return;
+        }
+        setRaising(true);
         try {
-            await addPatient({
-                ...activePatient,
-                transportStatus: 'IN_TRANSIT',
-                isSynced: false,
-                timestamp: new Date().toISOString(),
-                registeredAtFacilityId: activePatient.registeredAtFacilityId ?? origin.id,
-            });
-        } catch {
-            toast.error('Could not save the patient record on this device — call 108 / 102 directly');
-            return;
+            // An unidentified patient gets a record of their own — never a shared
+            // placeholder that the next emergency would overwrite.
+            const patient: Patient = chosen
+                ? { ...chosen, transportStatus: 'IN_TRANSIT', isSynced: false, timestamp: new Date().toISOString(), registeredAtFacilityId: chosen.registeredAtFacilityId ?? origin.id }
+                : {
+                      id: `PAT-EMG-${uuidv4().slice(0, 8).toUpperCase()}`,
+                      name: 'Unidentified emergency patient',
+                      age: Number(unknownAge),
+                      gender: unknownGender as 'M' | 'F' | 'O',
+                      village: '',
+                      tehsil: origin.tehsil,
+                      district: origin.district,
+                      vitals: unknownVitals,
+                      triageStatus: 'RED',
+                      triagePriority: 'EMERGENCY',
+                      gps: { lat: origin.location.lat, lng: origin.location.lng },
+                      isSynced: false,
+                      transportStatus: 'IN_TRANSIT',
+                      timestamp: new Date().toISOString(),
+                      registeredAtFacilityId: origin.id,
+                      chw_id: session.staffId,
+                      chw_name: session.name,
+                  };
+            try {
+                await addPatient(patient);
+            } catch {
+                toast.error(`Could not save the patient on this device — call ${call} and phone ${target.facility.name} directly`);
+                return;
+            }
+            const v = patient.vitals;
+            const result = await createReferral(
+                {
+                    patient: { id: patient.id, name: patient.name, age: patient.age, gender: patient.gender },
+                    from: { id: origin.id, name: origin.name, type: origin.type },
+                    to: { id: target.facility.id, name: target.facility.name, type: target.facility.type },
+                    reason: KIND[kind].reason,
+                    priority: 'EMERGENCY',
+                    transportMode: KIND[kind].transport,
+                    clinicalSummary: `SpO2 ${v.spo2 || '—'}%, pulse ${v.heartRate || '—'}/min, BP ${v.bloodPressure ? `${v.bloodPressure.systolic}/${v.bloodPressure.diastolic}` : '—'}. ${chosen ? (v.injuryType || '') : 'Unidentified patient, not yet registered.'}`.trim(),
+                    vitals: v,
+                },
+                session
+            );
+            if (!result.ok) {
+                toast.error(`${result.message} — call ${call} and phone the receiving facility`);
+                return;
+            }
+            setRaised(result.value);
+            setUploadStatus('PENDING');
+            toast.error(`Emergency referral ${result.value.id} raised to ${target.facility.name}. Call ${call} now for the ambulance.`, { duration: 8000 });
+        } finally {
+            setRaising(false);
         }
-
-        const result = await createReferral(
-            {
-                patient: { id: activePatient.id, name: activePatient.name, age: activePatient.age, gender: activePatient.gender },
-                from: { id: origin.id, name: origin.name, type: origin.type },
-                to: { id: targetFacility.id, name: targetFacility.name, type: targetFacility.type },
-                reason: maternal
-                    ? 'EMERGENCY OBSTETRIC ESCALATION: Severe Preeclampsia / Hemorrhage'
-                    : '108 TRAUMA / ACUTE LIFE-THREATENING CRISIS',
-                priority: 'EMERGENCY',
-                transportMode: maternal ? 'AMBULANCE_102' : 'AMBULANCE_108',
-                clinicalSummary: `SpO2 ${vitals?.spo2 || '—'}%, BP ${vitals?.bloodPressure ? `${vitals.bloodPressure.systolic}/${vitals.bloodPressure.diastolic}` : '—'}, HR ${vitals?.heartRate || '—'}. ${vitals?.injuryType || ''}`.trim(),
-                vitals,
-                dispatch: { vehicleNo: maternal ? 'MH-33-T-1021 (102)' : 'MH-33-G-1088 (108 ALS)' },
-            },
-            staffOrigin ? session : null
-        );
-        if (!result.ok) {
-            toast.error(result.message);
-            return;
-        }
-        const emergencyRecord = result.value;
-        setDispatchSummary(emergencyRecord);
-        setUploadStatus('PENDING');
-        setIsDispatched(true);
-        toast.error(`EMERGENCY ESCALATION RECORDED: ${emergencyRecord.ambulanceVehicleNo}`, { duration: 6000 });
     };
 
-    // Watch this record's journey to the cloud. The panel below reports whatever
-    // this says, including "we cannot tell" — never a fixed reassurance.
+    const startOver = () => {
+        setRaised(null); setSelectedPatientId(''); setUnknownAge(''); setUnknownGender('');
+        setUnknownSpo2(''); setUnknownPulse(''); setUnknownSys(''); setUnknownDia(''); setTargetId('');
+    };
+
+    // Watch this record's journey to the cloud. The panel reports whatever this
+    // says, including "we cannot tell" — never a fixed reassurance.
     const refreshUploadStatus = useCallback(async () => {
-        if (!dispatchSummary) return;
-        setUploadStatus(await uploadStatusOf('REFERRAL', dispatchSummary.id));
-    }, [dispatchSummary]);
+        if (!raised) return;
+        setUploadStatus(await uploadStatusOf('REFERRAL', raised.id));
+    }, [raised]);
 
     useEffect(() => {
-        if (!dispatchSummary) return;
+        if (!raised) return;
         void refreshUploadStatus();
         const t = setInterval(() => {
             void flushOutbox().then(refreshUploadStatus);
         }, 5000);
         return () => clearInterval(t);
-    }, [dispatchSummary, refreshUploadStatus]);
+    }, [raised, refreshUploadStatus]);
+
+    const callButtons = (
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+            <a href="tel:108" className="gov-btn gov-btn-danger text-sm">
+                <Icon name="phone" className="w-3.5 h-3.5" /> Call 108 (Ambulance)
+            </a>
+            <a href="tel:102" className="gov-btn gov-btn-danger text-sm">
+                <Icon name="phone" className="w-3.5 h-3.5" /> Call 102 (Mother &amp; child)
+            </a>
+            <a href="tel:104" className="gov-btn gov-btn-secondary text-sm">
+                <Icon name="phone" className="w-3.5 h-3.5" /> Call 104 (Health advice)
+            </a>
+        </div>
+    );
+
+    const kindButton = (value: EmergencyKind, icon: 'ambulance' | 'maternal' | 'child', title: string, sub: string, active: string, tone: string) => (
+        <button
+            type="button"
+            onClick={() => { setKind(value); setTargetId(''); }}
+            aria-pressed={kind === value}
+            className={`p-4 rounded-2xl border-2 text-left transition-all ${kind === value ? active : 'border-border-subtle bg-white hover:border-gray-300'}`}
+        >
+            <Icon name={icon} className={`w-6 h-6 mb-1 ${tone}`} />
+            <strong className="text-sm block text-emerald-deep">{title}</strong>
+            <span className="text-[11px] text-txt-secondary">{sub}</span>
+        </button>
+    );
+
+    const shown = (n: number | undefined, unit: string) => (typeof n === 'number' && n > 0 ? `${n}${unit}` : '—');
+    const inputClass = 'w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-emerald-deep focus:outline-none';
 
     return (
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
@@ -174,10 +241,10 @@ export default function EmergencyPage() {
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 rounded-full text-xs font-bold text-red-800 mb-2">
                                 <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                                <span>Government of Maharashtra • Universal Emergency Escalation Protocol</span>
+                                <span>Government of Maharashtra • Emergency Escalation</span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
-                                Emergency Medical Response & 108/102 Dispatch
+                                Emergency: 108 / 102 and emergency referral
                             </h1>
                         </div>
                         <Link href="/" className="gov-btn gov-btn-secondary text-xs">
@@ -185,179 +252,154 @@ export default function EmergencyPage() {
                         </Link>
                     </div>
 
-                    {isDispatched && dispatchSummary ? (
+                    {!origin ? (
+                        <div className="surface-card p-6 text-center space-y-4">
+                            <p className="text-sm font-bold text-emerald-deep">In an emergency, call now — the call is free.</p>
+                            {callButtons}
+                            <p className="text-xs text-txt-secondary">
+                                108 sends an ambulance for any emergency; 102 carries pregnant women, mothers and sick infants to and from government facilities.
+                            </p>
+                            <p className="text-xs text-txt-secondary border-t border-border-subtle pt-3">
+                                Health staff: <Link href="/staff/login" className="underline font-bold">sign in</Link> to raise an emergency referral, so the receiving facility has the patient&apos;s record before the ambulance arrives.
+                            </p>
+                        </div>
+                    ) : raised ? (
                         <div className="surface-card border-2 border-status-green bg-green-50/40 p-6 rounded-2xl space-y-4 animate-fade-in">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-status-green font-bold text-lg">
                                     <Icon name="check-circle" className="w-5 h-5" />
-                                    <span>Emergency Escalation Dispatched Successfully</span>
+                                    <span>Emergency referral raised</span>
                                 </div>
-                                <span className="text-xs font-mono bg-status-green text-white px-2 py-1 rounded">
-                                    {dispatchSummary.id}
-                                </span>
+                                <span className="text-xs font-mono bg-status-green text-white px-2 py-1 rounded">{raised.id}</span>
+                            </div>
+                            <div className="border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+                                <strong>Call {call} now</strong> for the ambulance — this app does not dispatch one. When the control room gives a vehicle number, record it on the referral (Referrals → this case → Dispatched).
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-white p-4 rounded-xl border border-green-200">
                                 <div>
-                                    <span className="text-txt-muted block">Assigned Ambulance</span>
-                                    <strong className="text-emerald-deep text-sm">{dispatchSummary.ambulanceVehicleNo}</strong>
+                                    <span className="text-txt-muted block">Patient</span>
+                                    <strong className="text-emerald-deep text-sm">{raised.patientName}</strong>
                                 </div>
                                 <div>
-                                    <span className="text-txt-muted block">Receiving Hospital</span>
-                                    <strong className="text-emerald-deep text-sm">{dispatchSummary.toFacilityName}</strong>
+                                    <span className="text-txt-muted block">Receiving facility</span>
+                                    <strong className="text-emerald-deep text-sm">{raised.toFacilityName}</strong>
                                 </div>
                                 <div>
-                                    <span className="text-txt-muted block">Status</span>
-                                    <strong className="text-status-green text-sm">{STATUS_LABELS[(liveReferral ?? dispatchSummary).status]}</strong>
-                                    <span className="block text-[10px] text-txt-muted">
-                                        ETA pending crew confirmation
-                                    </span>
+                                    <span className="text-txt-muted block">Referral status</span>
+                                    <strong className="text-status-green text-sm">{STATUS_LABELS[(liveReferral ?? raised).status]}</strong>
                                 </div>
                             </div>
-
                             <UploadState
                                 status={uploadStatus}
-                                facilityName={dispatchSummary.toFacilityName}
+                                facilityName={raised.toFacilityName}
                                 onRetry={() => void flushOutbox().then(refreshUploadStatus)}
                             />
-                            <div className="flex gap-3 pt-2">
-                                <Link href="/referrals" className="gov-btn gov-btn-primary text-xs">
-                                    Track Ambulance in Referral Pipeline →
-                                </Link>
-                                <Link href="/incoming" className="gov-btn gov-btn-secondary text-xs">
-                                    Pre-Arrival Board →
-                                </Link>
-                                <button
-                                    onClick={() => setIsDispatched(false)}
-                                    className="gov-btn gov-btn-ghost text-xs"
-                                >
-                                    Trigger Another Escalation
-                                </button>
+                            <div className="flex gap-3 pt-2 flex-wrap">
+                                <Link href="/referrals" className="gov-btn gov-btn-primary text-xs">Open in Referrals →</Link>
+                                <a href={`tel:${call}`} className="gov-btn gov-btn-danger text-xs"><Icon name="phone" className="w-3.5 h-3.5" /> Call {call}</a>
+                                <button type="button" onClick={startOver} className="gov-btn gov-btn-ghost text-xs">Raise another</button>
                             </div>
                         </div>
                     ) : (
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedType('108_TRAUMA')}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                        selectedType === '108_TRAUMA'
-                                            ? 'border-status-red bg-red-50 text-red-950 shadow-sm'
-                                            : 'border-border-subtle bg-white hover:border-gray-300'
-                                    }`}
-                                >
-                                    <Icon name="ambulance" className="w-6 h-6 mb-1 text-status-red" />
-                                    <strong className="text-sm block text-emerald-deep">108 MEMS Trauma</strong>
-                                    <span className="text-[11px] text-txt-secondary">Accident, Stroke, Shock, Cardiac</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedType('102_MATERNAL')}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                        selectedType === '102_MATERNAL'
-                                            ? 'border-status-green bg-green-50 text-green-950 shadow-sm'
-                                            : 'border-border-subtle bg-white hover:border-gray-300'
-                                    }`}
-                                >
-                                    <Icon name="maternal" className="w-6 h-6 mb-1 text-status-green" />
-                                    <strong className="text-sm block text-emerald-deep">102 Janani Shishu</strong>
-                                    <span className="text-[11px] text-txt-secondary">Maternal Labor, Preeclampsia</span>
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setSelectedType('PEDIATRIC_EMERGENCY')}
-                                    className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                                        selectedType === 'PEDIATRIC_EMERGENCY'
-                                            ? 'border-gov-blue bg-blue-50 text-blue-950 shadow-sm'
-                                            : 'border-border-subtle bg-white hover:border-gray-300'
-                                    }`}
-                                >
-                                    <Icon name="child" className="w-6 h-6 mb-1 text-gov-blue" />
-                                    <strong className="text-sm block text-emerald-deep">Pediatric Emergency</strong>
-                                    <span className="text-[11px] text-txt-secondary">Neonatal Asphyxia, SAM Shock</span>
-                                </button>
+                                {kindButton('108_TRAUMA', 'ambulance', '108 Emergency', 'Accident, stroke, shock, cardiac', 'border-status-red bg-red-50 text-red-950 shadow-sm', 'text-status-red')}
+                                {kindButton('102_MATERNAL', 'maternal', '102 Janani Shishu', 'Pregnancy complication, labour', 'border-status-green bg-green-50 text-green-950 shadow-sm', 'text-status-green')}
+                                {kindButton('PEDIATRIC_EMERGENCY', 'child', 'Child emergency', 'Newborn asphyxia, SAM with shock', 'border-gov-blue bg-blue-50 text-blue-950 shadow-sm', 'text-gov-blue')}
                             </div>
 
                             <div className="surface-card p-5 space-y-4">
-                                <label className="block text-xs font-bold text-emerald-deep uppercase tracking-wider">
-                                    Select Patient for Clinical Snapshot
+                                <label htmlFor="emg-patient" className="block text-xs font-bold text-emerald-deep uppercase tracking-wider">
+                                    Patient <span className="text-red-600">*</span>
                                 </label>
-                                <select
-                                    value={selectedPatientId}
-                                    onChange={(e) => setSelectedPatientId(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-emerald-deep focus:outline-none font-medium"
-                                >
-                                    <option value="">-- Active Patient: {activePatient.name} ({activePatient.age}y / {activePatient.gender}) --</option>
-                                    {patients.map(p => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name} ({p.age}y, {p.village}) — SpO2: {p.vitals.spo2}%, Status: {p.triageStatus}
-                                        </option>
-                                    ))}
+                                <select id="emg-patient" value={selectedPatientId} onChange={(e) => setSelectedPatientId(e.target.value)} className={`${inputClass} font-medium`}>
+                                    <option value="">— Choose the patient —</option>
+                                    <option value={UNIDENTIFIED}>Unidentified patient (not registered yet)</option>
+                                    {choices.here.length > 0 && (
+                                        <optgroup label={`Registered at ${origin.name}`}>
+                                            {choices.here.map(p => <option key={p.id} value={p.id}>{p.name} ({p.age} y, {p.gender}) — {p.village || 'village not recorded'}</option>)}
+                                        </optgroup>
+                                    )}
+                                    {choices.elsewhere.length > 0 && (
+                                        <optgroup label="Other patients on this device">
+                                            {choices.elsewhere.map(p => <option key={p.id} value={p.id}>{p.name} ({p.age} y, {p.gender}) — {p.village || 'village not recorded'}</option>)}
+                                        </optgroup>
+                                    )}
                                 </select>
 
-                                <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-red-900 uppercase">Emergency LHR Snapshot</span>
-                                        <span className="text-[10px] font-mono bg-status-red text-white px-2 py-0.5 rounded font-bold">
-                                            {activePatient.abhaId || 'ABHA-LINKED'}
+                                {selectedPatientId === UNIDENTIFIED && (
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                        <label className="block">Approx. age (years) <span className="text-red-600">*</span>
+                                            <input type="number" inputMode="numeric" min={0} max={120} value={unknownAge} onChange={e => setUnknownAge(e.target.value)} className={inputClass} />
+                                        </label>
+                                        <fieldset className="block">
+                                            <legend>Sex <span className="text-red-600">*</span></legend>
+                                            <div className="flex border border-border-subtle rounded-xl overflow-hidden mt-0.5">
+                                                {(['M', 'F', 'O'] as const).map(g => (
+                                                    <button key={g} type="button" aria-pressed={unknownGender === g} onClick={() => setUnknownGender(g)}
+                                                        className={`flex-1 py-2 font-bold ${unknownGender === g ? 'bg-emerald-deep text-white' : 'bg-white'}`}>{g}</button>
+                                                ))}
+                                            </div>
+                                        </fieldset>
+                                        <label className="block">SpO2 % (if measured)
+                                            <input type="number" inputMode="numeric" min={50} max={100} value={unknownSpo2} onChange={e => setUnknownSpo2(e.target.value)} className={inputClass} />
+                                        </label>
+                                        <label className="block">Pulse /min (if measured)
+                                            <input type="number" inputMode="numeric" min={20} max={250} value={unknownPulse} onChange={e => setUnknownPulse(e.target.value)} className={inputClass} />
+                                        </label>
+                                        <label className="block">BP systolic (if measured)
+                                            <input type="number" inputMode="numeric" min={50} max={260} value={unknownSys} onChange={e => setUnknownSys(e.target.value)} className={inputClass} />
+                                        </label>
+                                        <label className="block">BP diastolic (if measured)
+                                            <input type="number" inputMode="numeric" min={20} max={180} value={unknownDia} onChange={e => setUnknownDia(e.target.value)} className={inputClass} />
+                                        </label>
+                                    </div>
+                                )}
+
+                                {vitals && (
+                                    <div className="p-4 bg-red-50/70 border border-red-200 rounded-xl space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-red-900 uppercase">Record sent with the referral</span>
+                                            <span className="text-[10px] font-mono text-red-900">
+                                                {chosen ? `${chosen.abhaId ? `ABHA ${chosen.abhaId} · ` : ''}recorded ${new Date(chosen.timestamp).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}` : 'entered now'}
+                                            </span>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                            <div className="bg-white p-2 rounded border border-red-100"><span className="text-txt-muted block text-[10px]">SpO2</span><strong className="text-sm">{shown(vitals.spo2, '%')}</strong></div>
+                                            <div className="bg-white p-2 rounded border border-red-100"><span className="text-txt-muted block text-[10px]">Blood pressure</span><strong className="text-sm">{vitals.bloodPressure ? `${vitals.bloodPressure.systolic}/${vitals.bloodPressure.diastolic}` : '—'}</strong></div>
+                                            <div className="bg-white p-2 rounded border border-red-100"><span className="text-txt-muted block text-[10px]">Pulse</span><strong className="text-sm">{shown(vitals.heartRate, '/min')}</strong></div>
+                                            <div className="bg-white p-2 rounded border border-red-100"><span className="text-txt-muted block text-[10px]">Complaint</span><strong className="text-xs truncate block">{chosen ? (vitals.injuryType || '—') : KIND[kind].reason}</strong></div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {target && (
+                                    <div className="p-3 bg-gray-50 border border-border-subtle rounded-xl space-y-2 text-xs">
+                                        <label htmlFor="emg-target" className="text-txt-muted block text-[10px] font-bold uppercase">Receiving facility — the nearest that reports it can take this case</label>
+                                        <select id="emg-target" value={target.facility.id} onChange={e => setTargetId(e.target.value)} className={`${inputClass} font-bold`}>
+                                            {options.map(o => (
+                                                <option key={o.facility.id} value={o.facility.id}>
+                                                    {o.facility.name} — {o.distanceKm.toFixed(0)} km · {o.check.overall === 'OK' ? 'can take' : o.check.overall === 'SHORT' ? 'reports a shortfall' : 'capacity not reported'}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <span className="block text-txt-secondary">
+                                            About {target.distanceKm.toFixed(0)} km by road — roughly {Math.round(travelMinutes(target.distanceKm))} min by ambulance (estimate).
                                         </span>
                                     </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <span className="text-txt-muted block text-[10px]">SpO2</span>
-                                            <strong className="text-status-red text-sm">{activePatient.vitals.spo2}%</strong>
-                                        </div>
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <span className="text-txt-muted block text-[10px]">Blood Pressure</span>
-                                            <strong className="text-status-red text-sm">{activePatient.vitals.bloodPressure?.systolic || 160}/{activePatient.vitals.bloodPressure?.diastolic || 100}</strong>
-                                        </div>
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <span className="text-txt-muted block text-[10px]">Heart Rate</span>
-                                            <strong className="text-emerald-deep text-sm">{activePatient.vitals.heartRate || 110} BPM</strong>
-                                        </div>
-                                        <div className="bg-white p-2 rounded border border-red-100">
-                                            <span className="text-txt-muted block text-[10px]">Condition</span>
-                                            <strong className="text-emerald-deep text-xs truncate block">{activePatient.vitals.injuryType || 'Emergency'}</strong>
-                                        </div>
-                                    </div>
-                                </div>
+                                )}
 
-                                <div className="p-3 bg-gray-50 border border-border-subtle rounded-xl flex items-center justify-between text-xs">
-                                    <div>
-                                        <span className="text-txt-muted block text-[10px] font-bold uppercase">Auto-Routed Receiving Centre</span>
-                                        <strong className="text-emerald-deep font-bold">
-                                            {selectedType === '102_MATERNAL' ? 'SDH Aheri (First Referral Unit - CEmONC)' : 'District Hospital Gadchiroli (Apex ICU/Trauma)'}
-                                        </strong>
-                                    </div>
-                                    <span className="badge-green font-bold px-2 py-1 rounded">
-                                        {selectedType === '102_MATERNAL' ? '38 km • ETA 42 min' : '82 km • ETA 1h 15m'}
-                                    </span>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={handleTriggerEmergency}
-                                    className="gov-btn gov-btn-danger w-full text-base py-3 font-bold"
-                                >
-                                    <Icon name="alert-siren" className="w-4 h-4" /> 1-Tap Emergency Dispatch & Transmit LHR
+                                <button type="button" onClick={() => void raise()} disabled={raising} className="gov-btn gov-btn-danger w-full text-base py-3 font-bold disabled:opacity-60">
+                                    <Icon name="alert-siren" className="w-4 h-4" /> {raising ? 'Raising…' : 'Raise emergency referral'}
                                 </button>
+                                <p className="text-[11px] text-txt-secondary text-center">
+                                    Then call {call} for the ambulance — the referral gets the record there first; it does not dispatch a vehicle.
+                                </p>
                             </div>
 
                             <div className="surface-card p-5 text-center space-y-3">
-                                <span className="text-xs text-txt-secondary font-medium">Or place an immediate direct telephone call:</span>
-                                <div className="flex items-center justify-center gap-3 flex-wrap">
-                                    <a href="tel:108" className="gov-btn gov-btn-danger text-sm">
-                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 108 (Ambulance)
-                                    </a>
-                                    <a href="tel:102" className="gov-btn gov-btn-danger text-sm">
-                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 102 (Maternal)
-                                    </a>
-                                    <a href="tel:104" className="gov-btn gov-btn-secondary text-sm">
-                                        <Icon name="phone" className="w-3.5 h-3.5" /> Call 104 (Health Advice)
-                                    </a>
-                                </div>
+                                <span className="text-xs text-txt-secondary font-medium">Call now:</span>
+                                {callButtons}
                             </div>
                         </div>
                     )}

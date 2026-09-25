@@ -355,8 +355,9 @@ function PatientSnapshot({ patient }: { patient: NonNullable<IncomingCase['patie
     const bp = v.bloodPressure ? `${v.bloodPressure.systolic}/${v.bloodPressure.diastolic}` : null;
 
     const fields: Array<[string, string | null]> = [
-        ['SpO₂', typeof v.spo2 === 'number' ? `${v.spo2}%` : null],
-        ['Pulse', typeof v.heartRate === 'number' ? `${v.heartRate}/min` : null],
+        // 0 is how a reading that was not taken is stored — show it as missing.
+        ['SpO₂', typeof v.spo2 === 'number' && v.spo2 > 0 ? `${v.spo2}%` : null],
+        ['Pulse', typeof v.heartRate === 'number' && v.heartRate > 0 ? `${v.heartRate}/min` : null],
         ['BP', bp ? `${bp} mmHg` : null],
         ['Temp', typeof v.temperature === 'number' ? `${v.temperature}°F` : null],
         ['Resp', typeof v.respiratoryRate === 'number' ? `${v.respiratoryRate}/min` : null],
