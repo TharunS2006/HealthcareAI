@@ -218,7 +218,7 @@ export interface IncomingCase {
 
 export type IncomingResult =
     | { ok: true; cases: IncomingCase[] }
-    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' };
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' };
 
 /**
  * What is currently en route to a facility.
@@ -231,6 +231,8 @@ export async function fetchIncoming(facilityId: string): Promise<IncomingResult>
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
         return { ok: false, reason: 'offline' };
     }
+    // Signed in on this device only: the service could not tell who is asking.
+    if (!hasCloudIdentity()) return { ok: false, reason: 'no-session' };
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -295,7 +297,7 @@ export interface StoreDump {
 
 export type StoreResult =
     | { ok: true; store: StoreDump }
-    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' };
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' };
 
 /**
  * Everything the district record store is currently holding.
@@ -309,6 +311,7 @@ export async function fetchStore(limit = 50): Promise<StoreResult> {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
         return { ok: false, reason: 'offline' };
     }
+    if (!hasCloudIdentity()) return { ok: false, reason: 'no-session' };
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);

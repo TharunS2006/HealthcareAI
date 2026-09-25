@@ -149,12 +149,15 @@ const anonymous = await uploadPatientRecord(patient, NOW);
 check('an upload with no session stays queued (retryable), not refused',
     !anonymous.ok && anonymous.retryable === true, JSON.stringify(anonymous));
 const anonymousStore = await fetchStore(50);
-check('the store refuses a caller with no session, and says so',
-    anonymousStore.ok === false && anonymousStore.reason === 'forbidden', JSON.stringify(anonymousStore));
-setIdentityProvider(() => ({ 'x-nalammesh-user': 'u-dho', 'x-nalammesh-role': 'DHO' }));
-const claimed = await fetchStore(50);
-check('claimed identity headers are not a session — the store refuses them',
-    claimed.ok === false && claimed.reason === 'forbidden', JSON.stringify(claimed));
+check('with no session the store is not asked, and the screen is told why',
+    anonymousStore.ok === false && anonymousStore.reason === 'no-session', JSON.stringify(anonymousStore));
+const anonymousBoard = await fetchIncoming('phc-bhamragad');
+check('…and the same for a pre-arrival board',
+    anonymousBoard.ok === false && anonymousBoard.reason === 'no-session', JSON.stringify(anonymousBoard));
+setIdentityProvider(() => ({ Authorization: 'Bearer forged.token.value' }));
+const forged = await fetchStore(50);
+check('a token the relay never signed is refused by the store',
+    forged.ok === false && forged.reason === 'forbidden', JSON.stringify(forged));
 setIdentityProvider(() => bearerFor('u-mo-bhamragad', 'MO', 'phc-bhamragad'));
 const otherBoard = await fetchIncoming('dh-gadchiroli');
 check('a PHC cannot read another facility\'s pre-arrival board',

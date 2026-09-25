@@ -36,11 +36,12 @@ const POLL_MS = 20_000;
 type LoadState =
     | { kind: 'loading' }
     | { kind: 'ok'; cases: IncomingCase[]; at: number }
-    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden'; at: number };
+    | { kind: 'error'; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session'; at: number };
 
-const REASON_TEXT: Record<'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden', string> = {
+const REASON_TEXT: Record<'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session', string> = {
     offline: 'This device is offline, so the board cannot be refreshed.',
     forbidden: 'The district record service refused this request for your role or facility.',
+    'no-session': 'You are signed in on this device only, so the district record service cannot confirm who is asking. Sign in again with your PIN while the relay is reachable.',
     unreachable: 'The district record service is not responding.',
     timeout: 'The district record service took too long to answer.',
     error: 'The district record service returned an unexpected response.',
@@ -203,7 +204,7 @@ function ConnectionLine({ state, count }: { state: LoadState; count: number }) {
     );
 }
 
-function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' }) {
+function CloudUnavailable({ reason }: { reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' }) {
     return (
         <div className="border border-gov-red bg-gov-red-bg p-4">
             <p className="text-sm font-extrabold text-gov-red">
