@@ -23,7 +23,7 @@ import {
 } from '../../lib/referrals/workflow';
 import { can, isDistrictWide, type StaffRole } from '../../lib/auth/permissions';
 import { SEED_USERS, type StaffUser } from '../../lib/auth/users';
-import { verifyPin } from '../../lib/auth/pin';
+import { hashPin, verifyPin } from '../../lib/auth/pin';
 import { SEED_REFERRALS } from '../../lib/data/referralSeed';
 import type { ReferralRecord } from '../../types/patient';
 import type { NotificationRecord } from '../../types/referral';
@@ -51,7 +51,22 @@ export interface RelayOptions {
     /** Bhashini client (./bhashini.ts); null when Bhashini keys are not configured. */
     bhashini?: ReturnType<typeof createBhashiniClient> | null;
     log?: (message: string, data?: object) => void;
+    /**
+     * The seeded demo roster, all on the public PIN, may sign in. True for an
+     * evaluation build; a production relay sets it false and knows only the
+     * staff the Super Admin has created.
+     */
+    demoAccounts?: boolean;
+    /**
+     * Production only: the first Super Admin, created with this PIN (6 digits)
+     * when the directory has none — so a new deployment can be set up without
+     * a public PIN. Ignored once any active Super Admin exists.
+     */
+    bootstrapAdmin?: { pin: string; name?: string } | null;
 }
+
+/** The account a production relay creates for its first Super Admin. */
+export const BOOTSTRAP_ADMIN = { id: 'u-admin', staffId: 'ADMIN-01' } as const;
 
 /**
  * The demo referrals every device starts with. Their events have fixed ids
@@ -76,12 +91,46 @@ const ABHA_OTP_REQUESTS = 5;
 const ABHA_OTP_WINDOW_SECONDS = 15 * 60;
 const ABHA_VERIFY_ATTEMPTS = 5;
 
-export function createRelay({ store, secret, io, abdm = null, bhashini = null, log = () => undefined }: RelayOptions) {
+export function createRelay({ store, secret, io, abdm = null, bhashini = null, log = () => undefined, demoAccounts = true, bootstrapAdmin = null }: RelayOptions) {
     // ── identity ─────────────────────────────────────────────────────────────
 
-    /** The directory entry: a Super Admin's change wins over the seeded roster. */
+    /**
+     * The directory entry: a Super Admin's change wins over the seeded roster.
+     * A production relay has no seeded roster — only the staff it was given.
+     */
     async function directoryUser(id: string): Promise<StaffUser | undefined> {
-        return (await store.getUser(id)) ?? SEED_USERS.find(u => u.id === id);
+        return (await store.getUser(id)) ?? (demoAccounts ? SEED_USERS.find(u => u.id === id) : undefined);
+    }
+
+    /** Everyone the relay knows, for finding a user by Staff ID. */
+    async function allUsers(): Promise<StaffUser[]> {
+        const stored = await store.listUsers();
+        if (!demoAccounts) return stored;
+        return [...stored, ...SEED_USERS.filter(seed => !stored.some(u => u.id === seed.id))];
+    }
+
+    /** Production: create the first Super Admin from the relay's own setting, once. */
+    let bootstrapped: Promise<void> | null = null;
+    function ensureBootstrapAdmin(): Promise<void> {
+        if (demoAccounts || !bootstrapAdmin) return Promise.resolve();
+        bootstrapped ??= (async () => {
+            const users = await store.listUsers();
+            if (users.some(u => u.role === 'SUPER_ADMIN' && u.active)) return;
+            await store.putUser({
+                id: BOOTSTRAP_ADMIN.id,
+                name: bootstrapAdmin.name?.trim() || 'System Administrator',
+                role: 'SUPER_ADMIN',
+                facilityId: null,
+                staffId: BOOTSTRAP_ADMIN.staffId,
+                active: true,
+                pinHash: await hashPin(bootstrapAdmin.pin),
+            });
+            log('Created the first Super Admin from NALAMMESH_BOOTSTRAP_ADMIN_PIN', { staffId: BOOTSTRAP_ADMIN.staffId });
+        })().catch(error => {
+            bootstrapped = null; // try again on the next sign-in
+            throw error;
+        });
+        return bootstrapped;
     }
 
     /**
@@ -102,8 +151,18 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
 
     async function signIn(body: unknown): Promise<Result<{ token: string; expiresAt: number; user: StaffUser }>> {
         if (!secret) return { ok: false, status: 503, reason: 'Sign-in is not configured on this relay (NALAMMESH_AUTH_SECRET is unset)' };
-        const { userId, pin } = (body ?? {}) as { userId?: unknown; pin?: unknown };
-        if (typeof userId !== 'string' || typeof pin !== 'string') return { ok: false, status: 400, reason: 'Send userId and pin' };
+        await ensureBootstrapAdmin();
+        const { userId: givenId, staffId, pin } = (body ?? {}) as { userId?: unknown; staffId?: unknown; pin?: unknown };
+        if (typeof pin !== 'string' || (typeof givenId !== 'string' && typeof staffId !== 'string')) {
+            return { ok: false, status: 400, reason: 'Send userId (or staffId) and pin' };
+        }
+        // A new device knows no one yet: its user signs in with their Staff ID.
+        // An unknown Staff ID counts failures under its own key, so guessing
+        // IDs is locked out like guessing PINs.
+        const byStaffId = typeof staffId === 'string'
+            ? (await allUsers()).find(u => u.staffId.trim().toUpperCase() === staffId.trim().toUpperCase())
+            : undefined;
+        const userId = typeof givenId === 'string' ? givenId : byStaffId?.id ?? `staff:${String(staffId).trim().toUpperCase()}`;
         if ((await store.pinFailures(userId)) >= MAX_PIN_FAILURES) {
             return { ok: false, status: 423, reason: `Too many wrong PINs — this account is locked for up to ${LOCKOUT_SECONDS / 60} minutes` };
         }
@@ -481,7 +540,7 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
     }));
 
     app.get('/health', (_req, res) => {
-        res.json({ status: 'healthy', store: store.kind, signIn: secret ? 'enabled' : 'not configured', abha: abdm ? 'configured' : 'not configured', bhashini: bhashini ? 'configured' : 'not configured', sockets: io ? io.sockets.sockets.size : null, uptime: process.uptime() });
+        res.json({ status: 'healthy', mode: demoAccounts ? 'evaluation' : 'production', store: store.kind, signIn: secret ? 'enabled' : 'not configured', abha: abdm ? 'configured' : 'not configured', bhashini: bhashini ? 'configured' : 'not configured', sockets: io ? io.sockets.sockets.size : null, uptime: process.uptime() });
     });
 
     app.get('/api', (_req, res) => {
@@ -592,6 +651,9 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             socket.on('data:reset', safely(async () => {
                 const me = await who();
                 if (!me || !can(me.role, 'admin:users')) return log('data:reset refused', { role: me?.role ?? 'signed out' });
+                // A demonstration reset. On a production relay the store holds real
+                // patients, referrals and staff accounts — nothing wipes it.
+                if (!demoAccounts) return log('data:reset refused', { reason: 'production relay', by: me.userId });
                 await store.reset();
                 socket.broadcast.emit('data:reset');
                 log('Global reset broadcast', { by: me.userId });

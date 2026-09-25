@@ -17,12 +17,14 @@ import { resolveAuthSecret } from './auth';
 import { storeFromEnv } from './store';
 import { abdmConfigFromEnv, createAbdmClient } from './abha';
 import { bhashiniConfigFromEnv, createBhashiniClient } from './bhashini';
+import { relayModeFromEnv } from './mode';
 
 /** What a hosted deployment is missing; empty when it can serve. */
 export function hostedMisconfiguration(env: NodeJS.ProcessEnv): string[] {
     const missing: string[] = [];
     if (storeFromEnv(env).kind !== 'upstash') missing.push('Upstash credentials (KV_REST_API_URL and KV_REST_API_TOKEN)');
     if (!resolveAuthSecret({ ...env, VERCEL: env.VERCEL ?? '1' })) missing.push('NALAMMESH_AUTH_SECRET (32+ characters)');
+    missing.push(...relayModeFromEnv(env).problems);
     return missing;
 }
 
@@ -42,7 +44,10 @@ export function createHostedApp(env: NodeJS.ProcessEnv = process.env, log: (mess
 
     const abdmConfig = abdmConfigFromEnv(env);
     const bhashiniConfig = bhashiniConfigFromEnv(env);
+    const mode = relayModeFromEnv(env);
     return createRelay({
+        demoAccounts: mode.demoAccounts,
+        bootstrapAdmin: mode.bootstrapAdmin,
         store: storeFromEnv(env),
         secret: resolveAuthSecret({ ...env, VERCEL: env.VERCEL ?? '1' }),
         abdm: abdmConfig ? createAbdmClient(abdmConfig) : null,

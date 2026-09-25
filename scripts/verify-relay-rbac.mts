@@ -20,6 +20,8 @@
  *   8. CONTRACT    the statuses the app reads as refused / retry / unavailable
  *   9. HOSTED      the serverless configuration against an Upstash-protocol
  *                  store: state shared between instances, lockout persisted
+ *  10. PRODUCTION  no demo account signs in; the first Super Admin comes from
+ *                  the relay's bootstrap PIN; staff sign in by Staff ID
  */
 
 import { spawn } from 'node:child_process';
@@ -457,6 +459,50 @@ outage = false;
 
 instances.forEach(i => i.server.close());
 upstash.close();
+
+// ---------------------------------------------------------------------------
+console.log('\n10. PRODUCTION');
+// ---------------------------------------------------------------------------
+const { relayModeFromEnv } = await import('../server/relay/mode');
+const { hashPin } = await import('../lib/auth/pin');
+check('a production relay without a bootstrap PIN will not serve',
+    relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production' }).problems.length === 1
+    && relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production', NALAMMESH_BOOTSTRAP_ADMIN_PIN: '2468' }).problems.length === 1);
+const hostedNoPin = await hostedStatus({ ...hostedEnv, NALAMMESH_DEPLOYMENT_MODE: 'production' });
+check('…the hosted entry answers 503 and names the setting', hostedNoPin.health === 503 && /BOOTSTRAP_ADMIN_PIN/.test(hostedNoPin.body), hostedNoPin.body);
+check('an unset mode is an evaluation relay', relayModeFromEnv({}).demoAccounts === true);
+
+const prodMode = relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production', NALAMMESH_BOOTSTRAP_ADMIN_PIN: '135790', NALAMMESH_BOOTSTRAP_ADMIN_NAME: 'Dr. First Admin' });
+const prodStore = storeFromEnv({} as NodeJS.ProcessEnv);
+const prodServer = createServer(createRelay({ store: prodStore, secret: SECRET, demoAccounts: prodMode.demoAccounts, bootstrapAdmin: prodMode.bootstrapAdmin }).app);
+await new Promise<void>(r => prodServer.listen(0, '127.0.0.1', () => r()));
+const P = `http://127.0.0.1:${(prodServer.address() as { port: number }).port}`;
+const staffLogin = (staffId: string, pin: string) =>
+    fetch(`${P}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ staffId, pin }) });
+check('/health says production', ((await (await fetch(`${P}/health`)).json()) as { mode: string }).mode === 'production');
+check('the demo Super Admin cannot sign in with the public PIN', (await login(P, 'u-sa', DEMO_PIN)).status === 401);
+check('…nor any demo account', (await Promise.all(['u-anm-kothi', 'u-mo-bhamragad', 'u-dho'].map(id => login(P, id, DEMO_PIN)))).every(r => r.status === 401));
+check('the first Super Admin signs in by Staff ID with the bootstrap PIN', (await staffLogin('ADMIN-01', '135790')).status === 200);
+const adminBody = await (await staffLogin('admin-01', '135790')).json() as { token: string; user: { role: string; name: string; pinHash?: string } };
+check('…Staff ID is not case-sensitive, and the account is the named Super Admin, its hash not sent',
+    adminBody.user?.role === 'SUPER_ADMIN' && adminBody.user?.name === 'Dr. First Admin' && adminBody.user?.pinHash === undefined, JSON.stringify(adminBody.user));
+check('a wrong PIN is refused', (await staffLogin('ADMIN-01', '000000')).status === 401);
+const newAnm = { id: 'u-anm-new', name: 'Asha Kumre', role: 'ANM', facilityId: 'sc-kothi', staffId: 'ANM-KOT-2001', active: true, pinHash: await hashPin('482913') };
+const created = await fetch(`${P}/api/users/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminBody.token}` }, body: JSON.stringify({ user: newAnm }) });
+check('the Super Admin creates a real account', created.status === 202, String(created.status));
+check('…who signs in by Staff ID on a new device', (await staffLogin('ANM-KOT-2001', '482913')).status === 200);
+for (let i = 0; i < 5; i++) await staffLogin('NO-SUCH-ID', '111111');
+check('guessing Staff IDs is locked out like guessing PINs', (await staffLogin('NO-SUCH-ID', '111111')).status === 423);
+prodServer.close();
+// The relay restarts with a different bootstrap PIN: a Super Admin exists, so it is ignored.
+const restarted = createServer(createRelay({ store: prodStore, secret: SECRET, demoAccounts: false, bootstrapAdmin: { pin: '111111' } }).app);
+await new Promise<void>(r => restarted.listen(0, '127.0.0.1', () => r()));
+const R = `http://127.0.0.1:${(restarted.address() as { port: number }).port}`;
+const loginR = (staffId: string, pin: string) => fetch(`${R}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ staffId, pin }) });
+check('once a Super Admin exists, a new bootstrap PIN neither signs in nor replaces theirs',
+    (await loginR('ADMIN-01', '111111')).status === 401 && (await loginR('ADMIN-01', '135790')).status === 200);
+check('…and no second admin account was made', (await prodStore.listUsers()).filter(u => u.role === 'SUPER_ADMIN').length === 1);
+restarted.close();
 stop();
 console.log(failures === 0 ? '\nAll relay sign-in and access checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

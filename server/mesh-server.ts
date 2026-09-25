@@ -14,6 +14,7 @@ import { resolveAuthSecret } from './relay/auth';
 import { storeFromEnv } from './relay/store';
 import { abdmConfigFromEnv, createAbdmClient } from './relay/abha';
 import { bhashiniConfigFromEnv, createBhashiniClient } from './relay/bhashini';
+import { relayModeFromEnv } from './relay/mode';
 
 function log(message: string, data?: object): void {
     console.log(JSON.stringify({ timestamp: new Date().toISOString(), message, ...data }));
@@ -24,12 +25,20 @@ if (!secret) {
     console.error('\nMesh relay: no signing secret. Set NALAMMESH_AUTH_SECRET (32+ characters) — sign-in stays disabled until you do.\n');
 }
 
+const mode = relayModeFromEnv(process.env);
+if (mode.problems.length > 0) {
+    console.error(`\nMesh relay (production): cannot start — set ${mode.problems.join('; ')}.\n`);
+    process.exit(1);
+}
+
 const store = storeFromEnv();
 const io = new SocketIO({ cors: { origin: '*', methods: ['GET', 'POST'] }, pingTimeout: 10000, pingInterval: 5000 });
 const abdmConfig = abdmConfigFromEnv();
 const bhashiniConfig = bhashiniConfigFromEnv();
 const relay = createRelay({
     store, secret, io, log,
+    demoAccounts: mode.demoAccounts,
+    bootstrapAdmin: mode.bootstrapAdmin,
     abdm: abdmConfig ? createAbdmClient(abdmConfig) : null,
     bhashini: bhashiniConfig ? createBhashiniClient(bhashiniConfig) : null,
 });
@@ -59,5 +68,5 @@ httpServer.on('error', (err: NodeJS.ErrnoException) => {
 });
 
 httpServer.listen(PORT, () => {
-    log(`Mesh relay running on port ${PORT}`, { store: store.kind, signIn: secret ? 'enabled' : 'disabled' });
+    log(`Mesh relay running on port ${PORT}`, { store: store.kind, signIn: secret ? 'enabled' : 'disabled', mode: mode.production ? 'production' : 'evaluation' });
 });
