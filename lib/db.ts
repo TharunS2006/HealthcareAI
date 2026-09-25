@@ -478,6 +478,17 @@ async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
         const tx = db.transaction('users', 'readwrite');
         await Promise.all(SEED_USERS.map(u => tx.store.put(u)));
         await tx.done;
+    } else {
+        // A directory stored before PINs existed has seeded accounts with no
+        // PIN hash, and nobody could sign in on this device. Give each seeded
+        // account its shipped hash — only where it has none, so a PIN the
+        // Super Admin set is kept.
+        const tx = db.transaction('users', 'readwrite');
+        for (const seed of SEED_USERS) {
+            const stored = await tx.store.get(seed.id);
+            if (stored && !stored.pinHash && seed.pinHash) await tx.store.put({ ...stored, pinHash: seed.pinHash });
+        }
+        await tx.done;
     }
     if ((await db.count('facilityResources')) === 0) {
         const tx = db.transaction(['facilityResources', 'maintenanceLog'], 'readwrite');

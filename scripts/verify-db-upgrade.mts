@@ -21,6 +21,7 @@
  *   9. NEWER TAB           this page steps aside and says to reload
  *  10. MESH ARRIVALS       referrals from a not-yet-upgraded device
  *  11. FAILED MIGRATION    rolled back whole: old version, records untouched
+ *  12. PINS BACKFILLED     seeded accounts stored before PINs get theirs; admin-set PINs kept
  */
 
 import 'fake-indexeddb/auto';
@@ -340,6 +341,22 @@ await scenario('11. FAILED MIGRATION', async () => {
     raw.close();
     check('the device stays on version 4, not half-migrated at 6', version === 4, String(version));
     check('… with its records exactly as they were', facilities.some((f: any) => f.id === RETIRED) && (referral as any)?.status === 'INITIATED');
+});
+
+await scenario('12. STAFF LIST FROM BEFORE PINS', async () => {
+    // A browser that stored the directory before sign-in checked PINs: seeded
+    // accounts with no hash, except one whose PIN the Super Admin has set.
+    const { verifyPin } = await import('../lib/auth/pin');
+    const { DEMO_PIN } = await import('../lib/auth/users');
+    const adminSet = await (await import('../lib/auth/pin')).hashPin('9753');
+    const stored = SEED_USERS.map(({ pinHash: _drop, ...u }) => (u.id === 'u-mo-perimili' ? { ...u, pinHash: adminSet } : u));
+    await createDevice(6, V5_SCHEMA, { facilities: FACILITY_NETWORK, patients: SEED_PATIENTS, users: stored, facilityResources: SEED_RESOURCES });
+    const s = await snapshot();
+    const anm = byId(s.all.users, 'u-anm-kothi');
+    check('seeded accounts get their PIN back, so the demo PIN signs in', await verifyPin(DEMO_PIN, anm?.pinHash));
+    check('every seeded account can sign in', (await Promise.all(s.all.users.filter(u => u.id !== 'u-mo-perimili').map(u => verifyPin(DEMO_PIN, u.pinHash)))).every(Boolean));
+    const mo = byId(s.all.users, 'u-mo-perimili');
+    check('a PIN the Super Admin set is kept, not reset to the demo PIN', await verifyPin('9753', mo?.pinHash) && !(await verifyPin(DEMO_PIN, mo?.pinHash)));
 });
 
 console.log(failures === 0 ? '\nAll device-database upgrade checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
