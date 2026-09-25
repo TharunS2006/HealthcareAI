@@ -1,5 +1,5 @@
 /**
- * GovPortalHeader — Authentic Indian Government (NIC / GIGW 3.0) Master Header
+ * GovPortalHeader — government portal header, laid out to GIGW 3.0
  * Official portal header for NalamMesh — Government of Maharashtra & NHM
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
  */

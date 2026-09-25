@@ -66,7 +66,7 @@ export default function RootLayout({
                     मुख्य मजकुराकडे जा (Skip to main content)
                 </a>
 
-                {/* Official Indian Government Portal Header (NIC / GIGW 3.0 Standard) */}
+                {/* Portal header, laid out to GIGW 3.0 */}
                 <NativeDeepLink />
                 <GovPortalHeader />
                 <NetworkSignIn />
@@ -93,7 +93,7 @@ export default function RootLayout({
                     <ChatAssistant />
                 </ErrorBoundary>
 
-                {/* Official NIC Government Footer */}
+                {/* Portal footer */}
                 <GovPortalFooter />
 
                 {/* Toast Notification Provider */}

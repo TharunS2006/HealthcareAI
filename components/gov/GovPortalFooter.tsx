@@ -1,12 +1,11 @@
 /**
- * GovPortalFooter — Official GIGW 3.0 & NIC-Compliant Government Footer
+ * GovPortalFooter — Government portal footer, laid out to GIGW 3.0
  * Standard Indian Government & Maharashtra Public Health Department Attribution
  * Full Trilingual Localization: English, Marathi, Hindi
  */
 
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import StateEmblem from '@/components/gov/StateEmblem';
 import { useLanguageStore } from '@/stores/languageStore';
@@ -16,20 +15,12 @@ export default function GovPortalFooter() {
     const isEn = language === 'en';
     const isHi = language === 'hi';
 
-    /**
-     * Resolved after mount, not during render: this is a static export, so anything
-     * derived from the clock at render time is baked into the prerendered HTML at build
-     * time and then disagrees with the client on hydration. Empty until mounted. */
-    const [today, setToday] = useState('');
-    useEffect(() => {
-        setToday(new Date().toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-        }));
-    }, []);
-
-    const currentYear = today ? new Date().getFullYear() : '';
+    // The date this build was made (next.config.js), not the visitor's clock:
+    // "Last Updated" must say when the portal last changed.
+    const built = process.env.NEXT_PUBLIC_BUILD_DATE ?? '';
+    const builtDate = built ? new Date(`${built}T00:00:00Z`) : null;
+    const today = builtDate ? builtDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+    const currentYear = builtDate ? builtDate.getUTCFullYear() : '';
 
     const F = {
         helplineHeader: isEn
@@ -48,7 +39,7 @@ export default function GovPortalFooter() {
             ? 'सार्वजनिक स्वास्थ्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय स्वास्थ्य मिशन (NHM) महाराष्ट्र।'
             : 'सार्वजनिक आरोग्य विभाग, मंत्रालय, मुंबई ४०० ०३२. राष्ट्रीय आरोग्य अभियान (NHM) महाराष्ट्र.',
         importantPortals: isEn ? 'Important Portals' : isHi ? 'महत्वपूर्ण पोर्टल्स' : 'महत्वाच्या लिंक्स (Important Portals)',
-        p1: isEn ? 'Public Health Dept Portal' : isHi ? 'सार्वजनिक स्वास्थ्य विभाग पोर्टल' : 'सार्वजनिक आरोग्य विभाग पोर्टल',
+        p1: isEn ? 'Ministry of Health & Family Welfare' : isHi ? 'स्वास्थ्य एवं परिवार कल्याण मंत्रालय' : 'आरोग्य व कुटुंब कल्याण मंत्रालय',
         p2: isEn ? 'Ayushman Bharat Digital Mission (ABDM)' : isHi ? 'आयुष्मान भारत डिजिटल मिशन (ABDM)' : 'आयुष्मान भारत डिजिटल मिशन (ABDM)',
         p3: isEn ? 'National Health Mission (NHM)' : isHi ? 'राष्ट्रीय स्वास्थ्य मिशन (NHM)' : 'राष्ट्रीय आरोग्य अभियान (NHM)',
         p4: isEn ? 'eSanjeevani Telemedicine' : isHi ? 'ई-संजीवनी टेलीमेडिसिन' : 'ई-संजीवनी टेलिमेडिसिन',
@@ -67,11 +58,13 @@ export default function GovPortalFooter() {
             : isHi
             ? `© ${currentYear} नलममेश • सार्वजनिक स्वास्थ्य विभाग, महाराष्ट्र सरकार। सर्वाधिकार सुरक्षित।`
             : `© ${currentYear} नलममेश • सार्वजनिक आरोग्य विभाग, महाराष्ट्र शासन. सर्व हक्क राखीव.`,
+        // Say who built it and what it aims for — not an NIC credit or a
+        // compliance certificate nobody has issued.
         designedBy: isEn
-            ? 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).'
+            ? 'Developed by the NalamMesh team. Designed to GIGW 3.0 and W3C WCAG 2.1 (AA) guidelines; not yet independently audited.'
             : isHi
-            ? 'राष्ट्रीय सूचना विज्ञान केंद्र (NIC) द्वारा डिज़ाइन, विकसित व होस्ट किया गया। GIGW 3.0 व W3C WCAG 2.1 (AA) प्रमाणित।'
-            : 'Designed, Developed and Hosted by National Informatics Centre (NIC). Compliant with GIGW 3.0 and W3C WCAG 2.1 (AA).',
+            ? 'नलममेश टीम द्वारा विकसित। GIGW 3.0 व W3C WCAG 2.1 (AA) दिशानिर्देशों के अनुसार बनाया गया; अभी स्वतंत्र ऑडिट नहीं हुआ।'
+            : 'नलममेश टीमने विकसित केले. GIGW 3.0 व W3C WCAG 2.1 (AA) मार्गदर्शक तत्त्वांनुसार रचना; अद्याप स्वतंत्र लेखापरीक्षण झालेले नाही.',
         lastUpdated: isEn ? `Last Updated: ${today}` : isHi ? `अंतिम अपडेट: ${today}` : `शेवटचा बदल: ${today}`,
         // No visitor counter: this is a static, offline-first build with no analytics
         // backend, so any figure shown here would be invented. Removed rather than faked.
@@ -136,7 +129,7 @@ export default function GovPortalFooter() {
                             {F.importantPortals}
                         </h4>
                         <ul className="space-y-1 text-[11px] text-slate-300">
-                            <li><a href="https://nhm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p1}</a></li>
+                            <li><a href="https://mohfw.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p1}</a></li>
                             <li><a href="https://abdm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p2}</a></li>
                             <li><a href="https://nhm.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p3}</a></li>
                             <li><a href="https://esanjeevani.mohfw.gov.in" target="_blank" rel="noreferrer" className="hover:text-amber-300">{F.p4}</a></li>
@@ -169,7 +162,7 @@ export default function GovPortalFooter() {
                 </div>
             </div>
 
-            {/* Official NIC Attribution Tier */}
+            {/* Attribution */}
             <div className="max-w-7xl mx-auto px-4 py-4 sm:pr-40 text-[11px] text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3">
                 <div className="space-y-0.5 text-center sm:text-left">
                     <p>

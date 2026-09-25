@@ -34,7 +34,7 @@ export default function Sidebar() {
         online: isEn ? 'ONLINE' : isHi ? 'सक्रिय' : 'सक्रिय',
         standalone: isEn ? 'STANDALONE' : isHi ? 'स्वतंत्र' : 'स्वतंत्र',
         connecting: isEn ? 'CONNECTING' : isHi ? 'जुड़ रहा है' : 'जोडत आहे',
-        compliance: isEn ? 'NIC / GIGW 3.0 Standard' : isHi ? 'NIC / GIGW 3.0 मानक' : 'NIC / GIGW 3.0 मानके',
+        compliance: isEn ? 'Designed to GIGW 3.0' : isHi ? 'GIGW 3.0 के अनुसार' : 'GIGW 3.0 नुसार',
     };
 
     // Reflects the actual relay socket. Records are held in IndexedDB either way, so

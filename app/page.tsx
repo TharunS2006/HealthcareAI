@@ -1,7 +1,7 @@
 /**
  * NalamMesh — National Rural Public Healthcare Infrastructure (DPI)
  * Government of Maharashtra • Department of Public Health
- * Official NIC / GIGW 3.0 Portal Gateway
+ * Portal home, laid out to GIGW 3.0
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
