@@ -17,6 +17,7 @@ import { useLanguageStore } from '@/stores/languageStore';
 import { DiagnosticOrder } from '@/types/facility';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import toast from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 import { useSession } from '@/lib/auth/session';
 import { scopeToFacility } from '@/lib/auth/permissions';
@@ -91,11 +92,16 @@ export default function DiagnosticsPage() {
 
     const handleCreateOrder = (e: React.FormEvent) => {
         e.preventDefault();
-        const p = patients.find(pat => pat.id === orderPatientId) || patients[0];
+        // An order is for the patient the worker chose — never whoever is first on the device.
+        const p = patients.find(pat => pat.id === orderPatientId);
+        if (!p) {
+            toast.error(isEn ? 'Choose the patient this test is for' : isHi ? 'जांच किस मरीज़ के लिए है, चुनें' : 'चाचणी कोणत्या रुग्णासाठी आहे ते निवडा');
+            return;
+        }
         const selectedCat = testCatalog.find(c => c.code === orderTestType) || testCatalog[0];
 
         const newOrder: DiagnosticOrder = {
-            id: `diag-${Math.floor(1000 + Math.random() * 9000)}`,
+            id: `diag-${uuidv4()}`,
             patientId: p.id,
             patientName: p.name,
             patientAge: p.age,
@@ -434,10 +440,11 @@ export default function DiagnosticsPage() {
 
                                 <form onSubmit={handleCreateOrder} className="space-y-4 text-xs">
                                     <div>
-                                        <label className="block font-bold text-txt-primary mb-1">
+                                        <label htmlFor="lab-patient" className="block font-bold text-txt-primary mb-1">
                                             {txt.selectPatient}
                                         </label>
                                         <select
+                                            id="lab-patient"
                                             required
                                             value={orderPatientId}
                                             onChange={(e) => setOrderPatientId(e.target.value)}

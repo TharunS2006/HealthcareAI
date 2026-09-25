@@ -25,6 +25,7 @@ import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { requirementsFor } from '@/lib/capacity/requirements';
 import { defaultReferralTarget, referralTargets } from '@/lib/capacity/availability';
 import { useAvailability } from '@/lib/capacity/useAvailability';
+import { nextTokenNumber } from '@/lib/queue/token';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useVoiceInput } from '@/lib/hooks/useVoiceInput';
 import { downloadFHIRRecord } from '@/lib/fhir';
@@ -243,7 +244,7 @@ export default function OPDPage() {
 
             // Generate OPD Token
             const tokenPrefix = result.status === 'RED' ? 'EMG' : result.status === 'YELLOW' ? 'URG' : 'GEN';
-            const tokenNum = `${tokenPrefix}-${Math.floor(100 + Math.random() * 900)}`;
+            const tokenNum = nextTokenNumber(useQueueStore.getState().queue, facility.id, tokenPrefix);
             setGeneratedToken(tokenNum);
 
             // Save Patient Record into Zustand & IndexedDB

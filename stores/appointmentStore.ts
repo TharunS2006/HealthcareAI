@@ -11,6 +11,9 @@ import toast from 'react-hot-toast';
 import { Appointment } from '@/types/appointment';
 import { QueueEntry } from '@/types/facility';
 import { getAppointments, saveAppointment, updateAppointmentStatus, saveQueueEntry } from '@/lib/db';
+import { v4 as uuidv4 } from 'uuid';
+import { nextTokenNumber } from '@/lib/queue/token';
+import { useQueueStore } from '@/stores/queueStore';
 
 interface AppointmentStore {
     appointments: Appointment[];
@@ -74,8 +77,8 @@ export const useAppointmentStore = create<AppointmentStore>((set, get) => ({
         }
         // References the EXISTING patient by id — no new patient record is created.
         const token: QueueEntry = {
-            id: `appt-tok-${appt.id.slice(0, 8)}-${Math.floor(1000 + Math.random() * 9000)}`,
-            tokenNumber: `A-${Math.floor(100 + Math.random() * 900)}`,
+            id: `appt-tok-${uuidv4()}`,
+            tokenNumber: nextTokenNumber(useQueueStore.getState().queue, appt.facilityId, 'A'),
             sequence: Date.now(),
             patientId: appt.patientId,
             patientName: appt.patientName,
