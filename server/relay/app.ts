@@ -295,6 +295,10 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        // Responses carry session tokens and patient records: no cache on the
+        // way may keep them, and none is to be read as anything but JSON.
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
         if (req.method === 'OPTIONS') return res.sendStatus(204);
         next();
     });

@@ -11,6 +11,7 @@
 # The project needs three environment variables (never in this tree):
 #   NALAMMESH_AUTH_SECRET     32+ random characters; signs session tokens
 #   KV_REST_API_URL / _TOKEN  from the Upstash for Redis Marketplace integration
+#                             (created in bom1; without it every request is a 503)
 #                             (UPSTASH_REDIS_REST_URL / _TOKEN also accepted)
 #
 # Usage:  bash scripts/build-relay-deploy.sh [out-dir]
@@ -37,8 +38,10 @@ cat > "$OUT/api/index.js" <<'JS'
 module.exports = require('./relay.js').default;
 JS
 
+# bom1 (Mumbai): beside the Upstash database, and patient data stays in India.
 cat > "$OUT/vercel.json" <<'JSON'
 {
+  "regions": ["bom1"],
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
 JSON

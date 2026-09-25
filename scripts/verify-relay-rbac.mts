@@ -364,6 +364,31 @@ const instances = await Promise.all([0, 1].map(async () => {
 const [A, B] = instances.map(i => i.base);
 check('both instances report the Upstash store', (await Promise.all([A, B].map(async b => ((await (await fetch(`${b}/health`)).json()) as { store: string }).store))).every(k => k === 'upstash'));
 
+// The Vercel entry itself: configured, it serves; missing a piece, it refuses
+// every request and names what is missing, rather than losing referrals.
+const { createHostedApp } = await import('../server/relay/hosted');
+async function hostedStatus(env: NodeJS.ProcessEnv): Promise<{ health: number; signIn: number; body: string }> {
+    const server = createServer(createHostedApp(env, () => {}));
+    await new Promise<void>(r => server.listen(0, '127.0.0.1', () => r()));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    try {
+        const health = await fetch(`${base}/health`);
+        const signIn = await fetch(`${base}/api/auth/sign-in`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        return { health: health.status, signIn: signIn.status, body: await health.text() };
+    } finally {
+        server.close();
+    }
+}
+const hostedEnv = { KV_REST_API_URL: upstashUrl, KV_REST_API_TOKEN: UPSTASH_TOKEN, NALAMMESH_AUTH_SECRET: SECRET, VERCEL: '1' };
+const configured = await hostedStatus(hostedEnv);
+check('the Vercel entry, fully configured, is healthy on Upstash', configured.health === 200 && JSON.parse(configured.body).store === 'upstash', configured.body);
+const noStore = await hostedStatus({ NALAMMESH_AUTH_SECRET: SECRET, VERCEL: '1' });
+check('without Upstash it refuses every request (503), never falling back to memory', noStore.health === 503 && noStore.signIn === 503 && /Upstash/.test(noStore.body), noStore.body);
+const weakSecret = await hostedStatus({ ...hostedEnv, NALAMMESH_AUTH_SECRET: 'short' });
+check('with a secret under 32 characters it refuses (503) and says why', weakSecret.health === 503 && /NALAMMESH_AUTH_SECRET/.test(weakSecret.body), weakSecret.body);
+const noSecret = await hostedStatus({ KV_REST_API_URL: upstashUrl, KV_REST_API_TOKEN: UPSTASH_TOKEN });
+check('with no secret it never invents one per instance (503)', noSecret.health === 503 && /NALAMMESH_AUTH_SECRET/.test(noSecret.body), noSecret.body);
+
 let hosted = must(wf.createReferral({
     id: `ref-hosted-${PORT}`, eventId: 'hc1', at: at(0),
     patient: { id: 'p-hosted', name: 'Hosted Test', age: 30, gender: 'M' },
