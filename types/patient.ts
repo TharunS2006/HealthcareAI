@@ -61,6 +61,8 @@ export interface HighRiskFlag {
     nextFollowUpDate: Date | string;
     notes?: string;
     overdueDays?: number;
+    /** When a health worker last recorded a follow-up visit for this flag (lib/followup/recall.ts). */
+    lastVisitAt?: Date | string;
 }
 
 export interface VisitRecord {

@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -18,31 +18,12 @@ import toast from 'react-hot-toast';
 import { useSession } from '@/lib/auth/session';
 import { isDistrictWide } from '@/lib/auth/permissions';
 import Link from 'next/link';
+import { recallTasksFrom, recordFollowUpVisit, type RecallTask } from '@/lib/followup/recall';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
 
-interface RecallTask {
-    id: string;
-    patientId: string;
-    patientName: string;
-    age: number;
-    gender: 'M' | 'F' | 'O';
-    cohort: 'MATERNAL' | 'CHILD' | 'CHRONIC';
-    condition: string;
-    village: string;
-    ashaAssigned: string;
-    /**
-     * Days from today the visit is due — negative is overdue, 0 is today. Held as an
-     * offset rather than a fixed calendar date so a recall never drifts into showing
-     * "due in 2 days" beside a date that has already passed; the ASHA acts on this.
-     * `null` means the visit is tied to the next VHND rather than a fixed interval. */
-    dueInDays: number | null;
-    status: 'PENDING' | 'VISITED' | 'SMS_SENT' | 'COMPLETED';
-    phone: string;
-    priority: 'HIGH' | 'CRITICAL' | 'ROUTINE';
-    actionNeeded: string;
-}
 
 export default function FollowUpPage() {
-    const { patients, loadPatients } = usePatientStore();
+    const { patients, loadPatients, addPatient } = usePatientStore();
     const { language } = useLanguageStore();
 
     const [activeTab, setActiveTab] = useState<'ALL' | 'MATERNAL' | 'CHILD' | 'CHRONIC'>('ALL');
@@ -55,105 +36,12 @@ export default function FollowUpPage() {
         loadPatients();
     }, [loadPatients]);
 
-    // Generate Cohort Tasks based on seed and store patients
-    const [tasks, setTasks] = useState<RecallTask[]>([
-        {
-            id: 'task-1',
-            patientId: 'p-gad-1001',
-            patientName: 'Sunita M. Devi',
-            age: 26,
-            gender: 'F',
-            cohort: 'MATERNAL',
-            condition: 'High-Risk Pregnancy 32w (Preeclampsia risk, BP 160/102)',
-            village: 'Kothi (Sub-Centre)',
-            ashaAssigned: 'Lakshmi Netam (ASHA)',
-            dueInDays: 2,
-            status: 'PENDING',
-            phone: '+91-98765-43210',
-            priority: 'CRITICAL',
-            actionNeeded: 'Check BP with digital cuff, check for headache/visual changes, dispense Labetalol.',
-        },
-        {
-            id: 'task-2',
-            patientId: 'p-gad-1003',
-            patientName: 'Baby Aarav (s/o Meena)',
-            age: 1.5,
-            gender: 'M',
-            cohort: 'CHILD',
-            condition: 'Severe Acute Malnutrition (SAM) + Pneumonia follow-up',
-            village: 'Perimili',
-            ashaAssigned: 'Sharda Narote (ASHA)',
-            dueInDays: 0,
-            status: 'PENDING',
-            phone: '+91-94218-33412',
-            priority: 'CRITICAL',
-            actionNeeded: 'Measure MUAC (< 11.5cm alert), check breathing rate, supply therapeutic paste (RUTF).',
-        },
-        {
-            id: 'task-3',
-            patientId: 'p-gad-1002',
-            patientName: 'Ramesh Pandu Patil',
-            age: 54,
-            gender: 'M',
-            cohort: 'CHRONIC',
-            condition: 'Uncontrolled Type-2 Diabetes + Plantar Foot Ulcer',
-            village: 'Govindpur',
-            ashaAssigned: 'Kavita Madavi (ANM)',
-            dueInDays: -5,
-            status: 'PENDING',
-            phone: '+91-94218-77112',
-            priority: 'HIGH',
-            actionNeeded: 'Dressing check, fast glucose strip check, ensure Metformin compliance.',
-        },
-        {
-            id: 'task-4',
-            patientId: 'p-gad-1004',
-            patientName: 'Lata B. Meshram',
-            age: 42,
-            gender: 'F',
-            cohort: 'CHRONIC',
-            condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-MH-GAD-29402)',
-            village: 'Bhamragad',
-            ashaAssigned: 'Sunita Hichami (CHO)',
-            dueInDays: 4,
-            status: 'VISITED',
-            phone: '+91-91300-44982',
-            priority: 'HIGH',
-            actionNeeded: 'DOTS blister count, verify weight gain, submit sputum follow-up bottle.',
-        },
-        {
-            id: 'task-5',
-            patientId: 'p-gad-1006',
-            patientName: 'Anita Kumari Madavi',
-            age: 22,
-            gender: 'F',
-            cohort: 'MATERNAL',
-            condition: '1st Trimester ANC (Hemoglobin 8.4 g/dL - Moderate Anemia)',
-            village: 'Laheri Tribal SC',
-            ashaAssigned: 'Vandana Kallo (ASHA)',
-            dueInDays: 3,
-            status: 'PENDING',
-            phone: '+91-94233-11892',
-            priority: 'HIGH',
-            actionNeeded: 'Dispense IFA & Calcium, counsel on iron-rich diet, schedule USG dating scan.',
-        },
-        {
-            id: 'task-6',
-            patientId: 'p-gad-1007',
-            patientName: 'Baby Tanvi (d/o Savita)',
-            age: 0.8,
-            gender: 'F',
-            cohort: 'CHILD',
-            condition: 'Pentavalent-3 & MR-1 Immunization Milestone Due',
-            village: 'Aheri Gram',
-            ashaAssigned: 'Rekha Atram (ASHA)',
-            dueInDays: null,
-            status: 'PENDING',
-            phone: '+91-94222-77881',
-            priority: 'ROUTINE',
-            actionNeeded: 'Administer MR-1 dose + Vitamin A syrup, update MCP Card & RCH portal.',
-        },
-    ]);
+    // One task per high-risk flag on a patient's own record (lib/followup/recall.ts):
+    // what is due comes from the record, and a recorded visit is saved on it.
+    const tasks = useMemo(() => recallTasksFrom(patients), [patients]);
+    // SMS reminders opened this session. Only the device's SMS app sends them;
+    // this marks which ones the worker has started, nothing more.
+    const [smsOpened, setSmsOpened] = useState<Set<string>>(new Set());
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -205,33 +93,48 @@ export default function FollowUpPage() {
         const matchesSearch = t.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               t.village.toLowerCase().includes(searchQuery.toLowerCase()) ||
                               t.condition.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              t.ashaAssigned.toLowerCase().includes(searchQuery.toLowerCase());
+                              t.fieldWorker.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCohort && matchesSearch;
     });
 
     const maternalCount = scopedTasks.filter(t => t.cohort === 'MATERNAL').length;
     const childCount = scopedTasks.filter(t => t.cohort === 'CHILD').length;
     const chronicCount = scopedTasks.filter(t => t.cohort === 'CHRONIC').length;
-    const completedCount = scopedTasks.filter(t => t.status === 'COMPLETED' || t.status === 'VISITED').length;
+    const completedCount = scopedTasks.filter(t => t.visited).length;
 
-    const handleMarkComplete = (taskId: string) => {
-        setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: 'COMPLETED' } : t));
-        toast.success('Field visit marked COMPLETED and logged in Longitudinal Record');
+    const handleMarkComplete = async (task: RecallTask) => {
+        const patient = patients.find(p => p.id === task.patientId);
+        if (!patient) {
+            toast.error('This patient is no longer on this device');
+            return;
+        }
+        const updated = recordFollowUpVisit(patient, task.flagIndex);
+        try {
+            await addPatient(updated);
+        } catch {
+            toast.error('The visit could not be saved on this device — try again');
+            return;
+        }
+        const next = updated.highRiskFlags?.[task.flagIndex]?.nextFollowUpDate;
+        toast.success(`Visit recorded for ${task.patientName}${next ? ` — next follow-up ${new Date(next).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : ''}`);
     };
 
     const handleOpenSMSModal = (task: RecallTask) => {
         setSmsModalPatient(task);
+        // The patient's own facility, in Marathi where the directory has it.
+        const facility = FACILITY_NETWORK.find(f => f.id === task.registeredAtFacilityId);
+        const place = facility?.nameMarathi || facility?.name || 'आपल्या आरोग्य केंद्रात';
         const template = task.cohort === 'MATERNAL'
-            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपले पुढील ANC तपासणी उपकेंद्र कोठी येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
+            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपली पुढील ANC तपासणी ${place} येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
             : task.cohort === 'CHILD'
             ? `[आरोग्य संदेश] ${task.patientName} यांचे लसीकरण व वजन तपासणी दिवस जवळ आला आहे. कृपया अंगणवाडी केंद्रात या.`
-            : `[आरोग्य संदेश] ${task.patientName}, आपली मधुमेह/रक्तदाब तपासणी व औषध वाटप प्राथमिक आरोग्य केंद्रात देय आहे.`;
+            : `[आरोग्य संदेश] ${task.patientName}, आपली नियमित तपासणी ${place} येथे देय आहे.`;
         setCustomSmsText(template);
     };
 
     const handleSendSMS = () => {
         if (!smsModalPatient) return;
-        setTasks(prev => prev.map(t => t.id === smsModalPatient.id ? { ...t, status: 'SMS_SENT' } : t));
+        setSmsOpened(prev => new Set(prev).add(smsModalPatient.id));
 
         // Real handoff on mobile/Capacitor: the carrier SMS channel needs no data connection.
         const handedOff = openSmsComposer(smsModalPatient.phone, customSmsText);
@@ -240,22 +143,13 @@ export default function FollowUpPage() {
             toast.success(`SMS composer opened for ${smsModalPatient.phone}`, { icon: <Icon name="sms" className="w-4 h-4" /> });
         } else {
             toast(
-                `Marked as sent for ${smsModalPatient.phone}. The device SMS app did not open — open this recall on a mobile device (with SIM) to send the message.`,
+                `The SMS app did not open on this device — nothing was sent. Open this recall on a phone with a SIM to send it to ${smsModalPatient.phone}.`,
                 { icon: <Icon name="sms" className="w-4 h-4" />, duration: 5000 }
             );
         }
         setSmsModalPatient(null);
     };
 
-    const handleBulkSMS = () => {
-        setTasks(prev => prev.map(t => ({ ...t, status: 'SMS_SENT' })));
-        // No server-side gateway exists — this marks the cohort so an ASHA can send each
-        // recall from the device SMS composer. Honest wording, not a fake bulk dispatch.
-        toast(`${filteredTasks.length} recalls marked for SMS — send each from a mobile device (no server gateway)`, {
-            icon: <Icon name="sms" className="w-4 h-4" />,
-            duration: 5000,
-        });
-    };
 
     return (
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
@@ -283,14 +177,6 @@ export default function FollowUpPage() {
                             </p>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={handleBulkSMS}
-                                className="gov-btn gov-btn-primary text-xs"
-                            >
-                                <Icon name="sms" className="w-3.5 h-3.5" /> Dispatch Bulk SMS Recalls
-                            </button>
-                        </div>
                     </div>
 
                     {/* 3 Mandatory Named Cohorts KPI Cards */}
@@ -467,13 +353,15 @@ export default function FollowUpPage() {
                                             </p>
 
                                             <div className="p-2.5 bg-gray-50 border border-border-subtle rounded-xl text-xs text-txt-secondary">
-                                                <strong>ASHA Action Required:</strong> {task.actionNeeded}
+                                                <strong>To check on the visit:</strong> {task.actionNeeded}
                                             </div>
 
                                             <div className="flex items-center gap-4 text-xs text-txt-muted pt-1">
-                                                <span className="inline-flex items-center gap-1"><Icon name="community-worker" className="w-3.5 h-3.5" /> Assigned: <strong>{task.ashaAssigned}</strong></span>
+                                                <span className="inline-flex items-center gap-1"><Icon name="community-worker" className="w-3.5 h-3.5" /> Field worker: <strong>{task.fieldWorker || 'not recorded'}</strong></span>
                                                 <span>Schedule: <strong className="text-rose-700">{formatDue(task.dueInDays)}</strong></span>
-                                                <span className="inline-flex items-center gap-1"><Icon name="phone" className="w-3 h-3" /> {task.phone}</span>
+                                                {task.lastVisitAt && <span>Last visit: <strong>{new Date(task.lastVisitAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></span>}
+                                                <span className="inline-flex items-center gap-1"><Icon name="phone" className="w-3 h-3" /> {task.phone || 'no phone recorded'}</span>
+                                                {smsOpened.has(task.id) && <span className="text-teal-800 font-semibold">SMS app opened</span>}
                                             </div>
                                         </div>
 
@@ -481,14 +369,15 @@ export default function FollowUpPage() {
                                         <div className="flex flex-row lg:flex-col gap-2 shrink-0 justify-end">
                                             <button
                                                 onClick={() => handleOpenSMSModal(task)}
+                                                disabled={!task.phone}
                                                 className="px-3.5 py-2 bg-white border border-border-subtle hover:bg-teal-50 text-teal-800 text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5"
                                             >
                                                 <Icon name="sms" className="w-3.5 h-3.5" /> SMS Reminder
                                             </button>
 
-                                            {task.status !== 'COMPLETED' ? (
+                                            {!task.visited ? (
                                                 <button
-                                                    onClick={() => handleMarkComplete(task.id)}
+                                                    onClick={() => void handleMarkComplete(task)}
                                                     className="px-3.5 py-2 bg-emerald-deep hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5"
                                                 >
                                                     <span>✓ Mark Visited</span>
