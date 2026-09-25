@@ -260,7 +260,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                                 Milestone 3 (M3): Health Information User (HIU)
                                             </strong>
                                             <p className="mt-0.5">
-                                                Roadmap: will let apex specialists at District Hospital  pull previous care records across facilities with cryptographic consent verification once ABDM HIU integration is enabled — not yet live.
+                                                Roadmap: will let apex specialists at District Hospital Gadchiroli pull previous care records across facilities with cryptographic consent verification once ABDM HIU integration is enabled — not yet live.
                                             </p>
                                         </div>
                                     </div>

@@ -155,7 +155,7 @@ export default function SimulationPage() {
     const cancelled = useRef(false);
 
     if (!left || !right) {
-        return <p className="p-6 text-sm text-slate-600">The simulation needs the seeded ANM (Sub Centre Village 1) and Medical Officer (PHC Block A) in the staff directory.</p>;
+        return <p className="p-6 text-sm text-slate-600">The simulation needs the seeded ANM (Sub Centre Kothi) and Medical Officer (PHC Bhamragad) in the staff directory.</p>;
     }
 
     const pause = async (ms: number) => {
@@ -188,7 +188,7 @@ export default function SimulationPage() {
             setStep(0);
             setRightView({ mode: 'board' });
             const prefill: ReferralFormPrefill = {
-                newPatient: { name: 'Gangubai Madavi', age: '61', gender: 'F', village: 'Village 1' },
+                newPatient: { name: 'Gangubai Madavi', age: '61', gender: 'F', village: 'Kothi' },
                 spo2: '96', pulse: '118', systolic: '88', diastolic: '58', temperature: '99.0', respiratoryRate: '22',
                 reason: 'Acute gastroenteritis — 12 watery stools since last night, unable to keep fluids down, BP 88/58. Severe dehydration: needs IV fluids and observation.',
                 priority: 'EMERGENCY',

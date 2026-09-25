@@ -78,9 +78,9 @@ export default function AppointmentsPage() {
     const patientById = (id: string) => patients.find(p => p.id === id);
 
     const t = {
-        deptTag: isEn ? 'Government of India • Public Health — OPD Scheduling'
-            : isHi ? 'भारत सरकार • सार्वजनिक स्वास्थ्य — ओपीडी अनुसूची'
-            : 'भारत सरकार • सार्वजनिक आरोग्य — ओपीडी नियोजन',
+        deptTag: isEn ? 'Government of Maharashtra • Public Health — OPD Scheduling'
+            : isHi ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य — ओपीडी अनुसूची'
+            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य — ओपीडी नियोजन',
         title: isEn ? 'Appointment Scheduling' : isHi ? 'अपॉइंटमेंट अनुसूची' : 'भेटीचे नियोजन',
         subtitle: isEn ? 'Book a future OPD slot; walk-ins still use the live token queue'
             : isHi ? 'भविष्य का ओपीडी स्लॉट बुक करें; वॉक-इन के लिए लाइव टोकन कतार'

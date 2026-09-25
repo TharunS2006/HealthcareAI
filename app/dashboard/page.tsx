@@ -1,8 +1,9 @@
 /**
  * District & Facility Health Dashboard — NalamMesh
  * Administrative View for District Health Officer (DHO) & Medical Superintendents
- * the district, India
- * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
+ * Gadchiroli District, Maharashtra
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
+ */
 
 'use client';
 
@@ -119,8 +120,8 @@ export default function DashboardPage() {
 
     // Localization Dictionary for Dashboard
     const txt = {
-        deptTag: isEn ? 'Government of India • Public Health Dept' : isHi ? 'भारत सरकार • लोक स्वास्थ्य विभाग' : 'भारत सरकार • सार्वजनिक आरोग्य विभाग',
-        title: isEn ? 'District Health Command' : isHi ? 'जिला स्वास्थ्य कमांड केंद्र — गढ़चिरौली' : 'जिल्हा आरोग्य कमांड केंद्र',
+        deptTag: isEn ? 'Government of Maharashtra • Public Health Dept' : isHi ? 'महाराष्ट्र सरकार • लोक स्वास्थ्य विभाग' : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग',
+        title: isEn ? 'District Health Command — Gadchiroli' : isHi ? 'जिला स्वास्थ्य कमांड केंद्र — गढ़चिरौली' : 'जिल्हा आरोग्य कमांड केंद्र — गडचिरोली',
         subTitle: isEn
             ? 'Real-time monitoring across Sub-Centres, PHCs, CHCs, and District Hospital'
             : isHi
@@ -148,31 +149,31 @@ export default function DashboardPage() {
             : `${redCount} अतिगंभीर • प्रलंबित तपासणी`,
 
         // Continuum Tree
-        treeTitle: isEn ? 'National Health Continuum Tree' : isHi ? 'भारत स्वास्थ्य निरंतरता नेटवर्क' : 'भारत आरोग्य सातत्य वृक्ष (Continuum)',
+        treeTitle: isEn ? 'Maharashtra Health Continuum Tree' : isHi ? 'महाराष्ट्र स्वास्थ्य निरंतरता नेटवर्क' : 'महाराष्ट्र आरोग्य सातत्य वृक्ष (Continuum)',
         treeSub: isEn ? 'District Hospital → Sub-District → CHC → PHC → Sub-Centres' : isHi ? 'जिला अस्पताल → उप-जिला अस्पताल → CHC → PHC → उप-केंद्र' : 'जिल्हा रुग्णालय → उपजिल्हा रुग्णालय → CHC → PHC → उप-केंद्रे',
         nodesConnected: isEn ? '7 Nodes Connected' : isHi ? '७ स्वास्थ्य केंद्र सक्रिय' : '७ आरोग्य केंद्रे जोडलेली',
         
         apexHospital: isEn ? 'APEX FACILITY — DISTRICT HOSPITAL (DH)' : isHi ? 'शीर्ष रेफरल अस्पताल — जिला अस्पताल (DH)' : 'सर्वोच्च संदर्भ रुग्णालय — जिल्हा रुग्णालय (DH)',
-        dhName: isEn ? 'District Hospital' : isHi ? 'जिला अस्पताल, गढ़चिरौली' : 'जिल्हा रुग्णालय, ',
+        dhName: isEn ? 'District Hospital, Gadchiroli' : isHi ? 'जिला अस्पताल, गढ़चिरौली' : 'जिल्हा रुग्णालय, गडचिरोली',
         dhBeds: isEn ? 'Beds: 235/300 Occupied • ICU: 16/20 • Specialists: 24' : isHi ? 'बिस्तर: २३५/३०० • ICU: १६/२० • विशेषज्ञ डॉक्टर: २४' : 'खाटा: २३५/३०० • ICU: १६/२० • तज्ज्ञ डॉक्टर: २४',
         online247: isEn ? 'Online 24x7' : isHi ? '२४x७ सक्रिय' : '२४ तास सेवारत',
 
-        fruUnit: isEn ? 'FIRST REFERRAL UNIT • SDH (AHERI)' : isHi ? 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (उपविभाग)' : 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (उपविभाग)',
-        sdhName: isEn ? 'Sub-District Hospital' : isHi ? 'उप-जिला अस्पताल, उपविभाग' : 'उपजिल्हा रुग्णालय, उपविभाग',
+        fruUnit: isEn ? 'FIRST REFERRAL UNIT • SDH (AHERI)' : isHi ? 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (अहेरी)' : 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (अहेरी)',
+        sdhName: isEn ? 'Sub-District Hospital, Aheri' : isHi ? 'उप-जिला अस्पताल, अहेरी' : 'उपजिल्हा रुग्णालय, अहेरी',
         sdhAmbulances: isEn ? '5 Ambulances' : isHi ? '५ एम्बुलेंस' : '५ रुग्णवाहिका',
         sdhBeds: isEn ? 'Beds: 74/100 • Emergency Obstetric Care (CEmONC) • Blood Unit' : isHi ? 'बिस्तर: ७४/१०० • आपातकालीन प्रसूति सेवा (CEmONC) • ब्लड बैंक' : 'खाटा: ७४/१०० • तातडीची प्रसूती सेवा (CEmONC) • रक्तपेढी',
 
         chcUnit: isEn ? 'COMMUNITY HEALTH CENTRE (CHC)' : isHi ? 'सामुदायिक स्वास्थ्य केंद्र (CHC)' : 'सामुदायिक आरोग्य केंद्र (CHC)',
-        chcName: isEn ? 'CHC Block A' : isHi ? 'सामुदायिक स्वास्थ्य केंद्र, ब्लॉक अ' : 'ग्रामीण रुग्णालय (CHC), ब्लॉक अ',
+        chcName: isEn ? 'CHC Etapalli' : isHi ? 'सामुदायिक स्वास्थ्य केंद्र, एटापल्ली' : 'ग्रामीण रुग्णालय (CHC), एटापल्ली',
         chcBeds: isEn ? 'Beds: 21/30 • 24x7 Delivery Care • Teleconsult Node' : isHi ? 'बिस्तर: २१/३० • २४x७ प्रसव कक्ष • ई-संजीवनी केंद्र' : 'खाटा: २१/३० • २४x७ प्रसूती कक्ष • ई-संजीवनी केंद्र',
 
-        phcBhamragad: isEn ? 'PHC Block A' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र, ब्लॉक अ' : 'प्राथमिक आरोग्य केंद्र, ब्लॉक अ',
+        phcBhamragad: isEn ? 'PHC Bhamragad' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र, भामरागढ़' : 'प्राथमिक आरोग्य केंद्र, भामरागड',
         phcBeds: isEn ? 'Beds: 6/10 • 2 Doctors • Solar Mesh Active' : isHi ? 'बिस्तर: ६/१० • २ डॉक्टर • सोलर मेश सक्रिय' : 'खाटा: ६/१० • २ डॉक्टर • सौर मेश प्रणाली',
         stationActive: isEn ? 'Station Active' : isHi ? 'वर्तमान स्टेशन' : 'सध्याचे केंद्र',
 
-        scKothi: isEn ? 'Sub-Centre Village 1 (CHO + ASHA)' : isHi ? 'आरोग्य मंदिर उप-केंद्र गाव १ (CHO + ASHA)' : 'आरोग्य वर्धिनी उपकेंद्र गाव १ (CHO + ASHA)',
-        scGovindpur: isEn ? 'Sub-Centre Village 2 (ANM)' : isHi ? 'उप-केंद्र गाव २ (ANM)' : 'उपकेंद्र गाव २ (ANM)',
-        phcPerimili: isEn ? 'PHC Block B' : isHi ? 'प्रा. स्वा. केंद्र ब्लॉक ब' : 'प्रा. आ. केंद्र ब्लॉक ब',
+        scKothi: isEn ? 'Sub-Centre Kothi (CHO + ASHA)' : isHi ? 'आरोग्य मंदिर उप-केंद्र कोठी (CHO + ASHA)' : 'आरोग्य वर्धिनी उपकेंद्र कोठी (CHO + ASHA)',
+        scGovindpur: isEn ? 'Sub-Centre Govindpur (ANM)' : isHi ? 'उप-केंद्र गोविंदपुर (ANM)' : 'उपकेंद्र गोविंदपूर (ANM)',
+        phcPerimili: isEn ? 'PHC Perimili' : isHi ? 'प्रा. स्वा. केंद्र पेरिमिली' : 'प्रा. आ. केंद्र पेरीमिली',
         perimiliBeds: isEn ? 'Beds: 3/6' : isHi ? 'बिस्तर: ३/६' : 'खाटा: ३/६',
 
         // High-Risk Action List
@@ -252,7 +253,7 @@ export default function DashboardPage() {
 
         // IPHS Quality Indicators
         iphsTitle: isEn ? 'Indian Public Health Standards (IPHS) Quality Indicators' : isHi ? 'भारतीय सार्वजनिक स्वास्थ्य मानक (IPHS) गुणवत्ता सूचकांक' : 'भारतीय सार्वजनिक आरोग्य मानक (IPHS) गुणवत्ता निर्देशांक',
-        iphsSub: isEn ? 'Quality, continuity, and accountability benchmarks for the rural facility network' : isHi ? 'गढ़चिरौली ग्रामीण व आदिवासी क्षेत्र हेतु गुणवत्ता व सेवा निरंतरता मानक' : ' ग्रामीण व आदिवासी भागासाठी गुणवत्ता व सेवा निरंतरता मापदंड',
+        iphsSub: isEn ? 'Quality, continuity, and accountability benchmarks for Gadchiroli rural district' : isHi ? 'गढ़चिरौली ग्रामीण व आदिवासी क्षेत्र हेतु गुणवत्ता व सेवा निरंतरता मानक' : 'गडचिरोली ग्रामीण व आदिवासी भागासाठी गुणवत्ता व सेवा निरंतरता मापदंड',
         quarterlyTarget: isEn ? 'Quarterly Target: 85%+' : isHi ? 'त्रैमासिक लक्ष्य: ८५%+' : 'त्रैमासिक उद्दिष्ट: ८५%+',
 
         ind1Title: isEn ? 'Referral Completion Rate' : isHi ? 'रेफरल पूर्णता दर' : 'रेफरल पूर्णता दर',

@@ -1,6 +1,6 @@
 /**
  * NalamMesh Service Worker — Offline-First App Shell
- * Government of India • Public Health Department • NHM
+ * Government of Maharashtra • Public Health Department • NHM
  *
  * Strategy:
  *   • Static export routes (HTML) → network-first, cache fallback (fresh when online, works offline)

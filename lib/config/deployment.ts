@@ -12,9 +12,9 @@
  */
 
 export interface DeploymentConfig {
-    /** Owning department, e.g. "Ministry of Health & Family Welfare" */
+    /** Owning department, e.g. "Public Health Department" */
     authority: { en: string; hi: string; mr: string };
-    /** Level of government, e.g. "Government of India" */
+    /** Level of government, e.g. "Government of Maharashtra" */
     government: { en: string; hi: string; mr: string };
     /** Programme under which the platform runs */
     programme: { en: string; hi: string; mr: string };
@@ -27,7 +27,7 @@ export interface DeploymentConfig {
     district: { en: string; hi: string; mr: string };
     /** Sub-division or block, blank when not applicable */
     subDivision: { en: string; hi: string; mr: string };
-    /** Facility code prefix used on station badges, e.g. "PHC-01" */
+    /** Facility code prefix used on station badges, e.g. "MH-GAD-04" */
     stationCode: string;
     /** Nodal officer named on the statutory pages and the portal right rail */
     nodalOfficer: { en: string; hi: string; mr: string };
@@ -41,32 +41,32 @@ export interface DeploymentConfig {
 
 export const DEPLOYMENT: DeploymentConfig = {
     authority: {
-        en: 'Ministry of Health & Family Welfare',
-        hi: 'स्वास्थ्य एवं परिवार कल्याण मंत्रालय',
-        mr: 'आरोग्य व कुटुंब कल्याण मंत्रालय',
+        en: 'Public Health Department',
+        hi: 'लोक स्वास्थ्य विभाग',
+        mr: 'सार्वजनिक आरोग्य विभाग',
     },
     government: {
-        en: 'Government of India',
-        hi: 'भारत सरकार',
-        mr: 'भारत सरकार',
+        en: 'Government of Maharashtra',
+        hi: 'महाराष्ट्र सरकार',
+        mr: 'महाराष्ट्र शासन',
     },
     programme: {
         en: 'National Health Mission',
         hi: 'राष्ट्रीय स्वास्थ्य मिशन',
         mr: 'राष्ट्रीय आरोग्य अभियान',
     },
-    programmeShort: 'NHM',
+    programmeShort: 'NHM Maharashtra',
 
-    // Blank for the generic build. A deploying district sets these.
-    district: { en: '', hi: '', mr: '' },
-    subDivision: { en: '', hi: '', mr: '' },
-    stationCode: 'PHC-01',
-    statisticsState: '',
+    // This build serves Gadchiroli district. Blank these for a generic build.
+    district: { en: 'Gadchiroli', hi: 'गढ़चिरौली', mr: 'गडचिरोली' },
+    subDivision: { en: 'Aheri', hi: 'अहेरी', mr: 'अहेरी' },
+    stationCode: 'MH-GAD-04',
+    statisticsState: 'Maharashtra',
 
     nodalOfficer: {
-        en: 'Chief Medical Officer, District Health Office',
-        hi: 'मुख्य चिकित्सा अधिकारी, जिला स्वास्थ्य कार्यालय',
-        mr: 'मुख्य वैद्यकीय अधिकारी, जिल्हा आरोग्य कार्यालय',
+        en: 'Chief Medical Officer, District Health Office, Gadchiroli',
+        hi: 'मुख्य चिकित्सा अधिकारी, जिला स्वास्थ्य कार्यालय, गढ़चिरौली',
+        mr: 'मुख्य वैद्यकीय अधिकारी, जिल्हा आरोग्य कार्यालय, गडचिरोली',
     },
 };
 
@@ -79,7 +79,7 @@ export function dep(field: keyof Omit<DeploymentConfig, 'programmeShort' | 'stat
 }
 
 /**
- * "Ministry of Health & Family Welfare | National Health Mission"
+ * "Public Health Department | National Health Mission"
  * The standard department line under the masthead.
  */
 export function departmentLine(lang: string): string {

@@ -82,7 +82,7 @@ export default function AuditPage() {
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-2.5 h-2.5 rounded-full bg-[#1F3A6E]" />
                             <span className="text-xs font-bold text-[#1F3A6E] uppercase tracking-wider">
-                                Government of India • Public Health — Accountability
+                                Government of Maharashtra • Public Health — Accountability
                             </span>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">

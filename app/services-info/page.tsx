@@ -33,7 +33,7 @@ export default function ServicesInfoPage() {
     const isHi = language === 'hi';
     const pick = (l: Localized) => (isEn ? l.en : isHi ? l.hi : l.mr);
 
-    // Default to PHC Block A — the station shown throughout the app.
+    // Default to PHC Bhamragad — the station shown throughout the app.
     const [facilityId, setFacilityId] = useState('phc-bhamragad');
     const facility = FACILITY_NETWORK.find(f => f.id === facilityId) ?? FACILITY_NETWORK[0];
 
@@ -70,9 +70,9 @@ export default function ServicesInfoPage() {
     };
 
     const txt = {
-        deptTag: isEn ? 'Government of India • Public Health — Citizen Services'
-            : isHi ? 'भारत सरकार • सार्वजनिक स्वास्थ्य — नागरिक सेवाएं'
-            : 'भारत सरकार • सार्वजनिक आरोग्य — नागरिक सेवा',
+        deptTag: isEn ? 'Government of Maharashtra • Public Health — Citizen Services'
+            : isHi ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य — नागरिक सेवाएं'
+            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य — नागरिक सेवा',
         title: isEn ? 'Health Services & Your Entitlements'
             : isHi ? 'स्वास्थ्य सेवाएं एवं आपके अधिकार'
             : 'आरोग्य सेवा व आपले हक्क',

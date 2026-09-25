@@ -59,7 +59,7 @@ export default function EmergencyModal() {
         name: 'Emergency Patient (Unknown)',
         age: 30,
         gender: 'F',
-        village: 'Block A Sub-Centre',
+        village: 'Bhamragad Sub-Centre',
         vitals: { spo2: 88, heartRate: 124, bloodPressure: { systolic: 168, diastolic: 104 }, injuryType: 'Severe Respiratory Distress' }
     };
 
@@ -80,7 +80,7 @@ export default function EmergencyModal() {
                 priority: 'EMERGENCY',
                 transportMode: maternal ? 'AMBULANCE_102' : 'AMBULANCE_108',
                 clinicalSummary: `SpO2 ${activePatient.vitals.spo2}%, Pulse ${activePatient.vitals.heartRate} bpm, BP ${activePatient.vitals.bloodPressure?.systolic ?? '—'}/${activePatient.vitals.bloodPressure?.diastolic ?? '—'} mmHg. ${activePatient.vitals.injuryType}`,
-                dispatch: { vehicleNo: maternal ? 'AMB-T-0102' : 'AMB-E-1081' },
+                dispatch: { vehicleNo: maternal ? 'MH-33-T-0102' : 'MH-33-E-1081' },
             },
             null
         );
@@ -230,7 +230,7 @@ export default function EmergencyModal() {
                                                 <Icon name="map-pin" className="w-4 h-4 text-amber-700" />
                                                 <div>
                                                     <span className="font-bold block">{t.targetFacility}</span>
-                                                    <span className="text-amber-900 font-extrabold">{targetFacility.name} (FRU Sub-Division)</span>
+                                                    <span className="text-amber-900 font-extrabold">{targetFacility.name} (FRU Aheri)</span>
                                                 </div>
                                             </div>
                                             <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">

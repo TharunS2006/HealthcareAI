@@ -18,9 +18,9 @@ from .models import FacilityTier, ReferralStatus, TriagePriority
 
 class FacilityIn(BaseModel):
     id: str = Field(examples=["phc-block-a"])
-    name: str = Field(examples=["Primary Health Centre — Block A"])
+    name: str = Field(examples=["Primary Health Centre, Bhamragad"])
     tier: FacilityTier = Field(examples=["PHC"])
-    block: Optional[str] = Field(default=None, examples=["Block A"])
+    block: Optional[str] = Field(default=None, examples=["Bhamragad"])
     beds_total: int = Field(default=0, ge=0, examples=[10])
     beds_occupied: int = Field(default=0, ge=0, examples=[6])
 

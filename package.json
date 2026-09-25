@@ -30,6 +30,7 @@
     "verify:capacity": "tsx scripts/verify-capacity.mts",
     "verify:relay": "tsx scripts/verify-relay-rbac.mts",
     "verify:db-upgrade": "tsx scripts/verify-db-upgrade.mts",
+    "verify:place-names": "tsx scripts/verify-place-names.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",
     "verify:bhashini": "tsx scripts/verify-bhashini.mts",
     "verify:official-data": "tsx scripts/verify-official-data.mts",

@@ -19,7 +19,7 @@ import { Patient, ReferralRecord } from '@/types/patient';
 // ---------------------------------------------------------------------------
 
 /**
- * Average sustained speed for a 108/102 ambulance on 's tribal road network.
+ * Average sustained speed for a 108/102 ambulance on Gadchiroli's tribal road network.
  * Deliberately well below highway speed: these are single-lane forest roads, partly
  * unmetalled, with monsoon washouts and nallah crossings. Used only for planning
  * estimates shown alongside real distances, never for dispatch decisions.
@@ -92,7 +92,7 @@ export interface TravelSavings {
  * it did not prevent.
  *
  * Saving per episode is the round-trip difference between the journey to the district
- * hospital (the pre-existing "go to for everything" pattern) and the journey
+ * hospital (the pre-existing "go to Gadchiroli for everything" pattern) and the journey
  * to the peripheral facility that actually served them, measured from the patient's own
  * recorded GPS position.
  */

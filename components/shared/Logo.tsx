@@ -1,6 +1,7 @@
 /**
- * Official Identity Logo — Department of Public Health, Government of India
- * National Health Mission (NHM) • Ayushman Bharat Digital Mission (ABDM) */
+ * Official Identity Logo — Department of Public Health, Government of Maharashtra
+ * National Health Mission (NHM) • Ayushman Bharat Digital Mission (ABDM)
+ */
 
 'use client';
 
@@ -44,15 +45,15 @@ export default function Logo({ size = 'md', showText = true, variant = 'dark', c
                             {isEn ? 'NalamMesh' : 'नलममेश'}
                         </span>
                         <span className="text-[9px] px-1.5 py-0.5 bg-slate-100 text-[#1F3A6E] border border-slate-300 font-bold rounded">
-                            राष्ट्रीय आरोग्य अभियान
+                            NHM महाराष्ट्र
                         </span>
                     </div>
                     <span className={`text-[10px] font-bold tracking-wide mt-1 uppercase ${subText}`}>
                         {isEn
-                            ? 'Govt. of India • Public Health Dept'
+                            ? 'Govt. of Maharashtra • Public Health Dept'
                             : isHi
-                            ? 'भारत सरकार • लोक स्वास्थ्य विभाग'
-                            : 'भारत सरकार • सार्वजनिक आरोग्य विभाग'}
+                            ? 'महाराष्ट्र सरकार • लोक स्वास्थ्य विभाग'
+                            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग'}
                     </span>
                     <span className="text-[9px] text-slate-500 font-medium hidden sm:block">
                         {isEn

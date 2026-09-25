@@ -34,7 +34,7 @@ export default function PolicyPage({ slug }: { slug: string }) {
 
             <div className="border-b-2 border-[#1F3A6E] pb-4 mb-6">
                 <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block mb-1">
-                    Government of India • Department of Public Health
+                    Government of Maharashtra • Department of Public Health
                 </span>
                 <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">
                     {doc.title}

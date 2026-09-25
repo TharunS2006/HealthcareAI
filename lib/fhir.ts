@@ -56,9 +56,9 @@ export function generateFHIRBundle(patient: Patient): FHIRBundle {
                     active: true,
                     address: [
                         {
-                            city: patient.village || 'Village 1',
-                            district: patient.district || '',
-                            state: patient.state || 'India',
+                            city: patient.village || 'Kothi',
+                            district: patient.district || 'Gadchiroli',
+                            state: patient.state || 'Maharashtra',
                             country: 'India',
                         },
                     ],

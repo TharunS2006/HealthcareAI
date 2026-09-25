@@ -4,7 +4,7 @@
  * These three numbers are shown to a District Health Officer as grounds for moving
  * staff and ambulances, so each one is pinned to a property that must hold:
  *
- *   1. GEOGRAPHY     haversine + terrain factor must reproduce the real 
+ *   1. GEOGRAPHY     haversine + terrain factor must reproduce the real Gadchiroli
  *                    distances. A silent unit error here (miles vs km, or a lat/lng
  *                    swap) would still render a plausible-looking dashboard.
  *   2. NO OVER-CLAIM travel savings must never count a patient who was referred onward.
@@ -50,9 +50,9 @@ const phcBhamragad = FACILITY_NETWORK.find(f => f.id === 'phc-bhamragad')!;
 const straight = haversineKm(phcBhamragad.location, dh.location);
 const road = roadDistanceKm(phcBhamragad.location, dh.location);
 
-console.log(` Block A -> DH: ${straight.toFixed(1)} km straight, ${road.toFixed(1)} km road, ${travelMinutes(road).toFixed(0)} min`);
+console.log(`     Bhamragad -> Gadchiroli DH: ${straight.toFixed(1)} km straight, ${road.toFixed(1)} km road, ${travelMinutes(road).toFixed(0)} min`);
 
-// Block A sits roughly 80-110 km by road from  town in the real district.
+// Bhamragad sits roughly 80-110 km by road from Gadchiroli town in the real district.
 check('straight-line distance is plausible for the district', straight > 50 && straight < 120, `${straight.toFixed(1)} km`);
 check('road distance exceeds straight-line', road > straight);
 check('a facility is zero distance from itself', haversineKm(dh.location, dh.location) === 0);

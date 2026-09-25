@@ -18,6 +18,7 @@ import { SEED_USERS } from '@/lib/auth/users';
 import { SEED_REFERRALS, SEED_NOTIFICATIONS } from '@/lib/data/referralSeed';
 import { SEED_RESOURCES, SEED_MAINTENANCE } from '@/lib/data/resources';
 import { RETIRED_FACILITY_IDS, remapRetiredFacilityIds } from '@/lib/data/facilityIds';
+import { PLACE_NAME_STORES, restorePlaceNames } from '@/lib/data/placeNames';
 import { normalizeReferral } from '@/lib/referrals/workflow';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
@@ -469,7 +470,7 @@ async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
             ...SEED_NOTIFICATIONS.map(n => tx.objectStore('notifications').put(n)),
         ]);
         await tx.done;
-        logger.info('Database seeded with authentic public healthcare dataset');
+        logger.info('Database seeded with authentic Maharashtra healthcare dataset');
     }
 
     // Reference data added in v5 is seeded independently of patients,
@@ -498,6 +499,32 @@ async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
         ]);
         await tx.done;
     }
+
+    await restoreSeededPlaceNames(db);
+}
+
+/**
+ * A device seeded by the generic build still says "Primary Health Centre —
+ * Block A" and "Village 1". Put the real place names back — only in values
+ * still exactly as that build wrote them (lib/data/placeNames), so edits stay.
+ * Needs no version change: an up-to-date device reads each store and writes nothing.
+ */
+async function restoreSeededPlaceNames(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
+    const tx = db.transaction(PLACE_NAME_STORES, 'readwrite');
+    let restored = 0;
+    for (const name of PLACE_NAME_STORES) {
+        let cursor = await tx.objectStore(name).openCursor();
+        while (cursor) {
+            const next = restorePlaceNames(name, cursor.value);
+            if (next !== cursor.value) {
+                await cursor.update(next);
+                restored += 1;
+            }
+            cursor = await cursor.continue();
+        }
+    }
+    await tx.done;
+    if (restored > 0) logger.info('Restored Gadchiroli place names in records seeded by the generic build', { records: restored });
 }
 
 // -------------------------------------------------------------

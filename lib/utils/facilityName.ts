@@ -1,5 +1,5 @@
 /**
- * "Primary Health Centre — Block A" → "PHC Block A". Board cards and
+ * "Primary Health Centre, Bhamragad" → "PHC Bhamragad". Board cards and
  * notifications have room for the short form; the detail view shows the full name.
  */
 export function shortFacilityName(name: string): string {
@@ -9,6 +9,6 @@ export function shortFacilityName(name: string): string {
         .replace(/Community Health Centre/i, 'CHC')
         .replace(/Sub-District Hospital/i, 'SDH')
         .replace(/Sub-Centre/i, 'SC')
-        .replace(/\s+—\s+/, ' ')
+        .replace(/\s*(?:,|\s—)\s+/, ' ')
         .trim();
 }

@@ -18,20 +18,20 @@ export interface PolicyDoc {
     sections: PolicySection[];
 }
 
-const NODAL = 'Chief Medical Officer, District Health Office, — Nodal Officer for this portal.';
+const NODAL = 'Chief Medical Officer, District Health Office, Gadchiroli — Nodal Officer for this portal.';
 
 export const POLICIES: Record<string, PolicyDoc> = {
     privacy: {
         slug: 'privacy',
         title: 'Privacy Policy',
         intro:
-            'This portal is operated by the Department of Public Health, Government of India under the National Health Mission. This policy explains what data NalamMesh handles and where it is stored.',
+            'This portal is operated by the Department of Public Health, Government of Maharashtra under the National Health Mission. This policy explains what data NalamMesh handles and where it is stored.',
         sections: [
             {
                 heading: 'Health data stays on the device',
                 body: [
                     'NalamMesh is an offline-first application. Patient records, triage results, referrals, appointments and medicine stock are stored locally on the device in the browser database (IndexedDB). They are not uploaded to any cloud service and are not transmitted to any third party.',
-                    'Where a facility runs the optional mesh relay, records are exchanged only between facilities of the the national public health network for continuity of care, and only while that relay is running.',
+                    'Where a facility runs the optional mesh relay, records are exchanged only between facilities of the Maharashtra public health network for continuity of care, and only while that relay is running.',
                 ],
             },
             {
@@ -63,7 +63,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
         slug: 'terms',
         title: 'Terms of Use',
         intro:
-            'By using this portal you agree to the terms below. NalamMesh is a public health service delivery tool for Government of India facilities and the citizens they serve.',
+            'By using this portal you agree to the terms below. NalamMesh is a public health service delivery tool for Government of Maharashtra facilities and the citizens they serve.',
         sections: [
             {
                 heading: 'Clinical decision support, not a diagnosis',
@@ -98,7 +98,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
             {
                 heading: 'Links to external websites',
                 body: [
-                    'At several places this portal links to websites of other government bodies and national programmes — including the Ayushman Bharat Digital Mission, the National Health Mission, eSanjeevani and the Public Health Department of India. These links are provided for your convenience.',
+                    'At several places this portal links to websites of other government bodies and national programmes — including the Ayushman Bharat Digital Mission, the National Health Mission, eSanjeevani and the Public Health Department of Maharashtra. These links are provided for your convenience.',
                     'We are not responsible for the content or reliability of external sites, and linking to them should not be taken as an endorsement. We cannot guarantee that such links will work at all times.',
                 ],
             },
@@ -122,7 +122,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
                 heading: 'Reproduction of material',
                 body: [
                     'Material featured on this portal may be reproduced free of charge in any format or medium, provided it is reproduced accurately and not used in a derogatory manner or in a misleading context.',
-                    'Where the material is being published or issued to others, the source must be prominently acknowledged as the Department of Public Health, Government of India.',
+                    'Where the material is being published or issued to others, the source must be prominently acknowledged as the Department of Public Health, Government of Maharashtra.',
                 ],
             },
             {
@@ -178,7 +178,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
             {
                 heading: 'How to file a request',
                 body: [
-                    'An application under Section 6(1) of the Act may be submitted in writing to the Public Information Officer of the District Health Office, or filed online through the Government of India RTI portal.',
+                    'An application under Section 6(1) of the Act may be submitted in writing to the Public Information Officer of the District Health Office, Gadchiroli, or filed online through the Government of Maharashtra RTI portal.',
                     'The application should specify the information sought as precisely as possible, and be accompanied by the prescribed fee. Applicants below the poverty line are exempt from the fee on production of proof.',
                 ],
             },
@@ -209,7 +209,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
                 heading: 'Health service grievances',
                 body: [
                     'Grievances relating to treatment, availability of medicines, behaviour of staff, or denial of an entitlement should be raised first with the Medical Officer in charge of the facility concerned.',
-                    'If the matter is not resolved, it may be escalated to the District Health Officer, and thereafter through the National Health Mission grievance channel.',
+                    'If the matter is not resolved, it may be escalated to the District Health Officer, Gadchiroli, and thereafter through the National Health Mission grievance channel.',
                 ],
             },
             {

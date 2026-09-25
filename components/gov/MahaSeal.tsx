@@ -1,6 +1,7 @@
 /**
- * MahaSeal — Official Seal of the Government of India
- * Public Health Department • भारत सरकार • सार्वजनिक आरोग्य विभाग */
+ * MahaSeal — Official Seal of the Government of Maharashtra
+ * Public Health Department • महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग
+ */
 
 'use client';
 
@@ -15,9 +16,9 @@ export default function MahaSeal({ className = '', size = 44 }: MahaSealProps) {
     return (
         <div
             className={`inline-flex items-center select-none ${className}`}
-            title="Government of India • भारत सरकार"
+            title="Government of Maharashtra • महाराष्ट्र शासन"
             role="img"
-            aria-label="Government of India Official Seal"
+            aria-label="Government of Maharashtra Official Seal"
         >
             <svg
                 width={size}
@@ -31,7 +32,7 @@ export default function MahaSeal({ className = '', size = 44 }: MahaSealProps) {
                 <circle cx="50" cy="50" r="47" stroke="#7C2D12" strokeWidth="3" fill="#FFFBEB" />
                 <circle cx="50" cy="50" r="43" stroke="#B45309" strokeWidth="1" fill="none" />
 
-                {/* 16 Border Petals (Lotus Rim of India Seal) */}
+                {/* 16 Border Petals (Lotus Rim of Maharashtra Seal) */}
                 <g stroke="#B45309" strokeWidth="1" opacity="0.6">
                     <circle cx="50" cy="10" r="2.5" fill="#7C2D12" />
                     <circle cx="65" cy="14" r="2.5" fill="#7C2D12" />
@@ -69,7 +70,7 @@ export default function MahaSeal({ className = '', size = 44 }: MahaSealProps) {
                 <rect x="47" y="60" width="6" height="15" fill="#7C2D12" />
                 <path d="M42 75 L58 75 L62 81 L38 81 Z" fill="#7C2D12" />
 
-                {/* Circular Text: भारत सरकार */}
+                {/* Circular Text: महाराष्ट्र शासन */}
                 <text
                     x="50"
                     y="18"
@@ -80,7 +81,7 @@ export default function MahaSeal({ className = '', size = 44 }: MahaSealProps) {
                     fontFamily="system-ui, sans-serif"
                     letterSpacing="0.6"
                 >
-                    भारत सरकार
+                    महाराष्ट्र शासन
                 </text>
             </svg>
         </div>

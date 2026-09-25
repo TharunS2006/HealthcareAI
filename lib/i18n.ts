@@ -1,15 +1,16 @@
 /**
- * Multilingual Dictionaries for Rural Public Healthcare
- * Standard: Government of India • Public Health Department • NHM
- * Languages Supported: Marathi (mr), Hindi (hi), English (en) */
+ * Multilingual Dictionaries for Maharashtra Rural Public Healthcare
+ * Standard: Government of Maharashtra • Public Health Department • NHM
+ * Languages Supported: Marathi (mr), Hindi (hi), English (en)
+ */
 
 import { Language } from '@/stores/languageStore';
 
 export const DICTIONARY = {
     mr: {
         appTitle: 'नलममेश',
-        appSubtitle: 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — भारत सरकार',
-        govtHeader: 'सार्वजनिक आरोग्य विभाग • भारत सरकार | राष्ट्रीय आरोग्य अभियान (NHM)',
+        appSubtitle: 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — महाराष्ट्र शासन',
+        govtHeader: 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन | राष्ट्रीय आरोग्य अभियान (NHM)',
 
         // Navigation
         navHome: 'मुख्य पोर्टल',
@@ -65,7 +66,7 @@ export const DICTIONARY = {
         pendingReferrals: 'प्रलंबित संदर्भ सेवा (रेफरल)',
         activeQueue: 'सध्याची ओपीडी रांग',
         highRiskAlerts: 'उच्च जोखीम सूचना',
-        facilityHierarchy: 'भारत आरोग्य सातत्य नेटवर्क',
+        facilityHierarchy: 'महाराष्ट्र आरोग्य सातत्य नेटवर्क',
 
         // Common Labels
         searchPlaceholder: 'रुग्ण, औषधे किंवा लॅब चाचण्या शोधा...',
@@ -78,8 +79,8 @@ export const DICTIONARY = {
 
     hi: {
         appTitle: 'नलममेश',
-        appSubtitle: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — भारत सरकार',
-        govtHeader: 'लोक स्वास्थ्य विभाग • भारत सरकार | राष्ट्रीय स्वास्थ्य मिशन (NHM)',
+        appSubtitle: 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — महाराष्ट्र सरकार',
+        govtHeader: 'लोक स्वास्थ्य विभाग • महाराष्ट्र सरकार | राष्ट्रीय स्वास्थ्य मिशन (NHM)',
 
         // Navigation
         navHome: 'मुख्य पोर्टल',
@@ -135,7 +136,7 @@ export const DICTIONARY = {
         pendingReferrals: 'लंबित रेफरल',
         activeQueue: 'सक्रिय ओपीडी कतार',
         highRiskAlerts: 'उच्च जोखिम अलर्ट',
-        facilityHierarchy: 'भारत स्वास्थ्य अवसंरचना नेटवर्क',
+        facilityHierarchy: 'महाराष्ट्र स्वास्थ्य अवसंरचना नेटवर्क',
 
         // Common Labels
         searchPlaceholder: 'मरीज, दवाएं या लैब टेस्ट खोजें...',
@@ -148,8 +149,8 @@ export const DICTIONARY = {
 
     en: {
         appTitle: 'NalamMesh',
-        appSubtitle: 'Integrated Rural Healthcare Access & Quality Platform — Govt of India',
-        govtHeader: 'Public Health Department • Government of India | National Health Mission (NHM)',
+        appSubtitle: 'Integrated Rural Healthcare Access & Quality Platform — Govt of Maharashtra',
+        govtHeader: 'Public Health Department • Government of Maharashtra | National Health Mission (NHM)',
 
         // Navigation
         navHome: 'Executive Portal',
@@ -205,7 +206,7 @@ export const DICTIONARY = {
         pendingReferrals: 'Pending Emergency Transfers',
         activeQueue: 'Active OPD Waiting Queue',
         highRiskAlerts: 'High-Risk Alerts (Active Cohort)',
-        facilityHierarchy: 'India 4-Tier Health Network',
+        facilityHierarchy: 'Maharashtra 4-Tier Health Network',
 
         // Common Labels
         searchPlaceholder: 'Search patients, referrals, medicines...',

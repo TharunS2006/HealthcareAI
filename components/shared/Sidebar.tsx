@@ -1,6 +1,6 @@
 /**
  * Sidebar Navigation — Official Government Clinical Workstation Sidebar
- * Department of Public Health • Government of India
+ * Department of Public Health • Government of Maharashtra
  * National Health Mission (NHM) • Ayushman Bharat Digital Mission (ABDM)
  * Fully localized for English, Marathi (मराठी), and Hindi (हिन्दी) */
 
@@ -23,7 +23,7 @@ export default function Sidebar() {
     const isHi = language === 'hi';
 
     // The station is the signed-in user's posting — never a hardcoded facility,
-    // or every user would appear to be working at PHC Block A.
+    // or every user would appear to be working at PHC Bhamragad.
     const stationMeta = {
         badge: isEn ? 'Station' : isHi ? 'कार्यरत केंद्र' : 'कार्यरत केंद्र',
         name: session?.facilityName ?? (isEn ? 'Not signed in' : isHi ? 'साइन इन नहीं' : 'साइन इन केलेले नाही'),

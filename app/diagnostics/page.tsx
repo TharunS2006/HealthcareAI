@@ -71,14 +71,14 @@ export default function DiagnosticsPage() {
         nearestHi: string;
         time: string;
     }> = [
-        { code: 'CBC', name: 'Complete Blood Count (CBC) with Automated Cell Counter', nameMr: 'रक्त तपासणी (CBC) ऑटोमेटेड सेल काउंटर', nameHi: 'कम्प्लीट ब्लड काउंट (CBC) सेल काउंटर', category: 'Hematology', tier: 'CHC / DH', localAvail: false, nearest: 'CHC Block A (28 km)', nearestMr: 'ग्रामीण रुग्णालय ब्लॉक अ (२८ किमी)', nearestHi: 'सामुदायिक स्वास्थ्य केंद्र ब्लॉक अ (२८ किमी)', time: '3 hrs' },
+        { code: 'CBC', name: 'Complete Blood Count (CBC) with Automated Cell Counter', nameMr: 'रक्त तपासणी (CBC) ऑटोमेटेड सेल काउंटर', nameHi: 'कम्प्लीट ब्लड काउंट (CBC) सेल काउंटर', category: 'Hematology', tier: 'CHC / DH', localAvail: false, nearest: 'CHC Etapalli (28 km)', nearestMr: 'ग्रामीण रुग्णालय एटापल्ली (२८ किमी)', nearestHi: 'सामुदायिक स्वास्थ्य केंद्र एटापल्ली (२८ किमी)', time: '3 hrs' },
         { code: 'MALARIA_RDT', name: 'Rapid Diagnostic Test (RDT) Malaria Pf / Pv', nameMr: 'मलेरिया जलद निदान चाचणी (RDT Malaria Pf/Pv)', nameHi: 'मलेरिया रैपिड टेस्ट (RDT Malaria Pf/Pv)', category: 'Rapid Test', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre / PHC', nearestMr: 'उपकेंद्र / प्रा. आ. केंद्रात उपलब्ध', nearestHi: 'उप-केंद्र / पीएचसी में ऑन-साइट', time: '15 mins' },
-        { code: 'SICKLE_CELL', name: 'Sickle Cell Solubility & Electrophoresis', nameMr: 'सिकलसेल चाचणी व इलेक्ट्रोफोरेसीस', nameHi: 'सिकल सेल घुलनशीलता व इलेक्ट्रोफोरेसिस', category: 'Hematology', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Block A (On-site)', nearestMr: 'प्रा. आ. केंद्र ब्लॉक अ (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र ब्लॉक अ (ऑन-साइट)', time: '45 mins' },
-        { code: 'HBA1C', name: 'Glycated Hemoglobin (HbA1c) & Fasting Blood Sugar', nameMr: 'मधुमेह चाचणी (HbA1c व रक्तातील साखर)', nameHi: 'ग्लाइकेटेड हीमोग्लोबिन (HbA1c) व शुगर', category: 'Biochemistry', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Block A (On-site)', nearestMr: 'प्रा. आ. केंद्र ब्लॉक अ (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र ब्लॉक अ (ऑन-साइट)', time: '1 hr' },
-        { code: 'SPUTUM_AFB', name: 'Sputum Smear for AFB / CBNAAT GeneXpert (TB)', nameMr: 'क्षयरोग थुंकी चाचणी / CBNAAT GeneXpert (TB)', nameHi: 'टीबी बलगम जांच / CBNAAT GeneXpert (TB)', category: 'Microbiology/Sputum', tier: 'PHC / DH', localAvail: true, nearest: 'Sample at PHC -> District Hospital', nearestMr: 'नमुना ब्लॉक अ -> जिल्हा रुग्णालय ', nearestHi: 'सैंपल पीएचसी -> जिला अस्पताल गढ़चिरौली', time: '24 hrs' },
-        { code: 'USG_OBSTETRIC', name: 'Obstetric Ultrasound (USG Antenatal Scan)', nameMr: 'सोनोग्राफी (USG गरोदर माता तपासणी)', nameHi: 'सोनोग्राफी (USG प्रसूति पूर्व जांच)', category: 'Radiology', tier: 'Sub-District Hospital / District Hospital', localAvail: false, nearest: 'Sub-District Hospital (CEmONC, 38 km)', nearestMr: 'उपजिल्हा रुग्णालय उपविभाग (३८ किमी)', nearestHi: 'उप-जिला अस्पताल उपविभाग (३८ किमी)', time: 'Same Day' },
-        { code: 'ECG_DIGITAL', name: '12-Lead Digital ECG with Tele-Cardiology', nameMr: '१२-लीड डिजिटल ECG (टेली-कार्डिओलॉजी)', nameHi: '१२-लीड डिजिटल ईसीजी (टेली-कार्डियोलॉजी)', category: 'Biochemistry', tier: 'PHC / CHC / DH', localAvail: true, nearest: 'PHC Block A (On-site)', nearestMr: 'प्रा. आ. केंद्र ब्लॉक अ (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र ब्लॉक अ (ऑन-साइट)', time: '10 mins' },
-        { code: 'URINE_ALBUMIN', name: 'Urine Albumin (Proteinuria Dipstick)', nameMr: 'लघवीतील प्रथिने तपासणी (Albumin Dipstick)', nameHi: 'मूत्र एल्बुमिन जांच (Proteinuria Dipstick)', category: 'Urine', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre Village 1', nearestMr: 'आरोग्य वर्धिनी उपकेंद्र गाव १ येथे उपलब्ध', nearestHi: 'आरोग्य मंदिर उप-केंद्र गाव १ में उपलब्ध', time: '5 mins' },
+        { code: 'SICKLE_CELL', name: 'Sickle Cell Solubility & Electrophoresis', nameMr: 'सिकलसेल चाचणी व इलेक्ट्रोफोरेसीस', nameHi: 'सिकल सेल घुलनशीलता व इलेक्ट्रोफोरेसिस', category: 'Hematology', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '45 mins' },
+        { code: 'HBA1C', name: 'Glycated Hemoglobin (HbA1c) & Fasting Blood Sugar', nameMr: 'मधुमेह चाचणी (HbA1c व रक्तातील साखर)', nameHi: 'ग्लाइकेटेड हीमोग्लोबिन (HbA1c) व शुगर', category: 'Biochemistry', tier: 'PHC / CHC', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '1 hr' },
+        { code: 'SPUTUM_AFB', name: 'Sputum Smear for AFB / CBNAAT GeneXpert (TB)', nameMr: 'क्षयरोग थुंकी चाचणी / CBNAAT GeneXpert (TB)', nameHi: 'टीबी बलगम जांच / CBNAAT GeneXpert (TB)', category: 'Microbiology/Sputum', tier: 'PHC / DH', localAvail: true, nearest: 'Sample at PHC -> DH Gadchiroli', nearestMr: 'नमुना भामरागड -> जिल्हा रुग्णालय गडचिरोली', nearestHi: 'सैंपल पीएचसी -> जिला अस्पताल गढ़चिरौली', time: '24 hrs' },
+        { code: 'USG_OBSTETRIC', name: 'Obstetric Ultrasound (USG Antenatal Scan)', nameMr: 'सोनोग्राफी (USG गरोदर माता तपासणी)', nameHi: 'सोनोग्राफी (USG प्रसूति पूर्व जांच)', category: 'Radiology', tier: 'SDH Aheri / DH Gadchiroli', localAvail: false, nearest: 'SDH Aheri (CEmONC, 38 km)', nearestMr: 'उपजिल्हा रुग्णालय अहेरी (३८ किमी)', nearestHi: 'उप-जिला अस्पताल अहेरी (३८ किमी)', time: 'Same Day' },
+        { code: 'ECG_DIGITAL', name: '12-Lead Digital ECG with Tele-Cardiology', nameMr: '१२-लीड डिजिटल ECG (टेली-कार्डिओलॉजी)', nameHi: '१२-लीड डिजिटल ईसीजी (टेली-कार्डियोलॉजी)', category: 'Biochemistry', tier: 'PHC / CHC / DH', localAvail: true, nearest: 'PHC Bhamragad (On-site)', nearestMr: 'प्रा. आ. केंद्र भामरागड (थेट उपलब्ध)', nearestHi: 'प्रा. स्वा. केंद्र भामरागढ़ (ऑन-साइट)', time: '10 mins' },
+        { code: 'URINE_ALBUMIN', name: 'Urine Albumin (Proteinuria Dipstick)', nameMr: 'लघवीतील प्रथिने तपासणी (Albumin Dipstick)', nameHi: 'मूत्र एल्बुमिन जांच (Proteinuria Dipstick)', category: 'Urine', tier: 'Sub-Centre / PHC', localAvail: true, nearest: 'On-site at Sub-Centre Kothi', nearestMr: 'आरोग्य वर्धिनी उपकेंद्र कोठी येथे उपलब्ध', nearestHi: 'आरोग्य मंदिर उप-केंद्र कोठी में उपलब्ध', time: '5 mins' },
     ];
 
     const filteredDiagnostics = diagnostics.filter(d => {
@@ -100,7 +100,7 @@ export default function DiagnosticsPage() {
             patientName: p.name,
             patientAge: p.age,
             facilityId: orderFacilityId,
-            facilityName: FACILITY_NETWORK.find(f => f.id === orderFacilityId)?.name || 'PHC Block A',
+            facilityName: FACILITY_NETWORK.find(f => f.id === orderFacilityId)?.name || 'PHC Bhamragad',
             testName: isEn ? selectedCat.name : isHi ? selectedCat.nameHi : selectedCat.nameMr,
             category: selectedCat.category,
             orderedBy: session ? `${session.name} (${session.role})` : 'Unattributed',
@@ -129,7 +129,7 @@ export default function DiagnosticsPage() {
     };
 
     const txt = {
-        deptTag: isEn ? 'Government of India • Cross-Tier Diagnostic Lab Network' : isHi ? 'भारत सरकार • बहु-स्तरीय स्वास्थ्य जांच नेटवर्क' : 'भारत सरकार • बहु-स्तरीय लॅब व निदान नेटवर्क',
+        deptTag: isEn ? 'Government of Maharashtra • Cross-Tier Diagnostic Lab Network' : isHi ? 'महाराष्ट्र सरकार • बहु-स्तरीय स्वास्थ्य जांच नेटवर्क' : 'महाराष्ट्र शासन • बहु-स्तरीय लॅब व निदान नेटवर्क',
         title: isEn ? 'Diagnostic Coordination & Lab Tracking' : isHi ? 'निदान समन्वय एवं लैब ट्रैकिंग' : 'निदान व प्रयोगशाळा समन्वय',
         subTitle: isEn
             ? 'Sample collection pipeline, nearest lab router for unavailable tests, and instant LHR push'

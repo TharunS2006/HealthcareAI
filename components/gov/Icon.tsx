@@ -1,5 +1,5 @@
 /**
- * Flat monochrome icon set — Government of India digital properties do not use
+ * Flat monochrome icon set — Government of Maharashtra digital properties do not use
  * pictographic emoji as UI iconography (rendering varies by OS/browser and reads as
  * informal). Every icon here is a single-color stroke outline, same convention as the
  * icons already used in components/shared/Sidebar.tsx.

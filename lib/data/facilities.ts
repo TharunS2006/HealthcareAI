@@ -1,7 +1,8 @@
 /**
- * India Public Healthcare Infrastructure & Seed Datasets
- * District Focus:  (Tribal & Underserved Aspirational District)
- * Facility Tier Hierarchy: Sub-Centre (SC) -> PHC -> CHC -> Sub-District Hospital (SDH) -> District Hospital (DH) */
+ * Maharashtra Public Healthcare Infrastructure & Seed Datasets
+ * District Focus: Gadchiroli (Tribal & Underserved Aspirational District)
+ * Facility Tier Hierarchy: Sub-Centre (SC) -> PHC -> CHC -> Sub-District Hospital (SDH) -> District Hospital (DH)
+ */
 
 import { Facility, MedicineStockItem, DiagnosticOrder, QueueEntry, TeleconsultSession } from '@/types/facility';
 import { Patient } from '@/types/patient';
@@ -10,15 +11,15 @@ export const FACILITY_NETWORK: Facility[] = [
     // 1. District Hospital (Apex Facility in District)
     {
         id: 'dh-district',
-        name: 'District Hospital',
-        nameMarathi: 'जिल्हा रुग्णालय, ',
+        name: 'District Hospital, Gadchiroli',
+        nameMarathi: 'जिल्हा रुग्णालय, गडचिरोली',
         type: 'DH',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Gadchiroli',
         location: {
             lat: 20.1809,
             lng: 79.9934,
-            address: 'Complex Area, Chamorshi Road, 442605',
+            address: 'Complex Area, Chamorshi Road, Gadchiroli 442605',
         },
         contact: '+91-7132-222108',
         medicalOfficerInCharge: 'Dr. Pramod Khandate (Civil Surgeon)',
@@ -47,16 +48,16 @@ export const FACILITY_NETWORK: Facility[] = [
     // 2. Sub-District Hospital (SDH)
     {
         id: 'sdh-aheri',
-        name: 'Sub-District Hospital',
-        nameMarathi: 'उपजिल्हा रुग्णालय, उपविभाग',
+        name: 'Sub-District Hospital, Aheri',
+        nameMarathi: 'उपजिल्हा रुग्णालय, अहेरी',
         type: 'SDH',
         parentFacilityId: 'dh-district',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Aheri',
         location: {
             lat: 19.4144,
             lng: 80.0031,
-            address: 'Allapalli Road, Sub-Division, 442705',
+            address: 'Allapalli Road, Aheri, Gadchiroli 442705',
         },
         contact: '+91-7133-272022',
         medicalOfficerInCharge: 'Dr. Nitin Meshram (Medical Superintendent)',
@@ -85,16 +86,16 @@ export const FACILITY_NETWORK: Facility[] = [
     // 3. Community Health Centre (CHC)
     {
         id: 'chc-etapalli',
-        name: 'Community Health Centre — Block A',
-        nameMarathi: 'ग्रामीण रुग्णालय (CHC), ब्लॉक अ',
+        name: 'Community Health Centre, Etapalli',
+        nameMarathi: 'ग्रामीण रुग्णालय (CHC), एटापल्ली',
         type: 'CHC',
         parentFacilityId: 'sdh-aheri',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Etapalli',
         location: {
             lat: 19.6468,
             lng: 80.2884,
-            address: 'Main Road, Block A, 442704',
+            address: 'Main Road, Etapalli, Gadchiroli 442704',
         },
         contact: '+91-7133-264100',
         medicalOfficerInCharge: 'Dr. Sachin Madavi (Medical Officer)',
@@ -122,16 +123,16 @@ export const FACILITY_NETWORK: Facility[] = [
     // 4. Primary Health Centre (PHC) — Primary Demo Focus
     {
         id: 'phc-bhamragad',
-        name: 'Primary Health Centre — Block A',
-        nameMarathi: 'प्राथमिक आरोग्य केंद्र, ब्लॉक अ',
+        name: 'Primary Health Centre, Bhamragad',
+        nameMarathi: 'प्राथमिक आरोग्य केंद्र, भामरागड',
         type: 'PHC',
         parentFacilityId: 'chc-etapalli',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Bhamragad',
         location: {
             lat: 19.4678,
             lng: 80.3789,
-            address: 'Near Tehsil Office, Block A, 442710',
+            address: 'Near Tehsil Office, Bhamragad, Gadchiroli 442710',
         },
         contact: '+91-7134-220033',
         medicalOfficerInCharge: 'Dr. Suresh Atram (Medical Officer)',
@@ -158,16 +159,16 @@ export const FACILITY_NETWORK: Facility[] = [
     // 5. Primary Health Centre (PHC 2)
     {
         id: 'phc-perimili',
-        name: 'Primary Health Centre — Block B',
-        nameMarathi: 'प्राथमिक आरोग्य केंद्र, ब्लॉक ब',
+        name: 'Primary Health Centre, Perimili',
+        nameMarathi: 'प्राथमिक आरोग्य केंद्र, पेरीमिली',
         type: 'PHC',
         parentFacilityId: 'chc-etapalli',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Aheri',
         location: {
             lat: 19.3512,
             lng: 80.1245,
-            address: 'Block B Village, Sub-Division Tehsil, 442705',
+            address: 'Perimili Village, Aheri Tehsil, Gadchiroli 442705',
         },
         contact: '+91-7133-289122',
         medicalOfficerInCharge: 'Dr. Anjali Borkar',
@@ -194,16 +195,16 @@ export const FACILITY_NETWORK: Facility[] = [
     // 6. Sub-Centre (Ayushman Arogya Mandir)
     {
         id: 'sc-kothi',
-        name: 'Sub-Centre / Ayushman Arogya Mandir — Village 1',
-        nameMarathi: 'आरोग्य उपकेंद्र, गाव १',
+        name: 'Sub-Centre / Ayushman Arogya Mandir, Kothi',
+        nameMarathi: 'आरोग्य उपकेंद्र, कोठी',
         type: 'SC',
         parentFacilityId: 'phc-bhamragad',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Bhamragad',
         location: {
             lat: 19.4981,
             lng: 80.4512,
-            address: 'Village 1 Gram Panchayat, Block A 442710',
+            address: 'Kothi Gram Panchayat, Bhamragad 442710',
         },
         contact: '+91-9423-889911',
         medicalOfficerInCharge: 'Sunita Hichami (CHO / Community Health Officer)',
@@ -223,19 +224,19 @@ export const FACILITY_NETWORK: Facility[] = [
         isOnline: false,
     },
 
-    // 7. Sub-Centre Village 2
+    // 7. Sub-Centre Govindpur
     {
         id: 'sc-govindpur',
-        name: 'Sub-Centre — Village 2',
-        nameMarathi: 'आरोग्य उपकेंद्र, गाव २',
+        name: 'Sub-Centre, Govindpur',
+        nameMarathi: 'आरोग्य उपकेंद्र, गोविंदपूर',
         type: 'SC',
         parentFacilityId: 'phc-bhamragad',
-        district: 'District',
-        tehsil: 'Block',
+        district: 'Gadchiroli',
+        tehsil: 'Bhamragad',
         location: {
             lat: 19.5211,
             lng: 80.3992,
-            address: 'Village 2 Village, Block A 442710',
+            address: 'Govindpur Village, Bhamragad 442710',
         },
         contact: '+91-9423-889922',
         medicalOfficerInCharge: 'Ramesh Gawde (MPW) / Kavita Madavi (ANM)',
@@ -268,9 +269,9 @@ export const SEED_PATIENTS: Patient[] = [
         age: 26,
         gender: 'F',
         phone: '+91-98765-43210',
-        village: 'Village 1',
-        tehsil: 'Block',
-        district: 'District',
+        village: 'Kothi',
+        tehsil: 'Bhamragad',
+        district: 'Gadchiroli',
         languagePreference: 'mr',
         vitals: {
             spo2: 94,
@@ -293,7 +294,7 @@ export const SEED_PATIENTS: Patient[] = [
         timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
         chw_id: 'ASHA-KOTHI-01',
         chw_name: 'Lakshmi Netam (ASHA)',
-        notes: 'Advised immediate transfer to CHC Block A for parenteral antihypertensives and fetal monitoring. 102 ambulance dispatched.',
+        notes: 'Advised immediate transfer to CHC Etapalli for parenteral antihypertensives and fetal monitoring. 102 ambulance dispatched.',
         highRiskFlags: [
             {
                 type: 'MATERNAL',
@@ -316,7 +317,7 @@ export const SEED_PATIENTS: Patient[] = [
                 visitId: 'v-101',
                 patientId: 'p-gad-1001',
                 facilityId: 'sc-kothi',
-                facilityName: 'Sub-Centre Village 1',
+                facilityName: 'Sub-Centre Kothi',
                 facilityType: 'SC',
                 date: new Date(Date.now() - 14 * 86400000).toISOString(),
                 chiefComplaint: 'Routine 3rd ANC checkup',
@@ -346,9 +347,9 @@ export const SEED_PATIENTS: Patient[] = [
         age: 54,
         gender: 'M',
         phone: '+91-94218-77112',
-        village: 'Village 2',
-        tehsil: 'Block',
-        district: 'District',
+        village: 'Govindpur',
+        tehsil: 'Bhamragad',
+        district: 'Gadchiroli',
         languagePreference: 'mr',
         vitals: {
             spo2: 97,
@@ -387,9 +388,9 @@ export const SEED_PATIENTS: Patient[] = [
         name: 'Baby Aarav (s/o Meena)',
         age: 1.5,
         gender: 'M',
-        village: 'Block B',
-        tehsil: 'Block',
-        district: 'District',
+        village: 'Perimili',
+        tehsil: 'Aheri',
+        district: 'Gadchiroli',
         languagePreference: 'mr',
         vitals: {
             spo2: 91,
@@ -435,9 +436,9 @@ export const SEED_PATIENTS: Patient[] = [
         age: 42,
         gender: 'F',
         phone: '+91-91300-44982',
-        village: 'Block A',
-        tehsil: 'Block',
-        district: 'District',
+        village: 'Bhamragad',
+        tehsil: 'Bhamragad',
+        district: 'Gadchiroli',
         languagePreference: 'mr',
         vitals: {
             spo2: 96,
@@ -460,7 +461,7 @@ export const SEED_PATIENTS: Patient[] = [
                 severity: 'MEDIUM',
                 identifiedDate: new Date(Date.now() - 75 * 86400000).toISOString(),
                 nextFollowUpDate: new Date(Date.now() + 4 * 86400000).toISOString(),
-                notes: 'Nikshay ID: NK-PHC-01, DOTS regimen adherence good',
+                notes: 'Nikshay ID: NK-MH-GAD-29402, DOTS regimen adherence good',
             }
         ]
     },
@@ -471,8 +472,8 @@ export const SEED_PATIENTS: Patient[] = [
         age: 34,
         gender: 'M',
         village: 'Nainer',
-        tehsil: 'Block',
-        district: 'District',
+        tehsil: 'Aheri',
+        district: 'Gadchiroli',
         languagePreference: 'hi',
         vitals: {
             spo2: 98,
@@ -493,27 +494,27 @@ export const SEED_PATIENTS: Patient[] = [
 
     // Patients behind the seeded referrals below — one per lifecycle state the
     // referral screens need to show on first open.
-    seedPatient('p-gad-1006', 'Mangesh Pendam', 38, 'M', 'Village 2', 'sc-govindpur', 'RED', 'EMERGENCY', 25,
+    seedPatient('p-gad-1006', 'Mangesh Pendam', 38, 'M', 'Govindpur', 'sc-govindpur', 'RED', 'EMERGENCY', 25,
         { spo2: 95, heartRate: 112, bloodPressure: { systolic: 132, diastolic: 86 }, respiratoryRate: 22, consciousness: 'ALERT',
           injuryType: 'Snake bite (suspected krait) 40 min ago while asleep on floor; early ptosis, abdominal pain' },
         { lat: 19.5211, lng: 80.3992 }, 'Kavita Madavi (ANM)'),
-    seedPatient('p-gad-1007', 'Rukhmini Atram', 65, 'F', 'Village 1', 'sc-kothi', 'YELLOW', 'URGENT', 55,
+    seedPatient('p-gad-1007', 'Rukhmini Atram', 65, 'F', 'Kothi', 'sc-kothi', 'YELLOW', 'URGENT', 55,
         { spo2: 96, heartRate: 104, bloodPressure: { systolic: 104, diastolic: 68 }, temperature: 102.6, consciousness: 'ALERT',
           injuryType: 'Fever 5 days, RDT malaria positive (Pf), repeated vomiting — cannot retain oral ACT' },
         { lat: 19.4981, lng: 80.4512 }, 'Sunita Hichami (ANM)'),
-    seedPatient('p-gad-1008', 'Sanjay Wadde', 22, 'M', 'Block B', 'phc-perimili', 'RED', 'EMERGENCY', 140,
+    seedPatient('p-gad-1008', 'Sanjay Wadde', 22, 'M', 'Perimili', 'phc-perimili', 'RED', 'EMERGENCY', 140,
         { spo2: 97, heartRate: 118, bloodPressure: { systolic: 112, diastolic: 70 }, consciousness: 'ALERT',
           injuryType: 'Road traffic accident — closed fracture right tibia, deformity and swelling, distal pulse present' },
         { lat: 19.3512, lng: 80.1245 }),
-    seedPatient('p-gad-1009', 'Pooja Netam', 24, 'F', 'Village 2', 'sc-govindpur', 'YELLOW', 'URGENT', 2 * 24 * 60,
+    seedPatient('p-gad-1009', 'Pooja Netam', 24, 'F', 'Govindpur', 'sc-govindpur', 'YELLOW', 'URGENT', 2 * 24 * 60,
         { spo2: 98, heartRate: 108, bloodPressure: { systolic: 96, diastolic: 62 }, temperature: 99.1, consciousness: 'ALERT',
           injuryType: 'Acute gastroenteritis with moderate dehydration — 9 loose stools since morning' },
         { lat: 19.5211, lng: 80.3992 }, 'Kavita Madavi (ANM)'),
-    seedPatient('p-gad-1010', 'Vitthal Kowase', 58, 'M', 'Block A', 'phc-bhamragad', 'RED', 'EMERGENCY', 150,
+    seedPatient('p-gad-1010', 'Vitthal Kowase', 58, 'M', 'Bhamragad', 'phc-bhamragad', 'RED', 'EMERGENCY', 150,
         { spo2: 93, heartRate: 96, bloodPressure: { systolic: 150, diastolic: 94 }, consciousness: 'ALERT',
           injuryType: 'Central chest pain 2 hours, sweating; ECG shows ST elevation in V2–V4 (cardiac event suspected)' },
         { lat: 19.4678, lng: 80.3789 }),
-    seedPatient('p-gad-1011', 'Kamla Usendi', 70, 'F', 'Block B', 'phc-perimili', 'YELLOW', 'URGENT', 5 * 60,
+    seedPatient('p-gad-1011', 'Kamla Usendi', 70, 'F', 'Perimili', 'phc-perimili', 'YELLOW', 'URGENT', 5 * 60,
         { spo2: 94, heartRate: 116, bloodPressure: { systolic: 100, diastolic: 60 }, consciousness: 'ALERT',
           injuryType: 'Severe anaemia (Hb 5.8 g/dL) with breathlessness on walking — needs transfusion' },
         { lat: 19.3512, lng: 80.1245 }),
@@ -534,14 +535,17 @@ function seedPatient(
     gps: { lat: number; lng: number },
     chwName?: string
 ): Patient {
+    // The patient lives in the registering facility's tehsil and district.
+    const home = FACILITY_NETWORK.find(f => f.id === registeredAtFacilityId);
+    if (!home) throw new Error(`Seed patient ${id} names unknown facility ${registeredAtFacilityId}`);
     return {
         id,
         name,
         age,
         gender,
         village,
-        tehsil: 'Block',
-        district: 'District',
+        tehsil: home.tehsil,
+        district: home.district,
         languagePreference: 'mr',
         vitals,
         triageStatus,
@@ -555,7 +559,8 @@ function seedPatient(
 }
 
 /**
- * Seed Live Queue Entries for PHC Block A */
+ * Seed Live Queue Entries for PHC Bhamragad
+ */
 export const SEED_QUEUE: QueueEntry[] = [
     {
         id: 'q-038',
@@ -566,7 +571,7 @@ export const SEED_QUEUE: QueueEntry[] = [
         patientAge: 42,
         patientGender: 'F',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         registeredAt: new Date(Date.now() - 35 * 60000).toISOString(),
         calledAt: new Date(Date.now() - 12 * 60000).toISOString(),
         priority: 'ROUTINE',
@@ -585,7 +590,7 @@ export const SEED_QUEUE: QueueEntry[] = [
         patientAge: 54,
         patientGender: 'M',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         registeredAt: new Date(Date.now() - 25 * 60000).toISOString(),
         priority: 'URGENT',
         chiefComplaint: 'Diabetic Foot Ulcer & Blood Sugar 284',
@@ -601,7 +606,7 @@ export const SEED_QUEUE: QueueEntry[] = [
         patientAge: 26,
         patientGender: 'F',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         registeredAt: new Date(Date.now() - 15 * 60000).toISOString(),
         priority: 'EMERGENCY',
         chiefComplaint: 'Pregnancy 32w with Severe BP 160/100',
@@ -617,7 +622,7 @@ export const SEED_QUEUE: QueueEntry[] = [
         patientAge: 34,
         patientGender: 'M',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         registeredAt: new Date(Date.now() - 10 * 60000).toISOString(),
         priority: 'ROUTINE',
         chiefComplaint: 'Viral Fever & Generalized Body Ache',
@@ -633,7 +638,7 @@ export const SEED_QUEUE: QueueEntry[] = [
         patientAge: 22,
         patientGender: 'F',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         registeredAt: new Date(Date.now() - 5 * 60000).toISOString(),
         priority: 'ROUTINE',
         chiefComplaint: 'Routine 1st Trimester ANC Registration',
@@ -648,7 +653,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-01',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Paracetamol Tablets 500mg',
         category: 'Analgesic',
         dosageForm: 'Tablet',
@@ -664,7 +669,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-02',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Amoxicillin Capsules 250mg',
         category: 'Antibiotic',
         dosageForm: 'Capsule',
@@ -680,7 +685,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-03',
         facilityId: 'sc-kothi',
-        facilityName: 'Sub-Centre Village 1',
+        facilityName: 'Sub-Centre Kothi',
         name: 'Iron & Folic Acid (IFA Large)',
         category: 'Maternal/ANC',
         dosageForm: 'Tablet',
@@ -696,7 +701,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-04',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Oral Rehydration Salts (ORS) WHO Formula',
         category: 'Rehydration',
         dosageForm: 'Packet',
@@ -712,7 +717,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-05',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Metformin Tablets 500mg',
         category: 'Anti-diabetic',
         dosageForm: 'Tablet',
@@ -728,7 +733,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-06',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Human Insulin Regular (100 IU/ml Vial)',
         category: 'Anti-diabetic',
         dosageForm: 'Injection',
@@ -744,7 +749,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-07',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Oxytocin Injection 5 IU/ml Ampoules',
         category: 'Maternal/ANC',
         dosageForm: 'Injection',
@@ -760,7 +765,7 @@ export const SEED_MEDICINES: MedicineStockItem[] = [
     {
         id: 'med-08',
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         name: 'Artemether-Lumefantrine (ACT Kit)',
         category: 'Emergency',
         dosageForm: 'Tablet',
@@ -784,7 +789,7 @@ export const SEED_DIAGNOSTICS: DiagnosticOrder[] = [
         patientName: 'Ramesh Pandu Patil',
         patientAge: 54,
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         testName: 'Fasting Blood Glucose (FBG) & HbA1c',
         category: 'Biochemistry',
         orderedBy: 'Dr. Suresh Atram',
@@ -801,7 +806,7 @@ export const SEED_DIAGNOSTICS: DiagnosticOrder[] = [
         patientName: 'Lata B. Meshram',
         patientAge: 42,
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         testName: 'Sputum Smear for AFB (Ziehl-Neelsen)',
         category: 'Microbiology/Sputum',
         orderedBy: 'Dr. Suresh Atram',
@@ -818,7 +823,7 @@ export const SEED_DIAGNOSTICS: DiagnosticOrder[] = [
         patientName: 'Sunita M. Devi',
         patientAge: 26,
         facilityId: 'phc-bhamragad',
-        facilityName: 'PHC Block A',
+        facilityName: 'PHC Bhamragad',
         testName: 'Urine Albumin (Proteinuria Check) & Hb%',
         category: 'Urine',
         orderedBy: 'Sunita Hichami (CHO)',
@@ -834,7 +839,7 @@ export const SEED_DIAGNOSTICS: DiagnosticOrder[] = [
         patientName: 'Baby Aarav',
         patientAge: 1.5,
         facilityId: 'phc-perimili',
-        facilityName: 'PHC Block B',
+        facilityName: 'PHC Perimili',
         testName: 'Rapid Malaria Antigen (Pf/Pv RDT)',
         category: 'Rapid Test',
         orderedBy: 'Dr. Anjali Borkar',
@@ -856,12 +861,12 @@ export const SEED_TELECONSULT: TeleconsultSession = {
     patientAge: 26,
     patientGender: 'F',
     initiatingFacilityId: 'sc-kothi',
-    initiatingFacilityName: 'Sub-Centre Village 1',
+    initiatingFacilityName: 'Sub-Centre Kothi',
     initiatorRole: 'CHO',
     initiatorName: 'Sunita Hichami (CHO)',
     specialistDoctorId: 'doc-priya-dh',
     specialistDoctorName: 'Dr. Priya Sharma (MD, OBGYN)',
-    specialistHospital: 'District Hospital',
+    specialistHospital: 'District Hospital, Gadchiroli',
     specialty: 'Obstetrics & High-Risk Maternal Care',
     scheduledTime: new Date(Date.now() - 15 * 60000).toISOString(),
     status: 'IN_PROGRESS',

@@ -1,6 +1,7 @@
 /**
  * Facility, Queue, Teleconsult & Inventory Data Models
- * Supporting India Public Healthcare Hierarchy (SC -> PHC -> CHC -> SDH -> DH) */
+ * Supporting Maharashtra Public Healthcare Hierarchy (SC -> PHC -> CHC -> SDH -> DH)
+ */
 
 import { FacilityType, GPSLocation, TriagePriority, Vitals } from './patient';
 

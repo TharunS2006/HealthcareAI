@@ -1,7 +1,8 @@
 /**
  * GovPortalHeader — Authentic Indian Government (NIC / GIGW 3.0) Master Header
- * Official portal header for NalamMesh — Government of India & NHM
- * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
+ * Official portal header for NalamMesh — Government of Maharashtra & NHM
+ * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
+ */
 
 'use client';
 
@@ -94,17 +95,17 @@ export default function GovPortalHeader() {
         stateGov: dep('government', language),
         dept: departmentLine(language),
         title: isEn ? 'NalamMesh' : 'नलममेश',
-        badge: isEn ? 'National Health Mission' : isHi ? 'राष्ट्रीय आरोग्य अभियान' : 'राष्ट्रीय आरोग्य अभियान',
+        badge: isEn ? 'NHM Maharashtra' : isHi ? 'NHM महाराष्ट्र' : 'NHM महाराष्ट्र',
         subTitle: isEn
             ? 'Integrated Rural Public Healthcare Access, Continuity & Quality Platform'
             : isHi
             ? 'ग्रामीण सार्वजनिक स्वास्थ्य सेवा एकीकृत मंच — लोक स्वास्थ्य विभाग'
             : 'ग्रामीण सार्वजनिक आरोग्य सेवा एकात्मिक मंच — सार्वजनिक आरोग्य विभाग',
         subText: isEn
-            ? 'National Rural Health Digital Public Infrastructure • Government of India • ABDM-Aligned (FHIR R4)'
+            ? 'National Rural Health Digital Public Infrastructure • Government of Maharashtra • ABDM-Aligned (FHIR R4)'
             : isHi
-            ? 'राष्ट्रीय ग्रामीण स्वास्थ्य डिजिटल सार्वजनिक अवसंरचना • भारत सरकार • ABDM-संरेखित (FHIR R4)'
-            : 'राष्ट्रीय ग्रामीण आरोग्य डिजिटल सार्वजनिक पायाभूत सुविधा • भारत सरकार • ABDM-संरेखित (FHIR R4)',
+            ? 'राष्ट्रीय ग्रामीण स्वास्थ्य डिजिटल सार्वजनिक अवसंरचना • महाराष्ट्र सरकार • ABDM-संरेखित (FHIR R4)'
+            : 'राष्ट्रीय ग्रामीण आरोग्य डिजिटल सार्वजनिक पायाभूत सुविधा • महाराष्ट्र शासन • ABDM-संरेखित (FHIR R4)',
         ambLabel: isEn ? 'Ambulance' : isHi ? 'एम्बुलेंस' : 'रुग्णवाहिका',
         maternalLabel: isEn ? 'Maternal / 102' : isHi ? 'जननी-शिशु / १०२' : 'माता व बाल / १०२',
         helplineLabel: isEn ? 'Health Helpline' : isHi ? 'स्वास्थ्य हेल्पलाइन' : 'आरोग्य हेल्पलाइन',
@@ -114,10 +115,10 @@ export default function GovPortalHeader() {
         noticeLabel: isEn ? 'IMPORTANT NOTICE' : isHi ? 'महत्वपूर्ण सूचना' : 'महत्त्वाची सूचना',
         // No ambulance-tracking claim: nothing in this build tracks vehicles.
         noticeText: isEn
-            ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at Sub-District Hospital and District Hospital. For an ambulance, call 108 (emergency) or 102 (mother & child).'
+            ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at SDH Aheri and DH Gadchiroli. For an ambulance, call 108 (emergency) or 102 (mother & child).'
             : isHi
-            ? 'उप-जिला अस्पताल और जिला अस्पताल में २४ घंटे आपातकालीन प्रसूति सेवाएं (CEmONC व BEmONC) पूर्णतः सक्रिय हैं। एम्बुलेंस के लिए १०८ (आपातकाल) या १०२ (माँ और शिशु) पर कॉल करें।'
-            : 'उपजिल्हा रुग्णालय व जिल्हा रुग्णालय येथे २४ तास आपत्कालीन प्रसूती सेवा (CEmONC व BEmONC) पूर्णपणे सुरू आहेत. रुग्णवाहिकेसाठी १०८ (आपत्कालीन) किंवा १०२ (माता व बालक) वर कॉल करा.',
+            ? 'उप-जिला अस्पताल अहेरी और जिला अस्पताल गढ़चिरौली में २४ घंटे आपातकालीन प्रसूति सेवाएं (CEmONC व BEmONC) पूर्णतः सक्रिय हैं। एम्बुलेंस के लिए १०८ (आपातकाल) या १०२ (माँ और शिशु) पर कॉल करें।'
+            : 'उपजिल्हा रुग्णालय अहेरी व जिल्हा रुग्णालय गडचिरोली येथे २४ तास आपत्कालीन प्रसूती सेवा (CEmONC व BEmONC) पूर्णपणे सुरू आहेत. रुग्णवाहिकेसाठी १०८ (आपत्कालीन) किंवा १०२ (माता व बालक) वर कॉल करा.',
     };
 
     return (

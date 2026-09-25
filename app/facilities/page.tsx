@@ -1,6 +1,6 @@
 /**
- * Facility Hierarchy & Service Discovery Directory — NalamMesh (the rural healthcare access problem Module 15)
- * Exact 4-Tier India Model: Sub-Centre -> PHC -> CHC/SDH -> District Hospital
+ * Facility Hierarchy & Service Discovery Directory — NalamMesh
+ * Exact 4-Tier Maharashtra Model: Sub-Centre -> PHC -> CHC/SDH -> District Hospital
  * Service locator ("What is available where") with live beds, specialized staff, and equipment.
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
@@ -96,14 +96,14 @@ export default function FacilitiesPage() {
     };
 
     const txt = {
-        deptTag: isEn ? 'Government of India • Public Health Facility Hierarchy & Directory' : isHi ? 'भारत सरकार • स्वास्थ्य केंद्र पदानुक्रम एवं निर्देशिका' : 'भारत सरकार • सार्वजनिक आरोग्य केंद्र रचना व निर्देशिका',
+        deptTag: isEn ? 'Government of Maharashtra • Public Health Facility Hierarchy & Directory' : isHi ? 'महाराष्ट्र सरकार • स्वास्थ्य केंद्र पदानुक्रम एवं निर्देशिका' : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य केंद्र रचना व निर्देशिका',
         title: isEn ? '4-Tier Facility Hierarchy & Service Directory' : isHi ? '४-स्तरीय स्वास्थ्य केंद्र निर्देशिका एवं सेवा खोज' : '४-स्तरीय आरोग्य केंद्र निर्देशिका व सेवा शोधक',
         subTitle: isEn
             ? 'Sub-Centre (SC) → Primary Health Centre (PHC) → CHC/SDH → District Hospital (DH)'
             : isHi
             ? 'उप-केंद्र (SC) → प्राथमिक स्वास्थ्य केंद्र (PHC) → CHC/SDH → जिला अस्पताल (DH)'
             : 'उपकेंद्र (SC) → प्राथमिक आरोग्य केंद्र (PHC) → CHC/SDH → जिल्हा रुग्णालय (DH)',
-        districtBadge: isEn ? 'District: (Tribal Division)' : isHi ? 'जिला: गढ़चिरौली (आदिवासी क्षेत्र)' : 'जिल्हा: (आदिवासी विभाग)',
+        districtBadge: isEn ? 'District: Gadchiroli (Tribal Division)' : isHi ? 'जिला: गढ़चिरौली (आदिवासी क्षेत्र)' : 'जिल्हा: गडचिरोली (आदिवासी विभाग)',
         searchPlaceholder: isEn ? 'Search facility, tehsil, equipment, doctor...' : isHi ? 'अस्पताल, तहसील, उपकरण, डॉक्टर खोजें...' : 'आरोग्य केंद्र, तालुका, उपकरण, डॉक्टर शोधा...',
         allTiers: isEn ? 'All Tiers' : isHi ? 'सभी स्तर' : 'सर्व स्तर',
         servicesTitle: isEn ? 'Available Specialized Clinical Services' : isHi ? 'उपलब्ध विशिष्ट चिकित्सीय सेवाएं' : 'उपलब्ध विशेष वैद्यकीय सेवा',

@@ -1,6 +1,6 @@
 /**
  * OPD Registration & Edge AI Digital Triage — NalamMesh
- * Government of India • Department of Public Health
+ * Government of Maharashtra • Department of Public Health
  * Primary Health Centre Clinical Workstation (NIC / GIGW Standard)
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
@@ -46,7 +46,7 @@ export default function OPDPage() {
     const [age, setAge] = useState<number>(26);
     const [gender, setGender] = useState<'M' | 'F' | 'O'>('F');
     const [phone, setPhone] = useState('+91-98765-43210');
-    const [village, setVillage] = useState('Village 1 (गाव १)');
+    const [village, setVillage] = useState('Kothi (कोठी)');
     const [abhaId, setAbhaId] = useState('ABHA-9128-4421-8890');
     const [aadhaarLast4, setAadhaarLast4] = useState('4821');
 
@@ -86,10 +86,10 @@ export default function OPDPage() {
     // Dynamic Translations Dictionary
     const L = {
         deptTag: isEn
-            ? 'Department of Public Health • Primary Health Centre — Block A'
+            ? 'Department of Public Health • Primary Health Centre, Bhamragad'
             : isHi
-            ? 'सार्वजनिक स्वास्थ्य विभाग • प्राथमिक स्वास्थ्य केंद्र, ब्लॉक अ'
-            : 'सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, ब्लॉक अ',
+            ? 'सार्वजनिक स्वास्थ्य विभाग • प्राथमिक स्वास्थ्य केंद्र, भामरागढ़'
+            : 'सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, भामरागड',
         standardsTag: isEn ? 'IPHS 2022 Standards' : isHi ? 'IPHS 2022 मानक' : 'IPHS 2022 मानके',
         pageTitle: isEn
             ? 'OPD Patient Registration & Digital Triage'
@@ -97,10 +97,10 @@ export default function OPDPage() {
             ? 'ओपीडी मरीज पंजीकरण एवं डिजिटल ट्राइएज कक्ष'
             : 'ओपीडी रुग्ण नोंदणी व डिजिटल ट्राइएज कक्ष',
         pageSub: isEn
-            ? 'OPD Registration & Clinical Intake • Government of India • ABDM-Ready (FHIR R4)'
+            ? 'OPD Registration & Clinical Intake • Government of Maharashtra • ABDM-Ready (FHIR R4)'
             : isHi
-            ? 'ओपीडी पंजीयन व नैदानिक जांच • भारत सरकार • ABDM-सज्ज (FHIR R4)'
-            : 'ओपीडी रुग्ण नोंदणी व नैदानिक तपासणी • भारत सरकार • ABDM-सज्ज (FHIR R4)',
+            ? 'ओपीडी पंजीयन व नैदानिक जांच • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)'
+            : 'ओपीडी रुग्ण नोंदणी व नैदानिक तपासणी • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)',
         searchPlaceholder: isEn ? 'Search ABHA ID / Aadhaar / Name...' : isHi ? 'ABHA ID / आधार क्रमांक / नाम खोजें...' : 'ABHA ID / आधार क्रमांक / नाव शोधा...',
         searchBtn: isEn ? 'Search' : isHi ? 'खोजें' : 'शोधा',
         sec1Title: isEn ? '1. Patient Demographics & ABHA' : isHi ? '१. मरीज की प्राथमिक जानकारी (ABHA)' : '१. रुग्णाची प्राथमिक माहिती (Demographics & ABHA)',
@@ -135,10 +135,10 @@ export default function OPDPage() {
         analyzingBtn: isEn ? 'Evaluating Triage Risk...' : isHi ? 'विश्लेषण जारी है...' : 'विश्लेषण चालू आहे...',
         runTriageBtn: isEn ? '✓ Run AI Triage & Generate OPD Token' : isHi ? '✓ एआई ट्राइएज विश्लेषण करें व टोकन दें' : '✓ एआई ट्राइएज विश्लेषण करा व ओपीडी टोकन द्या',
         receiptGovt: isEn
-            ? 'Government of India • Department of Public Health'
+            ? 'Government of Maharashtra • Department of Public Health'
             : isHi
-            ? 'भारत सरकार • सार्वजनिक स्वास्थ्य विभाग'
-            : 'भारत सरकार • सार्वजनिक आरोग्य विभाग',
+            ? 'महाराष्ट्र सरकार • सार्वजनिक स्वास्थ्य विभाग'
+            : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग',
         receiptTitle: isEn ? 'Official OPD Registration & Triage Slip' : isHi ? 'अधिकृत ओपीडी पंजीयन व ट्राइएज पर्ची' : 'अधिकृत ओपीडी नोंदणी व ट्राइएज पावती',
         tokenLabel: isEn ? 'Token Number' : isHi ? 'टोकन नंबर' : 'टोकन क्रमांक',
         priorityLabel: isEn ? 'Triage Priority' : isHi ? 'ट्राइएज प्राथमिकता' : 'ट्राइएज प्राधान्य',
@@ -193,7 +193,7 @@ export default function OPDPage() {
             setAge(found.age);
             setGender(found.gender);
             setPhone(found.phone || '');
-            setVillage(found.village || 'Block A');
+            setVillage(found.village || 'Bhamragad');
             setAbhaId(found.abhaId || '');
             if (found.vitals) setVitals(found.vitals);
             toast.success(isEn ? `Found record: ${found.name}` : `रेकॉर्ड सापडला: ${found.name}`);
@@ -225,9 +225,9 @@ export default function OPDPage() {
                 gender,
                 phone,
                 village,
-                tehsil: 'Block',
-                district: 'District',
-                state: 'India',
+                tehsil: 'Bhamragad',
+                district: 'Gadchiroli',
+                state: 'Maharashtra',
                 languagePreference: language === 'hi' ? 'hi' : language === 'en' ? 'en' : 'mr',
                 abhaId,
                 aadhaarLast4,
@@ -271,7 +271,7 @@ export default function OPDPage() {
                 patientAge: age,
                 patientGender: gender,
                 facilityId: facility?.id ?? 'phc-bhamragad',
-                facilityName: facility?.name ?? 'PHC Block A',
+                facilityName: facility?.name ?? 'PHC Bhamragad',
                 registeredAt: new Date().toISOString(),
                 priority: result.priority,
                 chiefComplaint: vitals.injuryType || 'General Consultation',
@@ -716,7 +716,7 @@ export default function OPDPage() {
                                             {L.receiptTitle}
                                         </h3>
                                         <span className="text-[10px] text-slate-300">
-                                            Government OPD Token Slip • PHC Block A
+                                            Government OPD Token Slip • PHC Bhamragad
                                         </span>
                                     </div>
 

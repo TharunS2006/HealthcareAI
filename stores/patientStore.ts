@@ -125,7 +125,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket reset emit failed:', err);
             }
-            toast.success('Reset to Rural Benchmark Data');
+            toast.success('Reset to Maharashtra Rural Benchmark Data');
         } catch (error) {
             console.error('Failed to reset data:', error);
         }

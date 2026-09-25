@@ -36,7 +36,7 @@ const UNIDENTIFIED_PATIENT: Patient = {
     name: 'Unidentified emergency patient',
     age: 30,
     gender: 'F',
-    village: 'Block A Tribal Sub-Centre',
+    village: 'Bhamragad Tribal Sub-Centre',
     tehsil: 'Bhamragad',
     district: 'Gadchiroli',
     vitals: {
@@ -133,7 +133,7 @@ export default function EmergencyPage() {
                 transportMode: maternal ? 'AMBULANCE_102' : 'AMBULANCE_108',
                 clinicalSummary: `SpO2 ${vitals?.spo2 || '—'}%, BP ${vitals?.bloodPressure ? `${vitals.bloodPressure.systolic}/${vitals.bloodPressure.diastolic}` : '—'}, HR ${vitals?.heartRate || '—'}. ${vitals?.injuryType || ''}`.trim(),
                 vitals,
-                dispatch: { vehicleNo: maternal ? 'AMB-T-1021 (102)' : 'AMB-G-1088 (108 ALS)' },
+                dispatch: { vehicleNo: maternal ? 'MH-33-T-1021 (102)' : 'MH-33-G-1088 (108 ALS)' },
             },
             staffOrigin ? session : null
         );
@@ -174,7 +174,7 @@ export default function EmergencyPage() {
                         <div>
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-100 rounded-full text-xs font-bold text-red-800 mb-2">
                                 <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
-                                <span>Government of India • Universal Emergency Escalation Protocol</span>
+                                <span>Government of Maharashtra • Universal Emergency Escalation Protocol</span>
                             </div>
                             <h1 className="text-2xl md:text-3xl font-extrabold text-emerald-deep tracking-tight">
                                 Emergency Medical Response & 108/102 Dispatch
@@ -328,7 +328,7 @@ export default function EmergencyPage() {
                                     <div>
                                         <span className="text-txt-muted block text-[10px] font-bold uppercase">Auto-Routed Receiving Centre</span>
                                         <strong className="text-emerald-deep font-bold">
-                                            {selectedType === '102_MATERNAL' ? 'Sub-District Hospital (First Referral Unit - CEmONC)' : 'District Hospital (Apex ICU/Trauma)'}
+                                            {selectedType === '102_MATERNAL' ? 'SDH Aheri (First Referral Unit - CEmONC)' : 'District Hospital Gadchiroli (Apex ICU/Trauma)'}
                                         </strong>
                                     </div>
                                     <span className="badge-green font-bold px-2 py-1 rounded">

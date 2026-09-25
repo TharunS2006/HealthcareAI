@@ -45,7 +45,7 @@ export default function QueuePage() {
     useEffect(() => {
         if (session?.facilityId && session.facilityId !== selectedFacilityId) setSelectedFacilityId(session.facilityId);
     }, [session?.facilityId, selectedFacilityId, setSelectedFacilityId]);
-    const facilityName = FACILITY_NETWORK.find(f => f.id === selectedFacilityId)?.name ?? 'PHC Block A';
+    const facilityName = FACILITY_NETWORK.find(f => f.id === selectedFacilityId)?.name ?? 'PHC Bhamragad';
     const { patients, loadPatients } = usePatientStore();
 
     const { language } = useLanguageStore();
@@ -122,10 +122,10 @@ export default function QueuePage() {
                         <div className="w-4 h-4 rounded-full bg-emerald-500 animate-pulse" />
                         <div>
                             <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide text-emerald-400 uppercase">
-                                {isEn ? 'PHC Block A — OPD Token Calling Display' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र ब्लॉक अ — ओपीडी टोकन डिस्प्ले' : 'प्राथमिक आरोग्य केंद्र ब्लॉक अ — ओपीडी टोकन डिस्प्ले'}
+                                {isEn ? 'PHC Bhamragad — OPD Token Calling Display' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र भामरागढ़ — ओपीडी टोकन डिस्प्ले' : 'प्राथमिक आरोग्य केंद्र भामरागड — ओपीडी टोकन डिस्प्ले'}
                             </h1>
                             <p className="text-sm text-slate-400">
-                                {isEn ? 'Department of Public Health • Government of India' : isHi ? 'लोक स्वास्थ्य विभाग • भारत सरकार' : 'सार्वजनिक आरोग्य विभाग • भारत सरकार'}
+                                {isEn ? 'Department of Public Health • Government of Maharashtra' : isHi ? 'लोक स्वास्थ्य विभाग • महाराष्ट्र सरकार' : 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन'}
                             </p>
                         </div>
                     </div>
@@ -211,7 +211,7 @@ export default function QueuePage() {
 
                 {/* TV Footer */}
                 <footer className="text-center text-xs text-slate-500 border-t border-slate-800 pt-3">
-                    NalamMesh Digital Public Infrastructure • Government of India
+                    NalamMesh Digital Public Infrastructure • Government of Maharashtra
                 </footer>
             </div>
         );

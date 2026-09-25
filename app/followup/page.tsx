@@ -65,7 +65,7 @@ export default function FollowUpPage() {
             gender: 'F',
             cohort: 'MATERNAL',
             condition: 'High-Risk Pregnancy 32w (Preeclampsia risk, BP 160/102)',
-            village: 'Village 1 (Sub-Centre)',
+            village: 'Kothi (Sub-Centre)',
             ashaAssigned: 'Lakshmi Netam (ASHA)',
             dueInDays: 2,
             status: 'PENDING',
@@ -81,7 +81,7 @@ export default function FollowUpPage() {
             gender: 'M',
             cohort: 'CHILD',
             condition: 'Severe Acute Malnutrition (SAM) + Pneumonia follow-up',
-            village: 'Block B',
+            village: 'Perimili',
             ashaAssigned: 'Sharda Narote (ASHA)',
             dueInDays: 0,
             status: 'PENDING',
@@ -97,7 +97,7 @@ export default function FollowUpPage() {
             gender: 'M',
             cohort: 'CHRONIC',
             condition: 'Uncontrolled Type-2 Diabetes + Plantar Foot Ulcer',
-            village: 'Village 2',
+            village: 'Govindpur',
             ashaAssigned: 'Kavita Madavi (ANM)',
             dueInDays: -5,
             status: 'PENDING',
@@ -112,8 +112,8 @@ export default function FollowUpPage() {
             age: 42,
             gender: 'F',
             cohort: 'CHRONIC',
-            condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-PHC-01)',
-            village: 'Block A',
+            condition: 'Pulmonary TB Month-3 (Nikshay ID: NK-MH-GAD-29402)',
+            village: 'Bhamragad',
             ashaAssigned: 'Sunita Hichami (CHO)',
             dueInDays: 4,
             status: 'VISITED',
@@ -145,7 +145,7 @@ export default function FollowUpPage() {
             gender: 'F',
             cohort: 'CHILD',
             condition: 'Pentavalent-3 & MR-1 Immunization Milestone Due',
-            village: 'Sub-Division Gram',
+            village: 'Aheri Gram',
             ashaAssigned: 'Rekha Atram (ASHA)',
             dueInDays: null,
             status: 'PENDING',
@@ -222,7 +222,7 @@ export default function FollowUpPage() {
     const handleOpenSMSModal = (task: RecallTask) => {
         setSmsModalPatient(task);
         const template = task.cohort === 'MATERNAL'
-            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपले पुढील ANC तपासणी उपकेंद्र गाव १ येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
+            ? `[आरोग्य संदेश] श्रीमती ${task.patientName}, आपले पुढील ANC तपासणी उपकेंद्र कोठी येथे नियोजित आहे. कृपया आशा ताईंशी संपर्क साधा. मोफत रुग्णवाहिका: 102.`
             : task.cohort === 'CHILD'
             ? `[आरोग्य संदेश] ${task.patientName} यांचे लसीकरण व वजन तपासणी दिवस जवळ आला आहे. कृपया अंगणवाडी केंद्रात या.`
             : `[आरोग्य संदेश] ${task.patientName}, आपली मधुमेह/रक्तदाब तपासणी व औषध वाटप प्राथमिक आरोग्य केंद्रात देय आहे.`;
@@ -416,7 +416,7 @@ export default function FollowUpPage() {
                                 Assigned Frontline Health Worker (ASHA/ANM) Field Tasks ({filteredTasks.length})
                             </h2>
                             <span className="text-xs text-txt-muted font-medium">
-                                Showing prioritized  sub-centre assignments
+                                Showing prioritized Gadchiroli sub-centre assignments
                             </span>
                         </div>
 

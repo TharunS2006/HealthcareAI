@@ -1,6 +1,7 @@
 /**
  * Facility & Inventory State Store
- * Manages India facilities, essential medicine stock, and diagnostic orders */
+ * Manages Maharashtra facilities, essential medicine stock, and diagnostic orders
+ */
 
 import { create } from 'zustand';
 import { Facility, MedicineStockItem, DiagnosticOrder } from '@/types/facility';

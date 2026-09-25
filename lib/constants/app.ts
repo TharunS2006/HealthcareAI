@@ -4,8 +4,8 @@
 
 export const APP_CONFIG = {
     NAME: 'NalamMesh — Rural Healthcare Access Platform',
-    STATE: 'India',
-    DISTRICT: '',
+    STATE: 'Maharashtra',
+    DISTRICT: 'Gadchiroli',
     VERSION: '2.0.0',
     ENVIRONMENT: process.env.NODE_ENV || 'development',
 } as const;

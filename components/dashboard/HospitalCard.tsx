@@ -1,6 +1,7 @@
 /**
  * Facility / Hospital Capacity Card — NalamMesh
- * Visualizes bed occupancy and staff/resource availability for India public facilities */
+ * Visualizes bed occupancy and staff/resource availability for Maharashtra public facilities
+ */
 
 'use client';
 
