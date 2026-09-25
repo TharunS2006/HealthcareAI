@@ -46,6 +46,17 @@ for (const store of ['patients', 'referrals', 'queue', 'medicineStock', 'diagnos
     check(`no demonstration ${store}`, (await count(store)) === 0, String(await count(store)));
 }
 check('the staff directory is empty, not the demo roster', (await DB.getUsers()).length === 0);
+// What the screens read: an empty store reads empty — no demonstration record
+// is handed back in its place (and so none is shown, or published to the relay).
+const reads: [string, () => Promise<unknown[]>][] = [
+    ['patients', DB.getAllPatients], ['referrals', DB.getAllReferrals], ['OPD queue', () => DB.getQueueEntries()],
+    ['medicine stock', DB.getAllMedicines], ['diagnostic orders', DB.getAllDiagnostics],
+    ['bed reports', DB.getAllResources], ['maintenance tickets', DB.getMaintenanceTickets],
+];
+for (const [what, read] of reads) {
+    const rows = await read();
+    check(`reading ${what} from an empty store gives nothing, not demonstration data`, rows.length === 0, String(rows.length));
+}
 
 print('\n2. NO DEMO');
 check('the Two-User Simulation is closed, even to the Super Admin', !canAccessRoute('SUPER_ADMIN', '/demo/simulation'));

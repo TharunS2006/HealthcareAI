@@ -560,16 +560,14 @@ export async function getPatient(id: string): Promise<Patient | undefined> {
 }
 
 /**
- * Every patient held on this device.
- *
- * Falls back to the seeded cohort when the store is empty so a fresh install has
- * something to show. Once a single real patient is registered the seed is never
- * returned again.
+ * Every patient held on this device — only what is stored. An evaluation build
+ * seeds its demonstration patients once, on first open; an empty store is shown
+ * as empty, never filled in with fictional patients.
  */
 export async function getAllPatients(): Promise<Patient[]> {
     const db = await getDB();
     const patients = await db.getAll('patients');
-    return patients.length > 0 ? patients : SEED_PATIENTS;
+    return patients;
 }
 
 /**
@@ -597,7 +595,7 @@ export async function getAllReferrals(): Promise<ReferralRecord[]> {
     const refs = await db.getAll('referrals');
     // Normalised on read as well as on migration: a record that arrived from
     // an older device on the mesh must not reach a screen in the old shape.
-    return (refs.length > 0 ? refs : SEED_REFERRALS).map(normalizeReferral);
+    return refs.map(normalizeReferral);
 }
 
 export async function getReferral(id: string): Promise<ReferralRecord | undefined> {
@@ -827,7 +825,7 @@ export async function saveUser(user: StaffUser): Promise<void> {
 export async function getAllResources(): Promise<FacilityResources[]> {
     const db = await getDB();
     const rows = await db.getAll('facilityResources');
-    return rows.length > 0 ? rows : SEED_RESOURCES;
+    return rows;
 }
 
 export async function saveResources(resources: FacilityResources, change: string): Promise<void> {
@@ -863,8 +861,9 @@ export async function adjustOccupancy(
 ): Promise<FacilityResources> {
     const db = await getDB();
     const stored: FacilityResources | undefined = await db.get('facilityResources', facilityId);
-    const res = stored ?? SEED_RESOURCES.find(r => r.facilityId === facilityId);
-    if (!res) throw new DatabaseError(`No resource record for ${facilityId} — bed count not changed`);
+    // Only a bed report the facility filed: never a demonstration figure standing in for one.
+    const res = stored;
+    if (!res) throw new DatabaseError(`No bed report on this device for ${facilityId} — bed count not changed`);
     const line = res.wards.find(w => w.ward === ward);
     if (!line) throw new DatabaseError(`${facilityId} has no ${ward} ward — bed count not changed`);
     const before = line.occupied;
@@ -885,7 +884,7 @@ export async function adjustOccupancy(
 export async function getMaintenanceTickets(): Promise<MaintenanceTicket[]> {
     const db = await getDB();
     const rows = await db.getAll('maintenanceLog');
-    return (rows.length > 0 ? rows : SEED_MAINTENANCE).sort((a, b) => Date.parse(b.reportedAt) - Date.parse(a.reportedAt));
+    return rows.sort((a, b) => Date.parse(b.reportedAt) - Date.parse(a.reportedAt));
 }
 
 export async function saveMaintenanceTicket(ticket: MaintenanceTicket, change: string): Promise<void> {
@@ -955,7 +954,7 @@ export async function updateAppointmentStatus(
 export async function getQueueEntries(facilityId?: string): Promise<QueueEntry[]> {
     const db = await getDB();
     const entries = await db.getAll('queue');
-    const source = entries.length > 0 ? entries : SEED_QUEUE;
+    const source = entries;
     if (!facilityId) return source;
     return source.filter(q => q.facilityId === facilityId);
 }
@@ -1007,7 +1006,7 @@ export async function updateQueueStatus(
 export async function getAllMedicines(): Promise<MedicineStockItem[]> {
     const db = await getDB();
     const meds = await db.getAll('medicineStock');
-    return meds.length > 0 ? meds : SEED_MEDICINES;
+    return meds;
 }
 
 /**
@@ -1026,11 +1025,11 @@ export async function saveMedicine(medicine: MedicineStockItem): Promise<void> {
     });
 }
 
-/** Every diagnostic order on this device, falling back to seed data when empty. */
+/** Every diagnostic order on this device. */
 export async function getAllDiagnostics(): Promise<DiagnosticOrder[]> {
     const db = await getDB();
     const diags = await db.getAll('diagnostics');
-    return diags.length > 0 ? diags : SEED_DIAGNOSTICS;
+    return diags;
 }
 
 /** Persist a diagnostic order or its result. */

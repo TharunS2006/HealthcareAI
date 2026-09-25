@@ -209,7 +209,8 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         const knownEvents = new Set(known?.timeline.map(e => e.id) ?? []);
         for (const e of ref.timeline) {
             if (knownEvents.has(e.id) || e.actor.role === 'SYSTEM' || isSender(e.actor)) continue;
-            if (SEED_EVENTS.get(e.id) === `${ref.id}|${e.action}|${e.actor.userId}`) continue;
+            // Demonstration history any evaluation device may carry — never on a production relay.
+            if (demoAccounts && SEED_EVENTS.get(e.id) === `${ref.id}|${e.action}|${e.actor.userId}`) continue;
             // "Sent" is the creator's step but a fact others observe: the creator's
             // device records it when the relay acknowledges, or the receiving
             // facility's when the referral reaches them. Either may carry it.
@@ -219,9 +220,9 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             return `${e.actor.name}'s ${e.action.toLowerCase()} has not reached the network yet`;
         }
         const knownComments = new Set(known?.comments.map(c => c.id) ?? []);
-        for (const c of ref.comments) if (!knownComments.has(c.id) && !isSender(c.actor) && SEED_COMMENTS.get(c.id) !== `${ref.id}|${c.actor.userId}|${c.text}`) return `A comment by ${c.actor.name} has not reached the network yet`;
+        for (const c of ref.comments) if (!knownComments.has(c.id) && !isSender(c.actor) && !(demoAccounts && SEED_COMMENTS.get(c.id) === `${ref.id}|${c.actor.userId}|${c.text}`)) return `A comment by ${c.actor.name} has not reached the network yet`;
         const knownNotes = new Set((known?.treatmentNotes ?? []).map(n => n.id));
-        for (const n of ref.treatmentNotes ?? []) if (!knownNotes.has(n.id) && !isSender(n.actor) && SEED_NOTES.get(n.id) !== `${ref.id}|${n.actor.userId}|${n.text}`) return `A treatment note by ${n.actor.name} has not reached the network yet`;
+        for (const n of ref.treatmentNotes ?? []) if (!knownNotes.has(n.id) && !isSender(n.actor) && !(demoAccounts && SEED_NOTES.get(n.id) === `${ref.id}|${n.actor.userId}|${n.text}`)) return `A treatment note by ${n.actor.name} has not reached the network yet`;
         return null;
     }
 

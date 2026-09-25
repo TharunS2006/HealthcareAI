@@ -491,6 +491,9 @@ const newAnm = { id: 'u-anm-new', name: 'Asha Kumre', role: 'ANM', facilityId: '
 const created = await fetch(`${P}/api/users/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminBody.token}` }, body: JSON.stringify({ user: newAnm }) });
 check('the Super Admin creates a real account', created.status === 202, String(created.status));
 check('…who signs in by Staff ID on a new device', (await staffLogin('ANM-KOT-2001', '482913')).status === 200);
+const demoReferral = SEED_REFERRALS[0];
+const seededPublish = await fetch(`${P}/api/referrals/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminBody.token}` }, body: JSON.stringify({ referral: demoReferral, notifications: [] }) });
+check('a demonstration referral is refused by a production relay', seededPublish.status === 409 || seededPublish.status === 403, String(seededPublish.status));
 for (let i = 0; i < 5; i++) await staffLogin('NO-SUCH-ID', '111111');
 check('guessing Staff IDs is locked out like guessing PINs', (await staffLogin('NO-SUCH-ID', '111111')).status === 423);
 prodServer.close();
