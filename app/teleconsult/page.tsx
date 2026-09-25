@@ -19,8 +19,45 @@ import { useSession } from '@/lib/auth/session';
 import { can } from '@/lib/auth/permissions';
 import { TeleconsultSession } from '@/types/facility';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { PRODUCTION } from '@/lib/config/mode';
 
+/**
+ * A production build has no demonstration consult to show, and this screen's
+ * record is built around one — a fixed patient, example specialist orders and
+ * a referral for that patient. Until the consult record is built for real
+ * patients, a production build says so and sends the worker to the tools that
+ * are real: eSanjeevani for the call, Referrals for the referral.
+ */
 export default function TeleconsultPage() {
+    return PRODUCTION ? <TeleconsultUnavailable /> : <TeleconsultDemonstration />;
+}
+
+function TeleconsultUnavailable() {
+    return (
+        <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+            <Sidebar />
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
+                <MobileMenu />
+                <div className="max-w-3xl mx-auto surface-card p-6 space-y-3">
+                    <h1 className="text-xl font-extrabold text-emerald-deep">Specialist teleconsultation</h1>
+                    <p className="text-sm text-txt-secondary">
+                        The structured consult record is not available in this build yet. Hold the consultation on
+                        eSanjeevani, the national telemedicine service, and record the specialist&apos;s decision on the
+                        patient&apos;s referral so it travels with them.
+                    </p>
+                    <div className="flex gap-3 flex-wrap">
+                        <a href="https://esanjeevani.mohfw.gov.in" target="_blank" rel="noreferrer" className="gov-btn gov-btn-primary text-xs">Open eSanjeevani ↗</a>
+                        <Link href="/referrals" className="gov-btn gov-btn-secondary text-xs">Referrals →</Link>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+
+/** The evaluation build's worked example of an assisted consult (see the page banner). */
+function TeleconsultDemonstration() {
     const { patients } = usePatientStore();
     const createReferral = useReferralStore(s => s.create);
     const staff = useSession();

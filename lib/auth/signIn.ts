@@ -94,8 +94,12 @@ export async function signInStaff(user: StaffUser, pin: string): Promise<SignInR
         return { ok: true, mode: 'NETWORK', token: answer.token, expiresAt: answer.expiresAt };
     }
     if (answer.kind === 'refused') return { ok: false, message: answer.message };
+    return checkOnThisDevice(user, pin);
+}
 
-    // No relay: check on this device.
+/** No relay: check the PIN against this device's copy of the user, with its own lockout. */
+async function checkOnThisDevice(user: StaffUser, pin: string): Promise<SignInResult> {
+    if (!user.active) return { ok: false, message: 'This account is deactivated' };
     if (!user.pinHash) {
         return {
             ok: false,
@@ -119,3 +123,56 @@ export async function signInStaff(user: StaffUser, pin: string): Promise<SignInR
     clearLocalFailures(user.id);
     return { ok: true, mode: 'OFFLINE' };
 }
+
+type StaffIdAnswer =
+    | { kind: 'token'; token: string; expiresAt: number; user: StaffUser }
+    | { kind: 'refused'; message: string }
+    | { kind: 'unreachable' };
+
+/** Ask the relay by Staff ID — how a device that knows no one yet signs its user in. */
+async function relayStaffIdSignIn(staffId: string, pin: string, timeoutMs = 6000): Promise<StaffIdAnswer> {
+    const url = `${relayBaseUrl()}/api/auth/login`;
+    if (blockedAsMixedContent(url)) return { kind: 'unreachable' };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ staffId, pin }),
+            signal: controller.signal,
+        });
+        const body = (await response.json().catch(() => ({}))) as { token?: string; expiresAt?: number; user?: StaffUser; error?: string };
+        if (response.ok && body.token && body.expiresAt && body.user) return { kind: 'token', token: body.token, expiresAt: body.expiresAt, user: body.user };
+        if (response.status === 503 || response.status >= 500 || response.status === 404) return { kind: 'unreachable' };
+        return { kind: 'refused', message: body.error ?? `Sign-in refused (HTTP ${response.status})` };
+    } catch {
+        return { kind: 'unreachable' };
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+export type StaffIdSignInResult =
+    | { ok: true; user: StaffUser; mode: 'NETWORK'; token: string; expiresAt: number }
+    | { ok: true; user: StaffUser; mode: 'OFFLINE' }
+    | { ok: false; message: string };
+
+/**
+ * Sign in with a Staff ID and PIN. Online, the relay finds the account; with
+ * no relay, only someone this device already knows (with their PIN hash) can
+ * sign in, exactly as by name.
+ */
+export async function signInWithStaffId(staffId: string, pin: string, directory: readonly StaffUser[]): Promise<StaffIdSignInResult> {
+    const id = staffId.trim().toUpperCase();
+    if (!id) return { ok: false, message: 'Enter your Staff ID' };
+    if (!PIN_PATTERN.test(pin)) return { ok: false, message: 'Enter your 4–6 digit PIN' };
+    const answer = await relayStaffIdSignIn(id, pin);
+    if (answer.kind === 'token') return { ok: true, user: answer.user, mode: 'NETWORK', token: answer.token, expiresAt: answer.expiresAt };
+    if (answer.kind === 'refused') return { ok: false, message: answer.message };
+    const known = directory.find(u => u.staffId.trim().toUpperCase() === id);
+    if (!known) return { ok: false, message: 'The network cannot be reached and this device has not seen that Staff ID — sign in once while connected.' };
+    const local = await checkOnThisDevice(known, pin);
+    return local.ok ? { ok: true, user: known, mode: 'OFFLINE' } : local;
+}
+

@@ -19,6 +19,7 @@ import { SEED_REFERRALS, SEED_NOTIFICATIONS } from '@/lib/data/referralSeed';
 import { SEED_RESOURCES, SEED_MAINTENANCE } from '@/lib/data/resources';
 import { RETIRED_FACILITY_IDS, remapRetiredFacilityIds } from '@/lib/data/facilityIds';
 import { PLACE_NAME_STORES, restorePlaceNames } from '@/lib/data/placeNames';
+import { PRODUCTION } from '@/lib/config/mode';
 import { normalizeReferral } from '@/lib/referrals/workflow';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '@/lib/logger';
@@ -405,8 +406,10 @@ async function upgradeDatabase(
             }
             pc = await pc.continue();
         }
-        for (const r of SEED_REFERRALS) await refStore.put(r);
-        for (const n of SEED_NOTIFICATIONS) await tx.objectStore('notifications').put(n);
+        if (!PRODUCTION) {
+            for (const r of SEED_REFERRALS) await refStore.put(r);
+            for (const n of SEED_NOTIFICATIONS) await tx.objectStore('notifications').put(n);
+        }
     }
 
     if (oldVersion > 0 && oldVersion < 6) await retireFacilityIds(tx, predatesLifecycle);
@@ -452,6 +455,18 @@ async function retireFacilityIds(tx: UpgradeTransaction, replaceFacilityList: bo
 
 /** Seed what is missing: everything on a fresh device, reference data on an upgraded one. */
 async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
+    // A production build starts with the facility list and nothing else: no
+    // fictional patients, referrals or stock, and no demo accounts on the
+    // public PIN (lib/config/mode.ts). Staff come from the relay's directory.
+    if (PRODUCTION) {
+        if ((await db.count('facilities')) === 0) {
+            const tx = db.transaction('facilities', 'readwrite');
+            await Promise.all(FACILITY_NETWORK.map(f => tx.store.put(f)));
+            await tx.done;
+        }
+        return;
+    }
+
     // Auto-seed if empty
     const patientCount = await db.count('patients');
     if (patientCount === 0) {
@@ -776,7 +791,7 @@ export async function markNotificationsRead(ids: readonly string[]): Promise<voi
 export async function getUsers(): Promise<StaffUser[]> {
     const db = await getDB();
     const users = await db.getAll('users');
-    return users.length > 0 ? users : SEED_USERS;
+    return users.length > 0 || PRODUCTION ? users : SEED_USERS;
 }
 
 /**
@@ -1103,6 +1118,9 @@ export async function clearAllPatients(): Promise<void> {
  * starting point across all connected devices at once.
  */
 export async function resetToDefaultSeed(): Promise<void> {
+    // Replaces everything on the device with the demonstration data — never in
+    // a production build, where it would destroy real records.
+    if (PRODUCTION) throw new Error('Resetting to demonstration data is not available in a production build');
     const db = await getDB();
     const stores = [
         'patients', 'referrals', 'queue', 'facilities', 'medicineStock', 'diagnostics',

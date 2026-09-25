@@ -38,6 +38,8 @@
     "verify:csp": "tsx scripts/verify-csp.mts",
     "verify:intake": "tsx scripts/verify-intake.mts",
     "verify:queue-tokens": "tsx scripts/verify-queue-tokens.mts",
+    "verify:production-mode": "tsx scripts/verify-production-mode.mts",
+    "verify:followup": "tsx scripts/verify-followup.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",
     "verify:bhashini": "tsx scripts/verify-bhashini.mts",
     "verify:official-data": "tsx scripts/verify-official-data.mts",

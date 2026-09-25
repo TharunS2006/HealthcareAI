@@ -77,7 +77,7 @@ export default function GovPortalHeader() {
         { href: '/diagnostics', label: isEn ? 'Diagnostics' : isHi ? 'निदान व परीक्षण' : 'निदान व लॅब' },
         { href: '/medicine', label: isEn ? 'Medicine Stock' : isHi ? 'दवा स्टॉक' : 'औषध साठा' },
         { href: '/queue', label: isEn ? 'OPD Queue' : isHi ? 'ओपीडी कतार' : 'ओपीडी रांग' },
-        { href: '/teleconsult', label: isEn ? 'Teleconsult' : isHi ? 'ई-संजीवनी' : 'ई-संजीवनी' },
+        { href: '/teleconsult', label: isEn ? 'Teleconsult' : isHi ? 'टेलीकंसल्ट' : 'टेलिकन्सल्ट' },
         { href: '/facilities', label: isEn ? 'Facilities (4-Tier)' : isHi ? 'स्वास्थ्य केंद्र (४-स्तरीय)' : 'आरोग्य केंद्रे (४-स्तर)' },
         { href: '/demo/simulation', label: isEn ? 'Two-User Demo' : isHi ? 'दो-उपयोगकर्ता डेमो' : 'दोन-वापरकर्ता डेमो' },
         { href: '/admin', label: isEn ? 'Admin' : isHi ? 'प्रशासन' : 'प्रशासन' },

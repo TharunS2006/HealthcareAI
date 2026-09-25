@@ -26,6 +26,7 @@
  */
 
 import type { FacilityType } from '@/types/patient';
+import { PRODUCTION } from '../config/mode';
 
 /** The six roles of the referral hierarchy, HSC → PHC → CHC/DH → District. */
 export type StaffRole =
@@ -371,6 +372,9 @@ export function requiredPermissionForRoute(pathname: string): Permission | null 
 
 /** May this role open this path? Public paths are open to everyone. */
 export function canAccessRoute(role: StaffRole | null | undefined, pathname: string): boolean {
+    // The demonstrations run on the evaluation build's demo accounts; a
+    // production build has none, so the pages are closed and the links hidden.
+    if (PRODUCTION && (pathname === '/demo' || pathname.startsWith('/demo/'))) return false;
     const required = requiredPermissionForRoute(pathname);
     return required === null || can(role, required);
 }

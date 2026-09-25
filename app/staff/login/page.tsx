@@ -20,7 +20,8 @@ import { useDirectoryStore } from '@/stores/directoryStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { DEMO_LOGIN_USER_IDS, DEMO_PIN, type StaffUser } from '@/lib/auth/users';
-import { signInStaff } from '@/lib/auth/signIn';
+import { signInStaff, signInWithStaffId } from '@/lib/auth/signIn';
+import { PRODUCTION } from '@/lib/config/mode';
 import {
     ROLE_FACILITY_TIERS,
     ROLE_HOME,
@@ -57,6 +58,8 @@ function LoginForm() {
     const [userId, setUserId] = useState<string>('');
     const [pin, setPin] = useState('');
     const [busy, setBusy] = useState<string | null>(null);
+    const [staffIdText, setStaffIdText] = useState('');
+    const [staffIdPin, setStaffIdPin] = useState('');
     const [error, setError] = useState<string | null>(null);
 
     const tiers = ROLE_FACILITY_TIERS[role];
@@ -95,6 +98,28 @@ function LoginForm() {
             setError(result.message);
             return;
         }
+        finishSignIn(user, result);
+    };
+
+    /** Staff ID and PIN: how someone signs in on a device that does not know them yet. */
+    const signInByStaffId = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setBusy('staff-id');
+        setError(null);
+        const result = await signInWithStaffId(staffIdText, staffIdPin, users);
+        setBusy(null);
+        if (!result.ok) {
+            setError(result.message);
+            return;
+        }
+        // Keep the account on this device; the relay sends its PIN hash on the
+        // next sync, so the next sign-in here can be offline.
+        if (result.mode === 'NETWORK') await useDirectoryStore.getState().ingest(result.user);
+        setStaffIdPin('');
+        finishSignIn(result.user, result);
+    };
+
+    const finishSignIn = (user: StaffUser, result: { mode: 'NETWORK'; token: string; expiresAt: number } | { mode: 'OFFLINE' }) => {
         const facility = facilities.find(f => f.id === user.facilityId);
         login({
             userId: user.id,
@@ -210,6 +235,35 @@ function LoginForm() {
                 </form>
             </section>
 
+            {PRODUCTION ? (
+            <section className="border border-[#B9C5D6] bg-white">
+                <div className="bg-[#EDF1F7] text-[#1F3A6E] border-b border-[#B9C5D6] px-3 py-2">
+                    <h2 className="text-[13px] font-bold">New to this device? Sign in with your Staff ID</h2>
+                </div>
+                <form onSubmit={signInByStaffId} className="p-4 space-y-4">
+                    <div>
+                        <label className={label} htmlFor="staff-id">Staff ID</label>
+                        <input id="staff-id" value={staffIdText} onChange={e => setStaffIdText(e.target.value)} autoComplete="username"
+                            autoCapitalize="characters" placeholder="e.g. ANM-KOT-1021" className={`${field} font-mono`} />
+                    </div>
+                    <div>
+                        <label className={label} htmlFor="staff-id-pin">PIN</label>
+                        <input id="staff-id-pin" type="password" inputMode="numeric" autoComplete="off" value={staffIdPin}
+                            onChange={e => setStaffIdPin(e.target.value.replace(/\D/g, ''))} maxLength={6} placeholder="4–6 digits" className={field} />
+                    </div>
+                    <button type="submit" disabled={busy !== null} className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50">
+                        {busy === 'staff-id' ? 'Checking…' : 'Sign in with Staff ID →'}
+                    </button>
+                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Your Staff ID and PIN come from the Super Admin. The first sign-in on a device needs the network;
+                        after that this device knows you and you can sign in from the list, offline too.
+                    </p>
+                    <Link href="/login" className="text-[11px] font-bold text-[#1F3A6E] underline">
+                        ← Citizen / patient login
+                    </Link>
+                </form>
+            </section>
+            ) : (
             <section className="border border-[#B9C5D6] bg-white">
                 <div className="bg-[#EDF1F7] text-[#1F3A6E] border-b border-[#B9C5D6] px-3 py-2">
                     <h2 className="text-[13px] font-bold">Demo accounts — one per role · PIN {DEMO_PIN}</h2>
@@ -253,6 +307,7 @@ function LoginForm() {
                     </Link>
                 </div>
             </section>
+            )}
         </div>
     );
 }

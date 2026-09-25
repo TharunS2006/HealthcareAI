@@ -23,6 +23,7 @@ import RouteGuard from "@/components/auth/RouteGuard";
 import NetworkSignIn from "@/components/auth/NetworkSignIn";
 import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import NativeDeepLink from "@/components/shared/NativeDeepLink";
+import EvaluationBanner from "@/components/gov/EvaluationBanner";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
 import { contentSecurityPolicy } from "@/lib/security/csp";
@@ -69,6 +70,7 @@ export default function RootLayout({
                 {/* Portal header, laid out to GIGW 3.0 */}
                 <NativeDeepLink />
                 <GovPortalHeader />
+                <EvaluationBanner />
                 <NetworkSignIn />
 
                 {/* Offline Connectivity Notification Strip */}

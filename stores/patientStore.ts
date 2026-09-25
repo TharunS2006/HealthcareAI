@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import { Patient } from '@/types/patient';
 import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
+import { PRODUCTION } from '@/lib/config/mode';
 import { queuePatient } from '@/lib/sync/outbox';
 import toast from 'react-hot-toast';
 
@@ -100,6 +101,8 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
             socket.off('data:reset');
             socket.on('data:reset', () => {
+                // A production device holds real records; no broadcast wipes it.
+                if (PRODUCTION) return;
                 resetToDefaultSeed().then(async () => {
                     get().loadPatients();
                     const { announceReset } = await import('@/lib/referrals/transport');
@@ -113,6 +116,10 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
     },
 
     resetData: async () => {
+        if (PRODUCTION) {
+            toast.error('Resetting to demonstration data is not available in a production build');
+            return;
+        }
         try {
             await resetToDefaultSeed();
             await get().loadPatients();
@@ -128,6 +135,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             toast.success('Reset to Maharashtra Rural Benchmark Data');
         } catch (error) {
             console.error('Failed to reset data:', error);
+            toast.error('The reset did not complete — the data on this device may be partly reset. Reload and try again.');
         }
     },
 

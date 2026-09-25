@@ -12,6 +12,7 @@ import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import { getUsers, saveUser, storeFromMesh } from '@/lib/db';
 import { SEED_USERS, type StaffUser } from '@/lib/auth/users';
+import { PRODUCTION } from '@/lib/config/mode';
 import { publishUser, type WireActor } from '@/lib/referrals/transport';
 
 interface DirectoryStore {
@@ -25,8 +26,9 @@ interface DirectoryStore {
 }
 
 export const useDirectoryStore = create<DirectoryStore>((set, get) => ({
-    // Seeded users until IndexedDB answers, so the sign-in screen is usable at once.
-    users: SEED_USERS,
+    // Seeded users until IndexedDB answers, so the sign-in screen is usable at
+    // once — an evaluation build only; production has no seeded roster.
+    users: PRODUCTION ? [] : SEED_USERS,
     loaded: false,
 
     load: async () => {
