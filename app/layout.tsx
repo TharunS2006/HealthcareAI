@@ -25,6 +25,7 @@ import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import NativeDeepLink from "@/components/shared/NativeDeepLink";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
+import { contentSecurityPolicy } from "@/lib/security/csp";
 
 export const viewport: Viewport = {
     width: "device-width",
@@ -53,6 +54,12 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en" className="h-full">
+            <head>
+                {/* Production only: the dev server's hot reload needs eval, which the policy forbids. */}
+                {process.env.NODE_ENV === "production" && (
+                    <meta httpEquiv="Content-Security-Policy" content={contentSecurityPolicy(process.env)} />
+                )}
+            </head>
             <body className="font-sans antialiased bg-[#F4F6FA] text-[#0F172A] min-h-screen flex flex-col">
                 {/* Skip to Content — Mandatory Accessibility Requirement */}
                 <a href="#main-content" className="skip-to-content">

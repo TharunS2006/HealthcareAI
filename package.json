@@ -35,6 +35,7 @@
     "verify:place-names": "tsx scripts/verify-place-names.mts",
     "verify:outbox": "tsx scripts/verify-outbox.mts",
     "verify:icons": "tsx scripts/verify-icons.mts",
+    "verify:csp": "tsx scripts/verify-csp.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",
     "verify:bhashini": "tsx scripts/verify-bhashini.mts",
     "verify:official-data": "tsx scripts/verify-official-data.mts",
