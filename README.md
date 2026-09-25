@@ -137,15 +137,40 @@ says it could not reach the service rather than showing an empty store, since
 > authenticated. That is a known gap in this build, fine for a laptop demo and
 > not for a host anyone else can reach.
 
+### Evaluation and production builds
+
+The same code builds two ways. **Evaluation** is the default: every device opens
+with a fictional Gadchiroli district — patients, referrals, stock, bed reports and
+one demo account per role on the public PIN **2468** — so every feature can be
+tried at once, and a banner on every page says the data is fictional. A
+**production** build seeds only the facility list and has no demo accounts.
+
+| Setting | Where | Meaning |
+|---|---|---|
+| `NEXT_PUBLIC_DEPLOYMENT_MODE=production` | app build | no demonstration data, pages or accounts; Staff ID sign-in |
+| `NALAMMESH_DEPLOYMENT_MODE=production` | relay | no demo accounts sign in; demonstration referrals refused; no reset |
+| `NALAMMESH_BOOTSTRAP_ADMIN_PIN` | production relay | six digits: the first Super Admin (Staff ID `ADMIN-01`), created only while none exists — required |
+| `NALAMMESH_BOOTSTRAP_ADMIN_NAME` | production relay | optional name for that account |
+| `NALAMMESH_AUTH_SECRET` | relay | 32+ random characters; signs session tokens |
+| `NEXT_PUBLIC_MESH_URL`, `NEXT_PUBLIC_REPORTING_URL`, `NEXT_PUBLIC_CHAT_URL` | app build | relay, district service and assistant; also what the Content Security Policy allows the app to connect to |
+
+Setting up production: start the relay with the three `NALAMMESH_*` settings,
+sign in on the relay's network with Staff ID `ADMIN-01` and the bootstrap PIN,
+and create each staff member at `/admin` with their own PIN. They sign in the
+first time with their Staff ID while connected; after that the device knows them
+and they can sign in offline.
+
 ### Staff sign-in
 
-Staff sign in with a role, a posting, their name and a **PIN**. The mesh relay
-checks the PIN (five wrong tries lock the account for five minutes) and returns a
-signed session token; the relay and the district service accept only that token,
-and a referral event is only accepted from the user it names. The demo accounts on
-the sign-in screen share the public PIN **2468**; accounts the Super Admin creates
-(at `/admin`) get their own. With no relay reachable, the PIN is checked on the
-device and work stays there until the user re-enters their PIN while connected.
+Staff sign in with a role, a posting, their name (or, on a device that does not
+know them yet, their Staff ID) and a **PIN**. The mesh relay checks the PIN (five
+wrong tries lock the account for five minutes; unknown Staff IDs are locked the
+same way) and returns a signed session token; the relay and the district service
+accept only that token, and a referral event is only accepted from the user it
+names. With no relay reachable, the PIN is checked on the device and work stays
+there until the user re-enters their PIN while connected. A device holds the PIN
+hashes of its own facility's staff only — never another facility's, a district
+officer's or the Super Admin's.
 
 ### Hosting the relay (cross-device referrals on the live site)
 
@@ -155,8 +180,33 @@ cd ~/nalammesh-relay-deploy && npx vercel@latest deploy --prod
 ```
 
 The project needs `NALAMMESH_AUTH_SECRET` and Upstash for Redis (Vercel Marketplace,
-`upstash/upstash-kv`). Rebuild the frontend with `NEXT_PUBLIC_MESH_URL=<relay URL>`
-and `NEXT_PUBLIC_MESH_TRANSPORT=http`; devices then poll it every 10 seconds.
+`upstash/upstash-kv`, created in `bom1` Mumbai; the relay function runs in `bom1`
+too, so records are processed and stored in India). Missing either, every request
+is a 503 naming what is missing — never a relay that keeps referrals in memory and
+loses them. Rebuild the frontend with `NEXT_PUBLIC_MESH_URL=<relay URL>` and
+`NEXT_PUBLIC_MESH_TRANSPORT=http`; devices then poll it every 10 seconds.
+
+### Security
+
+- Content Security Policy built from the three endpoint settings (scripts from
+  the app only, no `eval`, connections only to the configured services), shipped
+  in the page so it also covers a facility's own web server and the APK;
+  `vercel.json` adds frame, MIME, referrer and permission headers (microphone
+  only).
+- Fonts and map assets are bundled — no third-party CDN is called from a
+  citizen's browser.
+- `npm audit --omit=dev` reports no vulnerabilities; CI fails on any high one.
+
+### What the platform does not do
+
+- It does not dispatch ambulances. 108 and 102 are called by phone; the app
+  raises the emergency referral so the record reaches the receiving facility
+  first, and the worker records the vehicle number when the control room gives it.
+- It has no audio or video. The teleconsult screen is a structured record beside
+  an eSanjeevani call (a worked example on evaluation builds only).
+- It never suggests a medicine or a dose.
+- ABDM (ABHA) and Bhashini work only with credentials issued to the deploying
+  department; without them each says it is not configured.
 
 ### Government services
 
@@ -180,12 +230,30 @@ cd android && ./gradlew assembleDebug        # needs a JDK (Android Studio's: Co
 The app runs from `http://localhost` inside the phone and may use plain HTTP only
 to the relay and district hosts above.
 
+### Checks
+
+```bash
+npm run lint        # ESLint over app, server and scripts, zero warnings
+npm run typecheck   # TypeScript over app, server and verify scripts
+npm run verify      # every verify:* suite below, with a summary
+```
+
+GitHub Actions runs all three, the production build and `npm audit` on every push
+(`.github/workflows/ci.yml`).
+
 ### Other scripts
 
 ```bash
 npm run build          # production static export (output: 'export', writes to out/)
 npm run lint            # eslint
 npm run verify:triage   # scripts/verify-triage.mts — sanity-checks the triage model's decisions
+npm run verify:metrics  # facility scorecards and travel burden avoided, against hand-computed values
+npm run verify:services # patient entitlements and service information
+npm run verify:chat-thresholds # the assistant quotes the same danger-sign thresholds triage uses
+npm run verify:equipment # pre-arrival readiness: what a receiving facility must have ready
+npm run verify:permissions # role-based access: routes, actions and facility scope
+npm run verify:referral-flow # the referral lifecycle, created to discharged, and who may do each step
+npm run verify:capacity # bed, equipment and specialist checks; where a referral goes by default
 npm run verify:chat-retrieval  # the offline assistant answers how workers actually ask
 npm run verify:chat-safety     # ...and still refuses what it must refuse
 npm run verify:chat-render     # model Markdown renders as elements, and can never become markup
@@ -200,6 +268,14 @@ npm run verify:abha            # ABHA V3 contract: headers, RSA-OAEP encryption,
 npm run verify:bhashini        # Bhashini config + compute contract, staff-only access
 npm run verify:official-data   # RHS figures sum to the published totals; ratios as published
 npm run verify:db-upgrade      # every on-device database version a phone may hold upgrades cleanly
+npm run verify:place-names     # devices seeded by the generic build get the Gadchiroli names back
+npm run verify:outbox          # the pre-arrival record waits for sign-in, is kept on refusal, never lost
+npm run verify:icons           # every inline SVG icon path parses
+npm run verify:csp             # the Content Security Policy and security headers
+npm run verify:intake          # OPD intake: required vitals, no invented readings
+npm run verify:queue-tokens    # OPD tokens run in order per facility per day
+npm run verify:production-mode # a production device starts with no demonstration data
+npm run verify:followup        # follow-up tasks come from patients' records; visits are saved
 npm run fetch:rhs              # refresh the official data from data.gov.in
 npm run cap:sync        # build + sync into the Android Capacitor project
 npm run cap:open        # open the Android project in Android Studio
