@@ -17,13 +17,11 @@ import { useFacilityStore } from '@/stores/facilityStore';
 import type { StaffSession } from '@/stores/authStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { requirementsFor } from '@/lib/capacity/requirements';
-import { suggestAlternatives } from '@/lib/capacity/availability';
+import { defaultReferralTarget, referralTargets } from '@/lib/capacity/availability';
 import { useAvailability } from '@/lib/capacity/useAvailability';
 import FacilityAvailabilityList from '@/components/capacity/FacilityAvailabilityList';
 import type { Patient, ReferralRecord, TriagePriority, Vitals } from '@/types/patient';
-import type { FacilityType } from '@/types/facility';
 
-const TIER_RANK: Record<FacilityType, number> = { SC: 0, PHC: 1, CHC: 2, SDH: 3, DH: 4 };
 
 export interface ReferralFormPrefill {
     patientId?: string;
@@ -126,16 +124,14 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
 
     const options = useMemo(() => {
         if (!origin) return [];
-        const lowerOrSame = facilities.filter(f => TIER_RANK[f.type] <= TIER_RANK[origin.type]).map(f => f.id);
-        return suggestAlternatives(requirements, origin, facilities, availabilityOf, lowerOrSame);
+        return referralTargets(requirements, origin, facilities, availabilityOf);
     }, [origin, facilities, requirements, availabilityOf]);
 
     // Default to the parent facility unless it cannot take this patient.
     useEffect(() => {
         if (targetId && options.some(o => o.facility.id === targetId)) return;
-        const parent = options.find(o => o.facility.id === origin?.parentFacilityId && o.check.overall !== 'SHORT');
-        setTargetId((parent ?? options.find(o => o.check.overall === 'OK') ?? options[0])?.facility.id ?? '');
-    }, [options, targetId, origin?.parentFacilityId]);
+        setTargetId((origin && defaultReferralTarget(options, origin))?.facility.id ?? '');
+    }, [options, targetId, origin]);
 
     const submit = async () => {
         setError(null);

@@ -135,5 +135,22 @@ check('every maintenance ticket targets something the facility holds', SEED_MAIN
 }));
 check('the seeded CHC X-ray outage shows up in its availability', byId('chc-etapalli').equipment.XRAY?.working === 0);
 
+console.log('\nDEFAULT DESTINATION (referral form and the OPD\'s automatic RED referral)');
+const kothi = FACILITY_NETWORK.find(f => f.id === 'sc-kothi')!;
+const targetFor = (reason: string, priority: 'EMERGENCY' | 'URGENT' | 'ROUTINE', vitals: object, from = kothi) =>
+    A.defaultReferralTarget(A.referralTargets(requirementsFor({ reason, priority, vitals: vitals as never, patientAge: 24 }), from, FACILITY_NETWORK, byId), from);
+const eclampsia = targetFor('Suspected pre-eclampsia at 34 weeks — severe headache, blurred vision', 'EMERGENCY',
+    { spo2: 91, heartRate: 118, bloodPressure: { systolic: 172, diastolic: 114 }, isPregnant: true, injuryType: '' });
+check('a maternal emergency from a Sub Centre skips a PHC that has no blood bank or obstetrician',
+    eclampsia?.facility.id !== 'phc-bhamragad' && eclampsia?.check.overall === 'OK', `${eclampsia?.facility.id} ${eclampsia?.check.overall}`);
+check('…and goes to the nearest facility that can take her (CHC Etapalli)', eclampsia?.facility.id === 'chc-etapalli', eclampsia?.facility.id);
+const fever = targetFor('Fever 3 days, vomiting, needs IV fluids', 'URGENT', { spo2: 97, heartRate: 100, injuryType: '' });
+check('a case the parent PHC can take stays with the parent', fever?.facility.id === 'phc-bhamragad', `${fever?.facility.id} ${fever?.check.overall}`);
+const phcOrigin = FACILITY_NETWORK.find(f => f.id === 'phc-bhamragad')!;
+const fromPhc = A.referralTargets(requirementsFor({ reason: 'fracture', priority: 'EMERGENCY', vitals: { spo2: 97, heartRate: 100, injuryType: '' } as never }), phcOrigin, FACILITY_NETWORK, byId);
+check('a referral never goes to the same or a lower tier', fromPhc.every(o => !['SC', 'PHC'].includes(o.facility.type)), fromPhc.map(o => o.facility.id).join(', '));
+check('with nothing able to take the patient, the nearest is still offered, never nothing',
+    A.defaultReferralTarget(fromPhc.map(o => ({ ...o, check: { ...o.check, overall: 'SHORT' as const } })), phcOrigin)?.facility.id === fromPhc[0]?.facility.id);
+
 console.log(failures === 0 ? '\nAll capacity checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

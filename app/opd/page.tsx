@@ -20,6 +20,9 @@ import { useReferralStore } from '@/stores/referralStore';
 import { useSession } from '@/lib/auth/session';
 import { can } from '@/lib/auth/permissions';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { requirementsFor } from '@/lib/capacity/requirements';
+import { defaultReferralTarget, referralTargets } from '@/lib/capacity/availability';
+import { useAvailability } from '@/lib/capacity/useAvailability';
 import { useLanguageStore } from '@/stores/languageStore';
 import { useVoiceInput } from '@/lib/hooks/useVoiceInput';
 import { downloadFHIRRecord } from '@/lib/fhir';
@@ -35,6 +38,7 @@ export default function OPDPage() {
     // signed-in worker's own facility, never a hardcoded one.
     const session = useSession();
     const facility = FACILITY_NETWORK.find(f => f.id === session?.facilityId);
+    const availabilityOf = useAvailability();
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
@@ -282,18 +286,25 @@ export default function OPDPage() {
             };
             addQueueEntry(queueItem);
 
-            // RED: raise the emergency referral to the next tier at once. It is
-            // saved here first and shows as Sent only when the network confirms.
-            const parent = facility?.parentFacilityId ? FACILITY_NETWORK.find(f => f.id === facility.parentFacilityId) : undefined;
+            // RED: raise the emergency referral at once. It goes to the facility
+            // above this one unless that facility's reported beds, equipment or
+            // specialists show it cannot take this patient — then to the nearest
+            // that can (the same rule as the referral form). Saved here first; it
+            // shows as Sent only when the network confirms.
+            const reason = `${result.recommendedAction} — severe vitals (SpO2 ${vitals.spo2}%, BP ${vitals.bloodPressure?.systolic ?? '—'}/${vitals.bloodPressure?.diastolic ?? '—'}). ${vitals.injuryType || ''}`.trim();
+            const parent = facility
+                ? defaultReferralTarget(referralTargets(requirementsFor({ reason, priority: 'EMERGENCY', vitals, patientAge: age }), facility, FACILITY_NETWORK, availabilityOf), facility)?.facility
+                : undefined;
             if (result.status === 'RED' && session && facility && parent && can(session.role, 'referral:create')) {
                 const referral = await createReferral(
                     {
                         patient: { id: newPatId, name, age, gender },
                         from: { id: facility.id, name: facility.name, type: facility.type },
                         to: { id: parent.id, name: parent.name, type: parent.type },
-                        reason: `${result.recommendedAction} — severe vitals (SpO2 ${vitals.spo2}%, BP ${vitals.bloodPressure?.systolic ?? '—'}/${vitals.bloodPressure?.diastolic ?? '—'}). ${vitals.injuryType || ''}`.trim(),
+                        reason,
                         priority: 'EMERGENCY',
-                        transportMode: 'AMBULANCE_108',
+                        // Mothers and newborns travel on the 102 Janani Shishu service.
+                        transportMode: vitals.isPregnant ? 'AMBULANCE_102' : 'AMBULANCE_108',
                         vitals,
                     },
                     session

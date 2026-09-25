@@ -304,6 +304,26 @@ export function suggestAlternatives(
         .sort((a, b) => rank[a.check.overall] - rank[b.check.overall] || a.distanceKm - b.distanceKm);
 }
 
+const TIER_RANK: Record<Facility['type'], number> = { SC: 0, PHC: 1, CHC: 2, SDH: 3, DH: 4 };
+
+/** Facilities a referral may go to: a higher tier than the one sending it. */
+export function referralTargets(req: ResourceRequirements, origin: Facility, facilities: readonly Facility[], availabilityOf: (facilityId: string) => FacilityAvailability): AlternativeFacility[] {
+    const lowerOrSame = facilities.filter(f => TIER_RANK[f.type] <= TIER_RANK[origin.type]).map(f => f.id);
+    return suggestAlternatives(req, origin, facilities, availabilityOf, lowerOrSame);
+}
+
+/**
+ * Where a referral goes by default: the facility above this one, unless its
+ * reported beds, equipment or specialists show it cannot take this patient —
+ * then the nearest that can, then the nearest at all. The OPD's automatic RED
+ * referral and the referral form both use this, so the two never disagree.
+ */
+export function defaultReferralTarget(options: readonly AlternativeFacility[], origin: Facility): AlternativeFacility | undefined {
+    return options.find(o => o.facility.id === origin.parentFacilityId && o.check.overall !== 'SHORT')
+        ?? options.find(o => o.check.overall === 'OK')
+        ?? options[0];
+}
+
 /** Occupancy as a whole-number percentage, counting held beds as taken. */
 export function occupancyPct(a: FacilityAvailability): number | null {
     if (!a.reported || a.totalBeds === 0) return null;
