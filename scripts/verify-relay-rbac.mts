@@ -367,8 +367,9 @@ check('both instances report the Upstash store', (await Promise.all([A, B].map(a
 // The Vercel entry itself: configured, it serves; missing a piece, it refuses
 // every request and names what is missing, rather than losing referrals.
 const { createHostedApp } = await import('../server/relay/hosted');
-async function hostedStatus(env: NodeJS.ProcessEnv): Promise<{ health: number; signIn: number; body: string }> {
-    const server = createServer(createHostedApp(env, () => {}));
+async function hostedStatus(env: Record<string, string>): Promise<{ health: number; signIn: number; body: string }> {
+    // Next augments ProcessEnv with NODE_ENV; these are deliberately partial environments.
+    const server = createServer(createHostedApp(env as NodeJS.ProcessEnv, () => {}));
     await new Promise<void>(r => server.listen(0, '127.0.0.1', () => r()));
     const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
     try {

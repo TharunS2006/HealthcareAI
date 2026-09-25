@@ -11,8 +11,8 @@
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 const files = execSync("grep -rlE '\\bd=\"' app components lib --include='*.tsx' --include='*.ts'").toString().trim().split('\n');
-const ARGS = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
-function validate(d) {
+const ARGS: Record<string, number> = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+function validate(d: string): string | null {
   let i = 0; const s = d;
   const ws = () => { while (i < s.length && /[\s,]/.test(s[i])) i++; };
   const num = () => { ws(); const m = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/.exec(s.slice(i)); if (!m) return false; i += m[0].length; return true; };

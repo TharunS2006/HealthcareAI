@@ -9,6 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit -p .",
+    "verify": "node scripts/verify-all.mjs",
     "server": "tsx server/mesh-server.ts",
     "verify:triage": "tsx scripts/verify-triage.mts",
     "verify:metrics": "tsx scripts/verify-metrics.mts",

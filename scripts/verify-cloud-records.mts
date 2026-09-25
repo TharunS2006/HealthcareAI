@@ -23,6 +23,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Patient } from '../types/patient';
 
 const PORT = 8123;
 process.env.NEXT_PUBLIC_REPORTING_URL = `http://127.0.0.1:${PORT}`;
@@ -98,7 +99,7 @@ setIdentityProvider(() => ({}));
 const NOW = new Date().toISOString();
 const EARLIER = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
-const patient: any = {
+const patient: Patient = {
     id: 'pat-verify-1',
     name: 'Lakshmi Devi',
     age: 27,
@@ -106,14 +107,14 @@ const patient: any = {
     village: 'Bhamragad',
     tehsil: 'Bhamragad',
     district: 'Gadchiroli',
-    vitals: { bloodPressureSystolic: 168, bloodPressureDiastolic: 112, spo2: 91 },
+    vitals: { bloodPressure: { systolic: 168, diastolic: 112 }, spo2: 91, heartRate: 108, injuryType: 'Severe headache and visual disturbance at 34 weeks' },
     // The app's real vocabularies, deliberately: TriageStatus is RED/YELLOW/GREEN
     // while TriagePriority is EMERGENCY/URGENT/SEMI_URGENT/ROUTINE. Uploading a
     // record built from the cloud's own words instead would hide a mapping bug.
     triageStatus: 'RED',
     triagePriority: 'EMERGENCY',
-    highRiskFlags: ['PRE_ECLAMPSIA'],
-    gps: { lat: 19.4, lng: 80.2, accuracy: 12 },
+    highRiskFlags: [{ type: 'MATERNAL', severity: 'HIGH', identifiedDate: NOW, nextFollowUpDate: NOW, notes: 'Pre-eclampsia' }],
+    gps: { lat: 19.4, lng: 80.2 },
     isSynced: false,
     timestamp: NOW,
 };
@@ -192,9 +193,9 @@ if (!board.ok) {
         `got ${found?.referral.clinicalSummary}`);
     check('the full patient record arrives, vitals and risk flags included',
         found?.patient?.name === 'Lakshmi Devi'
-        && found?.patient?.vitals?.bloodPressureSystolic === 168
+        && found?.patient?.vitals?.bloodPressure?.systolic === 168
         && Array.isArray(found?.patient?.highRiskFlags)
-        && found?.patient?.highRiskFlags?.[0] === 'PRE_ECLAMPSIA',
+        && found?.patient?.highRiskFlags?.[0]?.notes === 'Pre-eclampsia',
         JSON.stringify(found?.patient));
     check('the ETA the ward plans against arrives', found?.eta_minutes === 22, `got ${found?.eta_minutes}`);
 }
@@ -272,8 +273,8 @@ if (!store.ok) {
     check('the uploaded patient is in the store', Boolean(held),
         JSON.stringify(store.store.patient_records.map((r) => r.id)));
     check('its payload is the device record, not a projection of it',
-        held?.payload?.vitals?.bloodPressureSystolic === 168
-        && held?.payload?.highRiskFlags?.[0] === 'PRE_ECLAMPSIA',
+        held?.payload?.vitals?.bloodPressure?.systolic === 168
+        && held?.payload?.highRiskFlags?.[0]?.notes === 'Pre-eclampsia',
         JSON.stringify(held?.payload));
     check('the projection columns the panel shows beside it agree',
         held?.name === 'Lakshmi Devi' && held?.age === 27,
