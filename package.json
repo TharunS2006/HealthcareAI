@@ -36,6 +36,7 @@
     "verify:outbox": "tsx scripts/verify-outbox.mts",
     "verify:icons": "tsx scripts/verify-icons.mts",
     "verify:csp": "tsx scripts/verify-csp.mts",
+    "verify:intake": "tsx scripts/verify-intake.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",
     "verify:bhashini": "tsx scripts/verify-bhashini.mts",
     "verify:official-data": "tsx scripts/verify-official-data.mts",

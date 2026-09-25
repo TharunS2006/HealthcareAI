@@ -1,7 +1,7 @@
 /**
  * OPD Registration & Edge AI Digital Triage — NalamMesh
  * Government of Maharashtra • Department of Public Health
- * Primary Health Centre Clinical Workstation (NIC / GIGW Standard)
+ * Facility OPD workstation, laid out to GIGW 3.0
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
@@ -11,7 +11,9 @@ import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import QRWristband from '@/components/shared/QRWristband';
 import Icon from '@/components/gov/Icon';
-import { Vitals, Patient } from '@/types/patient';
+import { Patient } from '@/types/patient';
+import { EMPTY_INTAKE, readIntake, type Avpu, type IntakeDraft } from '@/lib/triage/intake';
+import { DEPLOYMENT } from '@/lib/config/deployment';
 import { QueueEntry } from '@/types/facility';
 import { classifyTriage, TriageResult } from '@/lib/triage/model';
 import { usePatientStore } from '@/stores/patientStore';
@@ -46,36 +48,30 @@ export default function OPDPage() {
     // Patient Demographics State
     const [searchQuery, setSearchQuery] = useState('');
     const [patientId, setPatientId] = useState('');
-    const [name, setName] = useState('Sunita M. Devi');
-    const [age, setAge] = useState<number>(26);
-    const [gender, setGender] = useState<'M' | 'F' | 'O'>('F');
-    const [phone, setPhone] = useState('+91-98765-43210');
-    const [village, setVillage] = useState('Kothi (कोठी)');
-    const [abhaId, setAbhaId] = useState('ABHA-9128-4421-8890');
-    const [aadhaarLast4, setAadhaarLast4] = useState('4821');
+    // The form starts empty for every patient: a pre-filled name, ABHA number or
+    // vital sign is one careless click from being saved against the wrong person.
+    const [name, setName] = useState('');
+    const [ageText, setAgeText] = useState('');
+    const [gender, setGender] = useState<'M' | 'F' | 'O' | ''>('');
+    const [phone, setPhone] = useState('');
+    const [village, setVillage] = useState('');
+    const [abhaId, setAbhaId] = useState('');
+    const [aadhaarLast4, setAadhaarLast4] = useState('');
 
-    // Clinical Vitals State
-    const [vitals, setVitals] = useState<Vitals>({
-        spo2: 91,
-        heartRate: 118,
-        bloodPressure: { systolic: 154, diastolic: 98 },
-        temperature: 99.4,
-        bloodGlucose: 126,
-        respiratoryRate: 24,
-        consciousness: 'ALERT',
-        injuryType: 'Severe headache, blurred vision, bilateral pedal edema at 32 weeks gestation',
-        isPregnant: true,
-        gestationalWeeks: 32,
-    });
+    // Clinical intake as typed; lib/triage/intake.ts turns it into vitals and
+    // refuses to invent a reading that was not taken.
+    const [draft, setDraft] = useState<IntakeDraft>(EMPTY_INTAKE);
+    const setField = <K extends keyof IntakeDraft>(field: K, value: IntakeDraft[K]) => setDraft(d => ({ ...d, [field]: value }));
+    const num = (text: string) => (text.trim() === '' ? undefined : Number(text));
 
     // Voice Input Integration
     const { isListening, isSupported, isTranscribing, engine, error: voiceError, transcript, startListening, stopListening } = useVoiceInput();
 
     useEffect(() => {
         if (transcript) {
-            setVitals((prev) => ({
+            setDraft((prev) => ({
                 ...prev,
-                injuryType: prev.injuryType ? `${prev.injuryType}; ${transcript}` : transcript,
+                complaint: prev.complaint ? `${prev.complaint}; ${transcript}` : transcript,
             }));
         }
     }, [transcript]);
@@ -86,14 +82,18 @@ export default function OPDPage() {
     const [generatedToken, setGeneratedToken] = useState<string | null>(null);
     const [createdPatient, setCreatedPatient] = useState<Patient | null>(null);
     const [showQR, setShowQR] = useState(false);
+    const [formProblems, setFormProblems] = useState<string[]>([]);
+
+    /** Clear everything for the next patient, so the last one cannot be saved twice. */
+    const resetForNextPatient = () => {
+        setPatientId(''); setName(''); setAgeText(''); setGender(''); setPhone(''); setVillage('');
+        setAbhaId(''); setAadhaarLast4(''); setSearchQuery(''); setDraft(EMPTY_INTAKE);
+        setTriageResult(null); setGeneratedToken(null); setCreatedPatient(null); setShowQR(false); setFormProblems([]);
+    };
 
     // Dynamic Translations Dictionary
     const L = {
-        deptTag: isEn
-            ? 'Department of Public Health • Primary Health Centre, Bhamragad'
-            : isHi
-            ? 'सार्वजनिक स्वास्थ्य विभाग • प्राथमिक स्वास्थ्य केंद्र, भामरागढ़'
-            : 'सार्वजनिक आरोग्य विभाग • प्राथमिक आरोग्य केंद्र, भामरागड',
+        deptTag: `${isEn ? 'Department of Public Health' : isHi ? 'सार्वजनिक स्वास्थ्य विभाग' : 'सार्वजनिक आरोग्य विभाग'} • ${facility?.name ?? (isEn ? 'no facility posting' : isHi ? 'कोई केंद्र नहीं' : 'केंद्र नाही')}`,
         standardsTag: isEn ? 'IPHS 2022 Standards' : isHi ? 'IPHS 2022 मानक' : 'IPHS 2022 मानके',
         pageTitle: isEn
             ? 'OPD Patient Registration & Digital Triage'
@@ -117,10 +117,10 @@ export default function OPDPage() {
         abhaLabel: isEn ? 'Ayushman Bharat (ABHA ID)' : isHi ? 'आयुष्मान भारत (ABHA ID)' : 'आयुष्मान भारत (ABHA ID)',
         villageLabel: isEn ? 'Village / Hamlet' : isHi ? 'गांव / टोला' : 'गाव / पाडा',
         ancCohort: isEn
-            ? `High-Risk Maternal / ANC (${vitals.gestationalWeeks || 32} Weeks)`
+            ? 'Pregnant / ANC'
             : isHi
-            ? `गर्भवती माता / ANC (${vitals.gestationalWeeks || 32} सप्ताह)`
-            : `गरोदर माता / ANC (${vitals.gestationalWeeks || 32} आठवडे)`,
+            ? 'गर्भवती माता / ANC'
+            : 'गरोदर माता / ANC',
         childCohort: isEn ? 'Child (< 5 Years Malnutrition Screening)' : isHi ? 'बालक (< ५ वर्ष कुपोषण जांच)' : 'बालक (< ५ वर्षे कुपोषण तपासणी)',
         sec2Title: isEn ? '2. Physiological Vitals & Clinical Examination' : isHi ? '२. शारीरिक जांच एवं महत्वपूर्ण संकेत (Vitals)' : '२. वैद्यकीय तपासणी व महत्त्वपूर्ण नोंदी (Physiological Vitals)',
         manualSensor: isEn ? 'Live Sensor / Manual Entry' : isHi ? 'लाइव सेंसर / मैन्युअल प्रविष्टि' : 'थेट सेन्सर / मॅन्युअल नोंदणी',
@@ -128,6 +128,7 @@ export default function OPDPage() {
         pulseLabel: isEn ? 'Pulse Rate (BPM)' : isHi ? 'नाड़ी दर (Pulse / BPM)' : 'नाडीचे ठोके (Pulse / BPM)',
         bpLabel: isEn ? 'Blood Pressure (mmHg)' : isHi ? 'रक्तचाप / Blood Pressure (mmHg)' : 'रक्तदाब / Blood Pressure (mmHg)',
         glucoseLabel: isEn ? 'Blood Glucose' : isHi ? 'रक्त शर्करा (Glucose)' : 'रक्तातील साखर (Glucose)',
+        notMeasured: isEn ? 'not measured' : isHi ? 'नहीं मापा' : 'मोजले नाही',
         rrLabel: isEn ? 'Respiratory Rate (/min)' : isHi ? 'श्वसन दर (Respiratory Rate)' : 'श्वसनाचा दर (Respiratory Rate)',
         tempLabel: isEn ? 'Temperature' : isHi ? 'तापमान (Temperature)' : 'तापमान (Temperature)',
         avpuLabel: isEn ? 'Consciousness (AVPU)' : isHi ? 'चेतना स्तर (AVPU)' : 'शुद्धीची पातळी (AVPU)',
@@ -150,7 +151,9 @@ export default function OPDPage() {
         patVillageLabel: isEn ? 'Village:' : isHi ? 'गांव:' : 'गाव:',
         patAbhaLabel: isEn ? 'ABHA ID:' : isHi ? 'ABHA नंबर:' : 'ABHA क्रमांक:',
         patRoomLabel: isEn ? 'Consultation Room:' : isHi ? 'जांच कक्ष:' : 'तपासणी कक्ष:',
-        roomMO: isEn ? 'Room No. 2 (Medical Officer)' : isHi ? 'कक्ष क्र. २ (चिकित्सा अधिकारी)' : 'कक्ष क्र. २ (MO OPD)',
+        roomEmergency: isEn ? 'Emergency stabilisation' : isHi ? 'आपातकालीन स्थिरीकरण' : 'आपत्कालीन स्थिरीकरण',
+        roomMO: isEn ? 'Medical Officer OPD' : isHi ? 'चिकित्सा अधिकारी ओपीडी' : 'वैद्यकीय अधिकारी ओपीडी',
+        roomSC: isEn ? 'Sub-Centre consultation (ANM / CHO)' : isHi ? 'उप-केंद्र परामर्श (ANM / CHO)' : 'उपकेंद्र सल्ला (ANM / CHO)',
         actionLabel: isEn ? 'Recommended Clinical Action:' : isHi ? 'अनुशंसित चिकित्सकीय कार्रवाई:' : 'वैद्यकीय कृती शिफारस:',
         basisLabel: isEn ? 'Clinical Basis' : isHi ? 'चिकित्सकीय आधार' : 'वैद्यकीय आधार',
         srcNeural: isEn ? 'On-device neural network' : isHi ? 'ऑन-डिवाइस न्यूरल नेटवर्क' : 'ऑन-डिव्हाइस न्यूरल नेटवर्क',
@@ -192,14 +195,17 @@ export default function OPDPage() {
         );
 
         if (found) {
+            // Who they are, not how they were last time: today's vitals are
+            // measured today.
             setPatientId(found.id);
             setName(found.name);
-            setAge(found.age);
+            setAgeText(String(found.age));
             setGender(found.gender);
             setPhone(found.phone || '');
-            setVillage(found.village || 'Bhamragad');
+            setVillage(found.village || '');
             setAbhaId(found.abhaId || '');
-            if (found.vitals) setVitals(found.vitals);
+            setAadhaarLast4(found.aadhaarLast4 || '');
+            setDraft({ ...EMPTY_INTAKE, pregnant: Boolean(found.vitals?.isPregnant) });
             toast.success(isEn ? `Found record: ${found.name}` : `रेकॉर्ड सापडला: ${found.name}`);
         } else {
             toast.error(isEn ? 'Patient record not found locally' : 'स्थानिक डेटाबेसमध्ये रुग्ण सापडला नाही');
@@ -209,6 +215,26 @@ export default function OPDPage() {
     // Run On-Device Triage Classification
     const handleRunTriage = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Nothing is registered or triaged until the record is complete and
+        // plausible — see lib/triage/intake.ts.
+        const age = Number(ageText);
+        const missing: string[] = [];
+        if (!facility) missing.push(isEn ? 'You have no facility posting — OPD registration is done at a facility' : 'कोई केंद्र नियुक्ति नहीं — ओपीडी पंजीकरण केंद्र पर होता है');
+        if (!name.trim()) missing.push(isEn ? 'Patient name — not entered' : 'रुग्णाचे नाव — भरलेले नाही');
+        if (ageText.trim() === '' || !Number.isInteger(age) || age < 0 || age > 120) missing.push(isEn ? 'Age — a whole number of years, 0–120' : 'वय — ० ते १२० वर्षे');
+        if (!gender) missing.push(isEn ? 'Gender — not chosen' : 'लिंग — निवडलेले नाही');
+        if (!village.trim()) missing.push(isEn ? 'Village — not entered' : 'गाव — भरलेले नाही');
+        const intake = readIntake(draft);
+        missing.push(...intake.problems.map(p => p.message));
+        if (missing.length > 0 || !intake.vitals || !facility || !gender) {
+            setFormProblems(missing);
+            toast.error(isEn ? `Complete the record first (${missing.length} item${missing.length === 1 ? '' : 's'})` : `आधी नोंद पूर्ण करा (${missing.length})`);
+            return;
+        }
+        setFormProblems([]);
+        const vitals = intake.vitals;
+        const patientGender = gender;
         setIsAnalyzing(true);
 
         setTimeout(async () => {
@@ -224,24 +250,26 @@ export default function OPDPage() {
             const newPatId = patientId || `PAT-${uuidv4().substring(0, 8).toUpperCase()}`;
             const newPatient: Patient = {
                 id: newPatId,
-                name,
+                name: name.trim(),
                 age,
-                gender,
+                gender: patientGender,
                 phone,
-                village,
-                tehsil: 'Bhamragad',
-                district: 'Gadchiroli',
-                state: 'Maharashtra',
+                village: village.trim(),
+                // Where the registering facility is; the patient's own address
+                // is the village above.
+                tehsil: facility.tehsil,
+                district: facility.district,
+                state: DEPLOYMENT.statisticsState || undefined,
                 languagePreference: language === 'hi' ? 'hi' : language === 'en' ? 'en' : 'mr',
                 abhaId,
                 aadhaarLast4,
                 vitals,
                 triageStatus: result.status,
                 triagePriority: result.priority,
-                gps: facility ? { lat: facility.location.lat, lng: facility.location.lng } : { lat: 19.0432, lng: 80.3621 },
+                gps: { lat: facility.location.lat, lng: facility.location.lng },
                 timestamp: new Date().toISOString(),
                 isSynced: false,
-                registeredAtFacilityId: facility?.id,
+                registeredAtFacilityId: facility.id,
                 ...(session ? { chw_id: session.staffId, chw_name: session.name } : {}),
                 highRiskFlags: vitals.isPregnant
                     ? [
@@ -274,14 +302,14 @@ export default function OPDPage() {
                 patientName: name,
                 patientAge: age,
                 patientGender: gender,
-                facilityId: facility?.id ?? 'phc-bhamragad',
-                facilityName: facility?.name ?? 'PHC Bhamragad',
+                facilityId: facility.id,
+                facilityName: facility.name,
                 registeredAt: new Date().toISOString(),
                 priority: result.priority,
-                chiefComplaint: vitals.injuryType || 'General Consultation',
+                chiefComplaint: vitals.injuryType || (isEn ? 'Not recorded' : 'नोंद नाही'),
                 status: 'WAITING',
-                roomNo: result.status === 'RED' ? 'Emergency Stabilisation' : 'Room 2 (MO)',
-                consultingDoctor: facility?.medicalOfficerInCharge ?? 'Medical Officer',
+                roomNo: result.status === 'RED' ? 'Emergency stabilisation' : facility.type === 'SC' ? 'Sub-Centre consultation (ANM / CHO)' : 'Medical Officer OPD',
+                consultingDoctor: facility.medicalOfficerInCharge ?? 'Medical Officer',
                 estimatedWaitMinutes: result.status === 'RED' ? 0 : result.status === 'YELLOW' ? 8 : 25,
             };
             addQueueEntry(queueItem);
@@ -298,7 +326,7 @@ export default function OPDPage() {
             if (result.status === 'RED' && session && facility && parent && can(session.role, 'referral:create')) {
                 const referral = await createReferral(
                     {
-                        patient: { id: newPatId, name, age, gender },
+                        patient: { id: newPatId, name: name.trim(), age, gender: patientGender },
                         from: { id: facility.id, name: facility.name, type: facility.type },
                         to: { id: parent.id, name: parent.name, type: parent.type },
                         reason,
@@ -373,7 +401,7 @@ export default function OPDPage() {
 
                     <div className="grid lg:grid-cols-12 gap-5">
                         {/* Left Column (7 cols): Official Medical Intake Form */}
-                        <form onSubmit={handleRunTriage} className="lg:col-span-7 space-y-4">
+                        <form onSubmit={handleRunTriage} noValidate className="lg:col-span-7 space-y-4">
                             {/* Section 1: Demographics Fieldset */}
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
@@ -386,10 +414,11 @@ export default function OPDPage() {
                                 <div className="p-4 space-y-3">
                                     <div className="grid sm:grid-cols-2 gap-3 text-xs">
                                         <div>
-                                            <label className="block font-bold text-slate-700 mb-1">
+                                            <label htmlFor="opd-name" className="block font-bold text-slate-700 mb-1">
                                                 {L.fullName} <span className="text-red-600">*</span>
                                             </label>
                                             <input
+                                                id="opd-name"
                                                 type="text"
                                                 required
                                                 value={name}
@@ -400,26 +429,32 @@ export default function OPDPage() {
 
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
-                                                <label className="block font-bold text-slate-700 mb-1">
+                                                <label htmlFor="opd-age" className="block font-bold text-slate-700 mb-1">
                                                     {L.ageLabel} <span className="text-red-600">*</span>
                                                 </label>
                                                 <input
+                                                id="opd-age"
                                                     type="number"
+                                                    inputMode="numeric"
                                                     required
-                                                    value={age}
-                                                    onChange={(e) => setAge(Number(e.target.value))}
+                                                    min={0}
+                                                    max={120}
+                                                    value={ageText}
+                                                    onChange={(e) => setAgeText(e.target.value)}
                                                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded text-xs font-bold focus:outline-none focus:border-[#1F3A6E]"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block font-bold text-slate-700 mb-1">
+                                                <span id="opd-gender" className="block font-bold text-slate-700 mb-1">
                                                     {L.genderLabel} <span className="text-red-600">*</span>
-                                                </label>
-                                                <div className="flex border border-slate-300 rounded overflow-hidden">
+                                                </span>
+                                                <div className="flex border border-slate-300 rounded overflow-hidden" role="radiogroup" aria-labelledby="opd-gender">
                                                     {(['M', 'F', 'O'] as const).map((g) => (
                                                         <button
                                                             key={g}
                                                             type="button"
+                                                            role="radio"
+                                                            aria-checked={gender === g}
                                                             onClick={() => setGender(g)}
                                                             className={`flex-1 py-1.5 text-xs font-bold transition-colors ${
                                                                 gender === g
@@ -435,10 +470,11 @@ export default function OPDPage() {
                                         </div>
 
                                         <div>
-                                            <label className="block font-bold text-slate-700 mb-1">
+                                            <label htmlFor="opd-abha" className="block font-bold text-slate-700 mb-1">
                                                 {L.abhaLabel}
                                             </label>
                                             <input
+                                                id="opd-abha"
                                                 type="text"
                                                 value={abhaId}
                                                 onChange={(e) => setAbhaId(e.target.value)}
@@ -447,10 +483,11 @@ export default function OPDPage() {
                                         </div>
 
                                         <div>
-                                            <label className="block font-bold text-slate-700 mb-1">
+                                            <label htmlFor="opd-village" className="block font-bold text-slate-700 mb-1">
                                                 {L.villageLabel} <span className="text-red-600">*</span>
                                             </label>
                                             <input
+                                                id="opd-village"
                                                 type="text"
                                                 required
                                                 value={village}
@@ -465,22 +502,38 @@ export default function OPDPage() {
                                         <label className="flex items-center gap-2 cursor-pointer font-bold text-red-900 bg-red-50 px-3 py-1.5 rounded border border-red-200">
                                             <input
                                                 type="checkbox"
-                                                checked={vitals.isPregnant}
-                                                onChange={(e) => setVitals({ ...vitals, isPregnant: e.target.checked })}
+                                                checked={draft.pregnant}
+                                                onChange={(e) => setField('pregnant', e.target.checked)}
                                                 className="w-4 h-4 accent-red-700"
                                             />
                                             <span>{L.ancCohort}</span>
                                         </label>
+                                        {draft.pregnant && (
+                                            <label className="flex items-center gap-1.5 font-bold text-red-900">
+                                                {isEn ? 'Weeks' : isHi ? 'सप्ताह' : 'आठवडे'}
+                                                <input type="number" inputMode="numeric" min={4} max={44} value={draft.gestationalWeeks}
+                                                    onChange={(e) => setField('gestationalWeeks', e.target.value)}
+                                                    className="w-16 px-2 py-1 bg-white border border-red-200 rounded font-mono" />
+                                            </label>
+                                        )}
 
                                         <label className="flex items-center gap-2 cursor-pointer font-bold text-amber-900 bg-amber-50 px-3 py-1.5 rounded border border-amber-200">
                                             <input
                                                 type="checkbox"
-                                                checked={!!vitals.childAgeMonths}
-                                                onChange={(e) => setVitals({ ...vitals, childAgeMonths: e.target.checked ? 18 : undefined })}
+                                                checked={draft.child}
+                                                onChange={(e) => setField('child', e.target.checked)}
                                                 className="w-4 h-4 accent-amber-700"
                                             />
                                             <span>{L.childCohort}</span>
                                         </label>
+                                        {draft.child && (
+                                            <label className="flex items-center gap-1.5 font-bold text-amber-900">
+                                                {isEn ? 'Age in months' : isHi ? 'आयु (महीने)' : 'वय (महिने)'} <span className="text-red-600">*</span>
+                                                <input type="number" inputMode="numeric" min={0} max={60} required value={draft.childAgeMonths}
+                                                    onChange={(e) => setField('childAgeMonths', e.target.value)}
+                                                    className="w-16 px-2 py-1 bg-white border border-amber-200 rounded font-mono" />
+                                            </label>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -496,150 +549,61 @@ export default function OPDPage() {
 
                                 <div className="p-4 space-y-4 text-xs">
                                     <div className="grid sm:grid-cols-2 gap-3">
-                                        {/* SpO2 */}
-                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    {L.spo2Label}
-                                                </span>
-                                                <strong className={`text-xl font-mono ${vitals.spo2 < 92 ? 'text-red-700 font-black' : 'text-[#1F3A6E]'}`}>
-                                                    {vitals.spo2}%
-                                                </strong>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="60"
-                                                max="100"
-                                                value={vitals.spo2}
-                                                onChange={(e) => setVitals({ ...vitals, spo2: Number(e.target.value) })}
-                                                className="w-full accent-[#1F3A6E] cursor-pointer"
-                                            />
-                                        </div>
+                                        <VitalInput label={L.spo2Label} unit="%" value={draft.spo2} onChange={v => setField('spo2', v)} min={50} max={100} required notMeasured={L.notMeasured}
+                                            severity={(n => n === undefined ? undefined : n < 90 ? 'critical' : n < 95 ? 'caution' : undefined)(num(draft.spo2))} />
+                                        <VitalInput label={L.pulseLabel} unit="/min" value={draft.pulse} onChange={v => setField('pulse', v)} min={20} max={250} required notMeasured={L.notMeasured}
+                                            severity={(n => n === undefined ? undefined : n > 130 || n < 48 ? 'critical' : n > 105 ? 'caution' : undefined)(num(draft.pulse))} />
 
-                                        {/* Heart Rate */}
-                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    {L.pulseLabel}
-                                                </span>
-                                                <strong className="text-xl font-mono text-[#1F3A6E]">
-                                                    {vitals.heartRate}
-                                                </strong>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="40"
-                                                max="180"
-                                                value={vitals.heartRate}
-                                                onChange={(e) => setVitals({ ...vitals, heartRate: Number(e.target.value) })}
-                                                className="w-full accent-[#1F3A6E] cursor-pointer"
-                                            />
-                                        </div>
-
-                                        {/* Blood Pressure */}
+                                        {/* Blood Pressure — both numbers, never one filled in for the worker. */}
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded">
                                             <span className="font-bold text-slate-700 uppercase text-[11px] block mb-1">
-                                                {L.bpLabel}
+                                                {L.bpLabel} <span className="text-red-600">*</span>
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     type="number"
-                                                    placeholder="Systolic"
-                                                    value={vitals.bloodPressure?.systolic}
-                                                    onChange={(e) => setVitals({
-                                                        ...vitals,
-                                                        bloodPressure: {
-                                                            systolic: Number(e.target.value),
-                                                            diastolic: vitals.bloodPressure?.diastolic || 80
-                                                        }
-                                                    })}
+                                                    inputMode="numeric"
+                                                    aria-label="Systolic"
+                                                    placeholder={isEn ? 'Systolic' : 'सिस्टोलिक'}
+                                                    required
+                                                    min={50}
+                                                    max={260}
+                                                    value={draft.systolic}
+                                                    onChange={(e) => setField('systolic', e.target.value)}
                                                     className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
                                                 />
                                                 <span className="text-slate-400 font-bold">/</span>
                                                 <input
                                                     type="number"
-                                                    placeholder="Diastolic"
-                                                    value={vitals.bloodPressure?.diastolic}
-                                                    onChange={(e) => setVitals({
-                                                        ...vitals,
-                                                        bloodPressure: {
-                                                            systolic: vitals.bloodPressure?.systolic || 120,
-                                                            diastolic: Number(e.target.value)
-                                                        }
-                                                    })}
+                                                    inputMode="numeric"
+                                                    aria-label="Diastolic"
+                                                    placeholder={isEn ? 'Diastolic' : 'डायस्टोलिक'}
+                                                    required
+                                                    min={20}
+                                                    max={180}
+                                                    value={draft.diastolic}
+                                                    onChange={(e) => setField('diastolic', e.target.value)}
                                                     className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
                                                 />
                                             </div>
                                         </div>
 
-                                        {/* Blood Glucose */}
-                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    {L.glucoseLabel}
-                                                </span>
-                                                <span className="text-slate-500 text-[10px]">mg/dL</span>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                value={vitals.bloodGlucose || 110}
-                                                onChange={(e) => setVitals({ ...vitals, bloodGlucose: Number(e.target.value) })}
-                                                className="w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base text-[#1F3A6E]"
-                                            />
-                                        </div>
-
                                         {/* Respiratory Rate — a trained triage input with critical thresholds
-                                            (>=36 or <=8 /min), so it must be capturable at intake. */}
-                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    {L.rrLabel}
-                                                </span>
-                                                <strong className={`text-xl font-mono ${
-                                                    (vitals.respiratoryRate || 16) >= 36 || (vitals.respiratoryRate || 16) <= 8
-                                                        ? 'text-red-700 font-black'
-                                                        : (vitals.respiratoryRate || 16) >= 27
-                                                        ? 'text-amber-700 font-black'
-                                                        : 'text-[#1F3A6E]'
-                                                }`}>
-                                                    {vitals.respiratoryRate || 16}
-                                                </strong>
-                                            </div>
-                                            <input
-                                                type="range"
-                                                min="4"
-                                                max="60"
-                                                value={vitals.respiratoryRate || 16}
-                                                onChange={(e) => setVitals({ ...vitals, respiratoryRate: Number(e.target.value) })}
-                                                className="w-full accent-[#1F3A6E] cursor-pointer"
-                                            />
-                                        </div>
+                                            (>=36 or <=8 /min), so it must be captured at intake. */}
+                                        <VitalInput label={L.rrLabel} unit="/min" value={draft.respiratoryRate} onChange={v => setField('respiratoryRate', v)} min={4} max={80} required notMeasured={L.notMeasured}
+                                            severity={(n => n === undefined ? undefined : n >= 36 || n <= 8 ? 'critical' : n >= 27 ? 'caution' : undefined)(num(draft.respiratoryRate))} />
+                                        <VitalInput label={L.tempLabel} unit="°F" step="0.1" value={draft.temperature} onChange={v => setField('temperature', v)} min={90} max={110} notMeasured={L.notMeasured}
+                                            severity={(n => n !== undefined && n >= 102.5 ? 'critical' : undefined)(num(draft.temperature))} />
+                                        <VitalInput label={L.glucoseLabel} unit="mg/dL" value={draft.glucose} onChange={v => setField('glucose', v)} min={20} max={700} notMeasured={L.notMeasured}
+                                            severity={(n => n === undefined ? undefined : n <= 55 || n >= 280 ? 'critical' : n >= 180 ? 'caution' : undefined)(num(draft.glucose))} />
 
-                                        {/* Temperature */}
-                                        <div className="p-3 bg-slate-50 border border-slate-300 rounded">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-slate-700 uppercase text-[11px]">
-                                                    {L.tempLabel}
-                                                </span>
-                                                <span className="text-slate-500 text-[10px]">&deg;F</span>
-                                            </div>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                value={vitals.temperature || 98.6}
-                                                onChange={(e) => setVitals({ ...vitals, temperature: Number(e.target.value) })}
-                                                className={`w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base ${
-                                                    (vitals.temperature || 98.6) >= 102.5 ? 'text-red-700' : 'text-[#1F3A6E]'
-                                                }`}
-                                            />
-                                        </div>
-
-                                        {/* Consciousness (AVPU) — drives the critical override for altered sensorium. */}
+                                        {/* Consciousness (AVPU) — drives the critical override for altered
+                                            sensorium, so the worker chooses it; nothing is pre-selected. */}
                                         <div className="p-3 bg-slate-50 border border-slate-300 rounded sm:col-span-2">
                                             <span className="font-bold text-slate-700 uppercase text-[11px] block mb-1">
-                                                {L.avpuLabel}
+                                                {L.avpuLabel} <span className="text-red-600">*</span>
                                             </span>
-                                            <div className="flex border border-slate-300 rounded overflow-hidden">
+                                            <div className="flex border border-slate-300 rounded overflow-hidden" role="radiogroup" aria-label={L.avpuLabel}>
                                                 {([
                                                     ['ALERT', L.avpuAlert],
                                                     ['VOICE', L.avpuVoice],
@@ -649,9 +613,11 @@ export default function OPDPage() {
                                                     <button
                                                         key={level}
                                                         type="button"
-                                                        onClick={() => setVitals({ ...vitals, consciousness: level })}
+                                                        role="radio"
+                                                        aria-checked={draft.avpu === level}
+                                                        onClick={() => setField('avpu', level as Avpu)}
                                                         className={`flex-1 py-1.5 text-[11px] font-bold transition-colors ${
-                                                            (vitals.consciousness || 'ALERT') === level
+                                                            draft.avpu === level
                                                                 ? level === 'ALERT'
                                                                     ? 'bg-[#1F3A6E] text-white'
                                                                     : 'bg-red-700 text-white'
@@ -692,11 +658,20 @@ export default function OPDPage() {
                                         )}
                                         <textarea
                                             rows={2}
-                                            value={vitals.injuryType}
-                                            onChange={(e) => setVitals({ ...vitals, injuryType: e.target.value })}
+                                            value={draft.complaint}
+                                            onChange={(e) => setField('complaint', e.target.value)}
                                             className="w-full p-2 bg-white border border-slate-300 rounded text-xs font-medium focus:outline-none focus:border-[#1F3A6E]"
                                         />
                                     </div>
+
+                                    {formProblems.length > 0 && (
+                                        <div role="alert" className="border border-red-300 bg-red-50 p-3 text-[11px] text-red-900">
+                                            <strong className="block mb-1">{isEn ? 'Complete these before triage:' : isHi ? 'ट्राइएज से पहले पूरा करें:' : 'ट्राइएजपूर्वी हे पूर्ण करा:'}</strong>
+                                            <ul className="list-disc pl-4 space-y-0.5">
+                                                {formProblems.map(problem => <li key={problem}>{problem}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
 
                                     {/* Submit Button */}
                                     <button
@@ -727,7 +702,7 @@ export default function OPDPage() {
                                             {L.receiptTitle}
                                         </h3>
                                         <span className="text-[10px] text-slate-300">
-                                            Government OPD Token Slip • PHC Bhamragad
+                                            Government OPD Token Slip • {createdPatient ? FACILITY_NETWORK.find(f => f.id === createdPatient.registeredAtFacilityId)?.name : ''}
                                         </span>
                                     </div>
 
@@ -754,19 +729,19 @@ export default function OPDPage() {
                                         <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded border border-slate-200">
                                             <div>
                                                 <span className="text-slate-500 block">{L.patNameLabel}</span>
-                                                <strong className="text-slate-800">{name} ({age} {isEn ? 'Yrs' : 'वर्षे'} / {gender})</strong>
+                                                <strong className="text-slate-800">{createdPatient?.name} ({createdPatient?.age} {isEn ? 'Yrs' : 'वर्षे'} / {createdPatient?.gender})</strong>
                                             </div>
                                             <div>
                                                 <span className="text-slate-500 block">{L.patVillageLabel}</span>
-                                                <strong className="text-slate-800">{village}</strong>
+                                                <strong className="text-slate-800">{createdPatient?.village}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-slate-500 block">{L.patAbhaLabel}</span>
-                                                <strong className="text-slate-800 font-mono text-[10px]">{abhaId}</strong>
+                                                <strong className="text-slate-800 font-mono text-[10px]">{createdPatient?.abhaId || (isEn ? "not recorded" : "नोंद नाही")}</strong>
                                             </div>
                                             <div>
                                                 <span className="text-slate-500 block">{L.patRoomLabel}</span>
-                                                <strong className="text-[#1F3A6E]">{L.roomMO}</strong>
+                                                <strong className="text-[#1F3A6E]">{triageResult.status === 'RED' ? L.roomEmergency : facility?.type === 'SC' ? L.roomSC : L.roomMO}</strong>
                                             </div>
                                         </div>
 
@@ -810,6 +785,9 @@ export default function OPDPage() {
                                                 <Icon name="download" className="w-3.5 h-3.5" /> {L.downloadFHIR}
                                             </button>
                                         </div>
+                                        <button type="button" onClick={resetForNextPatient} className="gov-btn gov-btn-secondary text-xs w-full">
+                                            {isEn ? 'Register next patient' : isHi ? 'अगला मरीज़ दर्ज करें' : 'पुढील रुग्णाची नोंद करा'}
+                                        </button>
                                     </div>
                                 </div>
                             ) : isAnalyzing ? (
@@ -904,5 +882,45 @@ export default function OPDPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+/**
+ * One vital sign, typed exactly as read off the device. Empty means not
+ * measured — shown as such, never replaced by a normal value.
+ */
+function VitalInput({ label, unit, value, onChange, min, max, step, required, severity, notMeasured }: {
+    label: string;
+    unit: string;
+    value: string;
+    onChange: (value: string) => void;
+    min: number;
+    max: number;
+    step?: string;
+    required?: boolean;
+    severity?: 'critical' | 'caution';
+    notMeasured: string;
+}) {
+    const tone = severity === 'critical' ? 'text-red-700 font-black' : severity === 'caution' ? 'text-amber-700 font-black' : 'text-[#1F3A6E]';
+    return (
+        <label className="p-3 bg-slate-50 border border-slate-300 rounded block">
+            <span className="flex justify-between items-center mb-1">
+                <span className="font-bold text-slate-700 uppercase text-[11px]">
+                    {label} {required && <span className="text-red-600">*</span>}
+                </span>
+                <span className="text-slate-500 text-[10px]">{value.trim() === '' ? notMeasured : unit}</span>
+            </span>
+            <input
+                type="number"
+                inputMode="decimal"
+                required={required}
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className={`w-full p-1.5 bg-white border border-slate-300 rounded text-center font-mono font-bold text-base ${tone}`}
+            />
+        </label>
     );
 }
