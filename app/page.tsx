@@ -53,7 +53,7 @@ export default function Home() {
             title: isEn ? 'OPD Intake & AI Triage' : isHi ? 'ओपीडी पंजीकरण व डिजिटल ट्राइएज' : 'ओपीडी नोंदणी व डिजिटल ट्राइएज',
             dept: isEn ? 'Primary Clinical Care' : isHi ? 'प्राथमिक स्वास्थ्य सेवा' : 'प्राथमिक आरोग्य सेवा',
             desc: isEn
-                ? 'On-device symptom triage, voice vitals capture (SpO2, BP, Glucose), automated emergency risk prioritization, and instant OPD token queue.'
+                ? 'On-device triage from measured vitals (SpO2, BP, pulse, respiration), spoken complaints in English, Hindi or Marathi, emergency prioritisation and an ordered OPD token queue.'
                 : isHi
                 ? 'लक्षणों व महत्वपूर्ण संकेतों (SpO2, रक्तचाप, शुगर) द्वारा मरीजों का तत्काल आपातकालीन वर्गीकरण एवं डिजिटल टोकन।'
                 : 'लक्षणे व महत्त्वाच्या नोंदी (SpO2, रक्तदाब, साखर) द्वारे रुग्णांचे तात्काळ आपत्कालीन वर्गीकरण व डिजिटल टोकन.',
@@ -141,15 +141,15 @@ export default function Home() {
         },
         {
             code: 'M-08',
-            title: isEn ? 'Assisted Teleconsultation (eSanjeevani)' : isHi ? 'ई-संजीवनी टेलीकंसल्टेशन' : 'ई-संजीवनी टेलिकन्सल्टेशन',
+            title: isEn ? 'Assisted Teleconsultation Record' : isHi ? 'सहायता प्राप्त टेलीकंसल्टेशन रिकॉर्ड' : 'सहाय्यित टेलिकन्सल्टेशन नोंद',
             dept: isEn ? 'Specialist Telemedicine Hub' : isHi ? 'टेलीमेडिसिन विभाग' : 'टेलिमेडिसिन विभाग',
             desc: isEn
-                ? 'Frontline-assisted video/audio consult connecting rural Sub-Centres directly to District Hospital specialists with 2G low-bandwidth mode.'
+                ? 'A structured record for a specialist consult — shared vitals, notes and orders — kept beside the call. The call itself runs on eSanjeevani; audio and video are not built into this app.'
                 : isHi
-                ? 'स्वास्थ्य कार्यकर्ता समर्थित ऑडियो/वीडियो कॉल द्वारा विशेषज्ञ डॉक्टरों से सीधा परामर्श एवं डिजिटल ई-प्रिस्क्रिप्शन।'
-                : 'आरोग्य सेविका सहाय्यित ऑडिओ/व्हिडिओ कॉलद्वारे तज्ज्ञ डॉक्टरांशी थेट सल्लामसलत व डिजिटल ई-प्रिस्क्रिप्शन.',
+                ? 'विशेषज्ञ परामर्श का संरचित रिकॉर्ड — साझा वाइटल्स, नोट्स व आदेश। कॉल ई-संजीवनी पर होती है; ऑडियो/वीडियो इस ऐप में नहीं है।'
+                : 'तज्ज्ञ सल्ल्याची संरचित नोंद — सामायिक वाइटल्स, नोंदी व आदेश. कॉल ई-संजीवनीवर होतो; ऑडिओ/व्हिडिओ या ॲपमध्ये नाही.',
             href: '/teleconsult',
-            btn: isEn ? 'Start Teleconsult →' : isHi ? 'कॉल शुरू करें →' : 'कॉल सुरू करा →',
+            btn: isEn ? 'Open consult record →' : isHi ? 'परामर्श रिकॉर्ड खोलें →' : 'सल्ला नोंद उघडा →',
             tag: isEn ? 'Specialist Hub' : 'तज्ज्ञ डॉक्टर',
         },
         {
@@ -231,10 +231,10 @@ export default function Home() {
         refServicesBtn: isEn ? '108 Referral Pipeline' : isHi ? '१०८ रेफरल सेवा' : '१०८ रेफरल सेवा',
         staffLoginBtn: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
         disclaimer: isEn
-            ? 'All information on this portal is compliant with National Health Policy (NHP) and Govt. of Maharashtra guidelines. Consultations and essential drugs are 100% FREE at all government facilities.'
+            ? 'Service and entitlement information here is drawn from published National Health Mission and Government of Maharashtra guidelines; confirm with your facility. OPD consultation and essential drugs are free at government health facilities under NHM.'
             : isHi
-            ? 'इस पोर्टल की समस्त जानकारी राष्ट्रीय स्वास्थ्य नीति (NHP) एवं महाराष्ट्र सरकार के दिशा-निर्देशों के अनुरूप है। सभी सरकारी स्वास्थ्य केंद्रों पर उपचार व दवाएं पूर्णतः निःशुल्क हैं।'
-            : 'या पोर्टलवरील सर्व माहिती महाराष्ट्र शासनाच्या सार्वजनिक आरोग्य विभागाच्या अधिकृत मार्गदर्शक तत्त्वांवर आधारित आहे. सर्व सरकारी आरोग्य केंद्रांवर उपचार व औषधे मोफत आहेत.',
+            ? 'यहाँ सेवाओं व पात्रताओं की जानकारी राष्ट्रीय स्वास्थ्य मिशन व महाराष्ट्र सरकार के प्रकाशित दिशानिर्देशों से ली गई है; अपने स्वास्थ्य केंद्र से पुष्टि करें। सरकारी स्वास्थ्य केंद्रों पर ओपीडी परामर्श व आवश्यक दवाएं NHM के तहत निःशुल्क हैं।'
+            : 'येथील सेवा व पात्रतेची माहिती राष्ट्रीय आरोग्य अभियान व महाराष्ट्र शासनाच्या प्रकाशित मार्गदर्शक तत्त्वांवरून घेतली आहे; आपल्या आरोग्य केंद्रात खात्री करा. शासकीय आरोग्य केंद्रांवर ओपीडी सल्ला व आवश्यक औषधे NHM अंतर्गत मोफत आहेत.',
     };
 
     return (

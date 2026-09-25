@@ -185,7 +185,7 @@ export const APP_ROUTES: RouteEntry[] = [
     { path: '/diagnostics', label: { en: 'Lab & diagnostics — log a result', hi: 'लैब व जांच — परिणाम दर्ज करें', mr: 'लॅब व निदान — निकाल नोंदवा' }, roles: ['LAB_TECH', 'MO', 'SPECIALIST'] },
     { path: '/medicine', label: { en: 'Essential medicine stock / dispensing', hi: 'आवश्यक दवा स्टॉक / वितरण', mr: 'अत्यावश्यक औषध साठा / वितरण' }, roles: ['PHARMACIST', 'MO'] },
     { path: '/queue', label: { en: 'Queue & token management', hi: 'कतार व टोकन प्रबंधन', mr: 'रांग व टोकन व्यवस्थापन' }, roles: ['ASHA', 'ANM', 'MO'] },
-    { path: '/teleconsult', label: { en: 'Teleconsultation with a specialist (eSanjeevani)', hi: 'विशेषज्ञ से टेलीकंसल्टेशन (ई-संजीवनी)', mr: 'तज्ज्ञांशी टेलिकन्सल्टेशन (ई-संजीवनी)' }, roles: ['MO', 'ANM'] },
+    { path: '/teleconsult', label: { en: 'Specialist teleconsult record (the call itself is on eSanjeevani)', hi: 'विशेषज्ञ टेलीकंसल्ट रिकॉर्ड (कॉल ई-संजीवनी पर)', mr: 'तज्ज्ञ टेलिकन्सल्ट नोंद (कॉल ई-संजीवनीवर)' }, roles: ['MO', 'ANM'] },
     { path: '/facilities', label: { en: 'Facility directory (services, beds, equipment)', hi: 'सुविधा निर्देशिका', mr: 'सुविधा निर्देशिका' }, roles: 'ALL' },
     { path: '/followup', label: { en: 'High-risk follow-up recall (ANC / child / NCD)', hi: 'उच्च जोखिम फॉलो-अप रिकॉल', mr: 'उच्च जोखीम फॉलो-अप रिकॉल' }, roles: ['ASHA', 'ANM'] },
     { path: '/emergency', label: { en: 'Emergency SOS (108/102)', hi: 'आपातकालीन SOS (108/102)', mr: 'आपत्कालीन SOS (108/102)' }, roles: 'ALL' },

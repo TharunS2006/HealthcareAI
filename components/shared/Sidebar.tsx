@@ -63,7 +63,7 @@ export default function Sidebar() {
         },
         {
             href: '/teleconsult',
-            label: isEn ? 'eSanjeevani Teleconsult' : isHi ? 'ई-संजीवनी टेलीकंसल्ट' : 'ई-संजीवनी टेलिकन्सल्ट',
+            label: isEn ? 'Teleconsult Record' : isHi ? 'टेलीकंसल्ट रिकॉर्ड' : 'टेलिकन्सल्ट नोंद',
             badge: isEn ? 'Live' : isHi ? 'लाइव' : 'थेट',
             icon: (
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
