@@ -351,12 +351,18 @@ await scenario('12. STAFF LIST FROM BEFORE PINS', async () => {
     const { verifyPin } = await import('../lib/auth/pin');
     const { DEMO_PIN } = await import('../lib/auth/users');
     const adminSet = await (await import('../lib/auth/pin')).hashPin('9753');
-    const stored = SEED_USERS.map(({ pinHash: _drop, ...u }) => (u.id === 'u-mo-perimili' ? { ...u, pinHash: adminSet } : u));
+    const stored = SEED_USERS.map(({ pinHash: _drop, ...u }) =>
+        u.id === 'u-mo-perimili' ? { ...u, pinHash: adminSet }
+        // The relay withheld this one: she is not posted here, and her PIN may have changed.
+        : u.id === 'u-anm-govindpur' ? { ...u, pinHashWithheld: true }
+        : u);
     await createDevice(6, V5_SCHEMA, { facilities: FACILITY_NETWORK, patients: SEED_PATIENTS, users: stored, facilityResources: SEED_RESOURCES });
     const s = await snapshot();
     const anm = byId(s.all.users, 'u-anm-kothi');
     check('seeded accounts get their PIN back, so the demo PIN signs in', await verifyPin(DEMO_PIN, anm?.pinHash));
-    check('every seeded account can sign in', (await Promise.all(s.all.users.filter(u => u.id !== 'u-mo-perimili').map(u => verifyPin(DEMO_PIN, u.pinHash)))).every(Boolean));
+    check('every seeded account can sign in', (await Promise.all(s.all.users.filter(u => u.id !== 'u-mo-perimili' && u.id !== 'u-anm-govindpur').map(u => verifyPin(DEMO_PIN, u.pinHash)))).every(Boolean));
+    const withheld = byId(s.all.users, 'u-anm-govindpur');
+    check('a hash the relay withheld is not refilled with the demo PIN', !withheld?.pinHash && withheld?.pinHashWithheld === true, JSON.stringify(withheld));
     const mo = byId(s.all.users, 'u-mo-perimili');
     check('a PIN the Super Admin set is kept, not reset to the demo PIN', await verifyPin('9753', mo?.pinHash) && !(await verifyPin(DEMO_PIN, mo?.pinHash)));
 });

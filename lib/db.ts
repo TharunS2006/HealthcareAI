@@ -487,7 +487,9 @@ async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
         const tx = db.transaction('users', 'readwrite');
         for (const seed of SEED_USERS) {
             const stored = await tx.store.get(seed.id);
-            if (stored && !stored.pinHash && seed.pinHash) await tx.store.put({ ...stored, pinHash: seed.pinHash });
+            // Not where the relay withheld the hash: that user's PIN may have been
+            // changed, and putting the demo PIN back would let 2468 in.
+            if (stored && !stored.pinHash && !stored.pinHashWithheld && seed.pinHash) await tx.store.put({ ...stored, pinHash: seed.pinHash });
         }
         await tx.done;
     }

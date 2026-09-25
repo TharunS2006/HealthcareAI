@@ -204,6 +204,29 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         return sent;
     }
 
+    /**
+     * A directory entry as this user may see it. A device keeps PIN hashes so
+     * its own staff can sign in offline — so it gets the hashes of the signed-in
+     * user and of staff at the same facility, and no one else's. Anyone else's
+     * hash on a phone is something to brute-force a short PIN from; a district
+     * officer's or the Super Admin's never leaves the relay except to them.
+     */
+    function userFor(who: Identity, user: StaffUser): StaffUser {
+        if (user.id === who.userId || (who.facilityId !== null && user.facilityId === who.facilityId)) return user;
+        const { pinHash: _withheld, ...rest } = user;
+        return { ...rest, pinHashWithheld: true };
+    }
+
+    /** Send a changed directory entry to each signed-in socket, as that user may see it. */
+    function emitUser(user: StaffUser, except?: Socket) {
+        if (!io) return;
+        for (const peer of io.sockets.sockets.values()) {
+            if (peer.id === except?.id) continue;
+            const who = peer.data.identity as Identity | null | undefined;
+            if (who) peer.emit('user:update', { user: userFor(who, user) });
+        }
+    }
+
     async function catchUpFor(who: Identity, since: number) {
         const [referrals, resources, tickets, users] = await Promise.all([store.listReferrals(), store.listResources(), store.listTickets(), store.listUsers()]);
         return {
@@ -214,8 +237,8 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             // facility's live availability so nobody refers into a full hospital.
             resources,
             tickets,
-            // With PIN hashes, so a device can sign its staff in while offline (lib/auth/pin.ts).
-            users,
+            // With PIN hashes only for staff who could sign in on this device (userFor).
+            users: users.map(u => userFor(who, u)),
             serverTime: Date.now(),
         };
     }
@@ -361,7 +384,7 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
 
     app.post('/api/users/publish', route(async (req, res) => {
         const result = await publishUser(req.body, await fromRequest(req));
-        if (result.ok) io?.emit('user:update', { user: result.value });
+        if (result.ok) emitUser(result.value);
         send(res, result, () => ({ ok: true }));
     }));
 
@@ -543,7 +566,15 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             };
             guarded('resources:publish', publishResources, 'resources:update', resources => ({ resources }));
             guarded('ticket:publish', publishTicket, 'ticket:update', ticket => ({ ticket }));
-            guarded('user:publish', publishUser, 'user:update', user => ({ user }));
+            socket.on('user:publish', async (body: unknown, ack?: (reply: { ok: boolean; reason?: string }) => void) => {
+                const result = await publishUser(body, await who());
+                if (!result.ok) {
+                    log('user:publish refused', { reason: result.reason });
+                    return ack?.({ ok: false, reason: result.reason });
+                }
+                emitUser(result.value, socket);
+                ack?.({ ok: true });
+            });
 
             socket.on('patient:sync', safely(async (patient: unknown) => {
                 const result = await publishPatient(patient, await who());

@@ -15,7 +15,8 @@
  *   5. SCOPE       a user is only sent referrals their facility is party to
  *   6. RESOURCES   only a facility's bed manager may change its beds
  *   7. SOCKETS     a socket's identity is its token; changes are pushed only
- *                  to users who may see them; reset is the Super Admin's
+ *                  to users who may see them; reset is the Super Admin's;
+ *                  PIN hashes reach only devices of the same facility
  *   8. CONTRACT    the statuses the app reads as refused / retry / unavailable
  *   9. HOSTED      the serverless configuration against an Upstash-protocol
  *                  store: state shared between instances, lockout persisted
@@ -271,6 +272,29 @@ moSock.on('data:reset', () => { wiped = true; });
 anmSock.emit('data:reset');
 await new Promise(r => setTimeout(r, 300));
 check('an ANM cannot wipe the network (data:reset ignored)', !wiped && (await seenBy('u-dho')));
+
+// Directory changes: PIN hashes reach only devices whose staff could sign in with them.
+type UserUpdate = { user: { id: string; pinHash?: string; pinHashWithheld?: boolean } };
+const userUpdates = { mo: [] as UserUpdate[], anm: [] as UserUpdate[], anon: [] as UserUpdate[] };
+moSock.on('user:update', (m: UserUpdate) => userUpdates.mo.push(m));
+anmSock.on('user:update', (m: UserUpdate) => userUpdates.anm.push(m));
+anonSock.on('user:update', (m: UserUpdate) => userUpdates.anon.push(m));
+await post('/api/users/publish', { user: user('u-anm-kothi') }, 'u-sa');
+await post('/api/users/publish', { user: user('u-mo-bhamragad') }, 'u-sa');
+await new Promise(r => setTimeout(r, 400));
+const upd = (who: UserUpdate[], id: string) => who.find(m => m.user.id === id)?.user;
+check('a signed-out socket is sent no directory change at all', userUpdates.anon.length === 0, String(userUpdates.anon.length));
+check('the ANM\'s own change reaches her device with her PIN hash', Boolean(upd(userUpdates.anm, 'u-anm-kothi')?.pinHash));
+check('…but reaches the PHC Medical Officer\'s device without it, marked withheld',
+    upd(userUpdates.mo, 'u-anm-kothi') !== undefined && !upd(userUpdates.mo, 'u-anm-kothi')?.pinHash && upd(userUpdates.mo, 'u-anm-kothi')?.pinHashWithheld === true,
+    JSON.stringify(upd(userUpdates.mo, 'u-anm-kothi')));
+check('the Medical Officer gets his own hash', Boolean(upd(userUpdates.mo, 'u-mo-bhamragad')?.pinHash));
+const moCatchUp = await new Promise<{ users: UserUpdate['user'][] }>(resolve => moSock.emit('referral:catchup', { since: 0 }, resolve));
+const leaked = moCatchUp.users.filter(u => u.id !== 'u-mo-bhamragad' && u.pinHash).map(u => u.id);
+check('catch-up gives a PHC device no PIN hash of staff posted elsewhere', leaked.length === 0 && moCatchUp.users.length > 0, leaked.join(', '));
+const httpCatchUp = await (await fetch(`${BASE}/api/referrals/since/0`, { headers: await auth('u-anm-kothi') })).json() as { users?: UserUpdate['user'][] };
+check('…nor does HTTP catch-up give a Sub-Centre device anyone else\'s',
+    (httpCatchUp.users ?? []).length > 0 && (httpCatchUp.users ?? []).every(u => u.id === 'u-anm-kothi' || !u.pinHash), JSON.stringify((httpCatchUp.users ?? []).filter(u => u.pinHash).map(u => u.id)));
 
 // ---------------------------------------------------------------------------
 console.log('\n8. CONTRACT');

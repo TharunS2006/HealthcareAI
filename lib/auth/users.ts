@@ -26,6 +26,12 @@ export interface StaffUser {
     active: boolean;
     /** PBKDF2 hash of the user's PIN (lib/auth/pin.ts). No hash: the user cannot sign in. */
     pinHash?: string;
+    /**
+     * The relay did not send this user's PIN hash to this device — they are not
+     * posted here (server/relay/app.ts userFor). They sign in online only; the
+     * seeded-PIN repair must never put the demo PIN back in its place.
+     */
+    pinHashWithheld?: boolean;
 }
 
 /** The PIN of every seeded demo account — public on purpose, printed on the sign-in screen. */

@@ -96,7 +96,14 @@ export async function signInStaff(user: StaffUser, pin: string): Promise<SignInR
     if (answer.kind === 'refused') return { ok: false, message: answer.message };
 
     // No relay: check on this device.
-    if (!user.pinHash) return { ok: false, message: 'No PIN has been set for this account — ask the Super Admin to set one' };
+    if (!user.pinHash) {
+        return {
+            ok: false,
+            message: user.pinHashWithheld
+                ? 'This device cannot check your PIN offline — you are not posted at its facility. Sign in while connected to the network.'
+                : 'No PIN has been set for this account — ask the Super Admin to set one',
+        };
+    }
     if (localFailures(user.id).count >= LOCAL_MAX_FAILURES) {
         return { ok: false, message: 'Too many wrong PINs on this device — try again in a few minutes' };
     }
