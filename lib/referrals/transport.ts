@@ -17,7 +17,7 @@
  * on the device (UNAVAILABLE) until the user re-enters their PIN online.
  */
 
-import { getSocket, relayBaseUrl, relayUsesSockets, reportRelayReachable } from '@/lib/socket';
+import { getSocket, redialIfGaveUp, relayBaseUrl, relayUsesSockets, reportRelayReachable } from '@/lib/socket';
 import { useAuthStore, type StaffSession } from '@/stores/authStore';
 import { blockedAsMixedContent } from '@/lib/cloudEndpoint';
 import { REFERRAL_TIMING } from './config';
@@ -310,9 +310,9 @@ export function startTransport(onReachable: () => void): () => void {
         const token = tabToken();
         try {
             // socket.io gives up after a few failed attempts; when the relay is
-            // back, dial again rather than stay standalone until a reload.
-            // connect() is a no-op while socket.io is itself still reconnecting.
-            const redial = () => { if (relayUsesSockets() && !socket.connected) socket.connect(); };
+            // back, dial again rather than stay standalone until a reload. Never
+            // while socket.io is still dialling itself (lib/socket.ts).
+            const redial = () => { if (relayUsesSockets()) redialIfGaveUp(); };
             if (!token) {
                 const health = await fetchWithTimeout(`${relayBaseUrl()}/health`, {}, 4000);
                 if (!relayUsesSockets()) reportRelayReachable(health.ok);

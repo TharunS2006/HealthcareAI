@@ -67,6 +67,15 @@ export const relayBaseUrl = (): string => {
     return 'http://localhost:3001';
 };
 
+let gaveUp = false;
+
+/** Dial the relay again — only if socket.io has given up on it; otherwise it is already trying. */
+export function redialIfGaveUp(): void {
+    if (!socket || socket.connected || !gaveUp) return;
+    gaveUp = false;
+    socket.connect();
+}
+
 export const getSocket = (): Socket => {
     if (!socket) {
         const SERVER_URL = relayBaseUrl();
@@ -86,7 +95,13 @@ export const getSocket = (): Socket => {
             timeout: 5000,
         });
 
+        // socket.io retries on its own, then stops. Only after it has stopped may
+        // anything else dial: a connect() during its own handshake opens a second
+        // session on a half-open one, which the relay answers with 400 and a drop.
+        socket.io.on('reconnect_failed', () => { gaveUp = true; });
+
         socket.on('connect', () => {
+            gaveUp = false;
             setMeshStatus('ONLINE');
             console.log('Connected to Mesh Server:', socket?.id);
         });

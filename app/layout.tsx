@@ -1,5 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
+// Fonts ship inside the app (npm @fontsource, OFL): text renders the same offline
+// and in the APK, no browser calls Google, and the build needs no network.
+import "@fontsource/noto-sans/400.css";
+import "@fontsource/noto-sans/500.css";
+import "@fontsource/noto-sans/600.css";
+import "@fontsource/noto-sans/700.css";
+import "@fontsource/noto-sans/800.css";
+import "@fontsource/noto-sans-devanagari/400.css";
+import "@fontsource/noto-sans-devanagari/500.css";
+import "@fontsource/noto-sans-devanagari/600.css";
+import "@fontsource/noto-sans-devanagari/700.css";
+import "@fontsource/noto-sans-devanagari/800.css";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import GovPortalHeader from "@/components/gov/GovPortalHeader";
@@ -14,21 +25,6 @@ import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import NativeDeepLink from "@/components/shared/NativeDeepLink";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
-
-// Fonts are downloaded at build time and served with the app, so text renders
-// the same offline, inside the APK, and without the browser calling Google.
-const notoSans = Noto_Sans({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700", "800"],
-    variable: "--font-noto-sans",
-    display: "swap",
-});
-const notoDevanagari = Noto_Sans_Devanagari({
-    subsets: ["devanagari"],
-    weight: ["400", "500", "600", "700", "800"],
-    variable: "--font-noto-devanagari",
-    display: "swap",
-});
 
 export const viewport: Viewport = {
     width: "device-width",
@@ -56,7 +52,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`h-full ${notoSans.variable} ${notoDevanagari.variable}`}>
+        <html lang="en" className="h-full">
             <body className="font-sans antialiased bg-[#F4F6FA] text-[#0F172A] min-h-screen flex flex-col">
                 {/* Skip to Content — Mandatory Accessibility Requirement */}
                 <a href="#main-content" className="skip-to-content">
