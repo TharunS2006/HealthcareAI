@@ -48,7 +48,6 @@ const baseVitals = {
     injuryType: 'Routine antenatal check-up',
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const patient = (over: Record<string, any> = {}): any => ({
     id: 'p-test',
     name: 'Test Patient',
