@@ -86,6 +86,11 @@ export function setIdentityProvider(provider: () => Record<string, string>): voi
     identityProvider = provider;
 }
 
+/** Whether uploads would carry a signed-in user's token — the service accepts nothing without one. */
+export function hasCloudIdentity(): boolean {
+    return Boolean(identityProvider().Authorization);
+}
+
 async function post(path: string, body: unknown): Promise<UploadOutcome> {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
         return { ok: false, retryable: true, reason: 'offline' };

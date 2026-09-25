@@ -11,6 +11,7 @@ import ChatAssistant from "@/components/shared/ChatAssistant";
 import RouteGuard from "@/components/auth/RouteGuard";
 import NetworkSignIn from "@/components/auth/NetworkSignIn";
 import ReferralRuntime from "@/components/referrals/ReferralRuntime";
+import NativeDeepLink from "@/components/shared/NativeDeepLink";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
 
@@ -61,6 +62,7 @@ export default function RootLayout({
                 </a>
 
                 {/* Official Indian Government Portal Header (NIC / GIGW 3.0 Standard) */}
+                <NativeDeepLink />
                 <GovPortalHeader />
                 <NetworkSignIn />
 

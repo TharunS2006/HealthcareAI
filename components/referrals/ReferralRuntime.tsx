@@ -20,6 +20,7 @@ import { useDirectoryStore } from '@/stores/directoryStore';
 import { useFacilityStore } from '@/stores/facilityStore';
 import { onSyncMessage, startTransport, identityHeaders } from '@/lib/referrals/transport';
 import { setIdentityProvider } from '@/lib/sync/cloudRecords';
+import { flushOutbox } from '@/lib/sync/outbox';
 import { REFERRAL_TIMING } from '@/lib/referrals/config';
 import { can } from '@/lib/auth/permissions';
 import NotificationToaster from '@/components/notifications/NotificationToaster';
@@ -48,6 +49,13 @@ export function DeliveryReceiver({ session }: { session: StaffSession | null }) 
 
 export default function ReferralRuntime() {
     const session = useAuthStore(s => s.session);
+    const token = session?.token;
+
+    // Records queued while nobody held a relay token wait in the outbox
+    // (lib/sync/outbox.ts); send them the moment someone signs in with one.
+    useEffect(() => {
+        if (token) void flushOutbox();
+    }, [token]);
 
     useEffect(() => {
         const loadAll = () =>

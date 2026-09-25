@@ -27,7 +27,7 @@ import {
     removeFromSyncQueue,
 } from '@/lib/db';
 import type { Patient, ReferralRecord, SyncQueueItem } from '@/types/patient';
-import { uploadCareReferral, uploadPatientRecord } from './cloudRecords';
+import { hasCloudIdentity, uploadCareReferral, uploadPatientRecord } from './cloudRecords';
 
 /** Backoff: 5s, 15s, 45s, … capped at 5 min so a long outage stays cheap but responsive. */
 const BASE_DELAY_MS = 5000;
@@ -178,6 +178,10 @@ let flushing = false;
 export async function flushOutbox(): Promise<number> {
     if (flushing) return 0;
     if (typeof navigator !== 'undefined' && !navigator.onLine) return 0;
+    // Nobody signed in with a relay token: the service would answer 401 to every
+    // record. They stay queued, untouched, and go up on the first flush after a
+    // sign-in — ReferralRuntime flushes when the session changes.
+    if (!hasCloudIdentity()) return 0;
 
     flushing = true;
     let sent = 0;
