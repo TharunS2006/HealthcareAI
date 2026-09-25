@@ -41,6 +41,8 @@ export const metadata: Metadata = {
     title: "NalamMesh — National Rural Public Healthcare Platform | Government of Maharashtra",
     description: "National Rural Public Healthcare Access, Continuity & Quality Platform. Department of Public Health, Government of Maharashtra & National Health Mission (NHM).",
     manifest: "/manifest.json",
+    // Declared, so browsers use it instead of asking for a /favicon.ico that does not exist.
+    icons: { icon: "/icon-192.png", apple: "/icon-192.png" },
     keywords: [
         "NalamMesh", "National Health Mission", "Government of Maharashtra",
         "सार्वजनिक आरोग्य विभाग", "ABDM", "FHIR R4", "OPD Triage",
