@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import { Noto_Sans, Noto_Sans_Devanagari } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import GovPortalHeader from "@/components/gov/GovPortalHeader";
 import GovPortalFooter from "@/components/gov/GovPortalFooter";
@@ -11,6 +13,21 @@ import NetworkSignIn from "@/components/auth/NetworkSignIn";
 import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import { Toaster } from 'react-hot-toast';
+
+// Fonts are downloaded at build time and served with the app, so text renders
+// the same offline, inside the APK, and without the browser calling Google.
+const notoSans = Noto_Sans({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700", "800"],
+    variable: "--font-noto-sans",
+    display: "swap",
+});
+const notoDevanagari = Noto_Sans_Devanagari({
+    subsets: ["devanagari"],
+    weight: ["400", "500", "600", "700", "800"],
+    variable: "--font-noto-devanagari",
+    display: "swap",
+});
 
 export const viewport: Viewport = {
     width: "device-width",
@@ -36,19 +53,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className="h-full">
-            <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap"
-                    rel="stylesheet"
-                />
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
-                />
-            </head>
+        <html lang="en" className={`h-full ${notoSans.variable} ${notoDevanagari.variable}`}>
             <body className="font-sans antialiased bg-[#F4F6FA] text-[#0F172A] min-h-screen flex flex-col">
                 {/* Skip to Content — Mandatory Accessibility Requirement */}
                 <a href="#main-content" className="skip-to-content">

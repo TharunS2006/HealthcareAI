@@ -32,9 +32,10 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
 
             delete (L.Icon.Default.prototype as any)._getIconUrl;
             L.Icon.Default.mergeOptions({
-                iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-                iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                // Served with the app (public/leaflet), not from a CDN, so markers draw offline.
+                iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+                iconUrl: '/leaflet/marker-icon.png',
+                shadowUrl: '/leaflet/marker-shadow.png',
             });
 
             // Center on Gadchiroli, Maharashtra
@@ -42,11 +43,12 @@ export default function LiveMap({ patients, className = '' }: LiveMapProps) {
                 center: [19.6500, 80.2000],
                 zoom: 10,
                 zoomControl: false,
-                attributionControl: false,
             });
 
+            // OpenStreetMap's licence (ODbL) requires this credit on the map.
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 18,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors',
             }).addTo(map);
 
             L.control.zoom({ position: 'bottomright' }).addTo(map);

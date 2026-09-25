@@ -79,7 +79,7 @@ const config: Config = {
                 },
             },
             fontFamily: {
-                sans: ['Noto Sans', 'Noto Sans Devanagari', 'Arial', 'Helvetica', 'sans-serif'],
+                sans: ['var(--font-noto-sans)', 'var(--font-noto-devanagari)', 'Arial', 'Helvetica', 'sans-serif'],
                 mono: ['JetBrains Mono', 'Courier New', 'monospace'],
             },
             borderRadius: {

@@ -25,6 +25,8 @@ export default function StateEmblem({ className = '', size = 44, light = false }
             role="img"
             aria-label="State Emblem of India"
         >
+            {/* A static SVG in a static export: there is nothing for next/image to optimise. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
                 src="/emblem.svg"
                 alt="State Emblem of India • सत्यमेव जयते"
