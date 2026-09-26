@@ -22,6 +22,7 @@
     "verify:chat-scope": "tsx scripts/verify-chat-scope.mts",
     "cap:sync": "next build && tsx scripts/android-network-config.mts && npx cap sync",
     "cap:open": "npx cap open android",
+    "apk": "bash scripts/build-apk.sh",
     "verify:cloud-records": "tsx scripts/verify-cloud-records.mts",
     "verify:records-api": "python3 backend/scripts/verify_records.py",
     "verify:store-api": "python3 backend/scripts/verify_store_dump.py",
