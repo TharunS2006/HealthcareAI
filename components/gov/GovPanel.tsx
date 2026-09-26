@@ -39,12 +39,12 @@ export default function GovPanel({
     return (
         <section className={`border border-[#B9C5D6] bg-white ${className}`}>
             <div
-                className={`${bar} border-b px-3 py-[7px] flex items-baseline justify-between gap-3`}
+                className={`${bar} border-b px-3 py-[7px] flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3`}
             >
                 <h2 className="text-[13px] font-bold tracking-[0.01em] leading-tight">{title}</h2>
                 {meta && (
                     <span
-                        className={`text-[11px] shrink-0 ${
+                        className={`text-[11px] sm:shrink-0 sm:text-right ${
                             tone === 'primary' ? 'text-white/85' : 'text-[#4A5A73]'
                         }`}
                     >

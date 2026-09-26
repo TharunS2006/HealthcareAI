@@ -133,10 +133,13 @@ export default function GovPortalHeader() {
             {/* Top GIGW Accessibility & National Identification Strip */}
             <div className="bg-[#11223F] text-white border-b border-slate-700">
                 <div className="max-w-7xl mx-auto px-3 sm:px-4 py-1.5 flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-2 font-medium tracking-wide">
-                        <span className="text-amber-400 font-bold">{i18nTexts.stateGov}</span>
-                        <span className="text-slate-400">|</span>
-                        <span>{i18nTexts.dept}</span>
+                    {/* On a phone the department line would squeeze into a column a word
+                        wide beside the controls; it shows from sm up, and the portal title
+                        below names the department on every screen. */}
+                    <div className="flex items-center gap-2 font-medium tracking-wide min-w-0">
+                        <span className="text-amber-400 font-bold whitespace-nowrap">{i18nTexts.stateGov}</span>
+                        <span className="text-slate-400 hidden sm:inline">|</span>
+                        <span className="hidden sm:inline truncate">{i18nTexts.dept}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
