@@ -1,4 +1,4 @@
-# NalamMesh — SIH 2025 Project Context Document
+# NalamMesh — SIH 2026 Project Context Document
 ## Problem Statement ID: 26133
 
 ---
@@ -81,7 +81,7 @@ NalamMesh is a **zero-downtime, offline-first integrated public healthcare platf
 ### 5. Technology Stack & Technical Innovations
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend Framework** | Next.js 14 (App Router), React 18, TypeScript | High-performance, SEO-ready, server-rendered and static hybrid |
+| **Frontend Framework** | Next.js 15 (App Router), React 19, TypeScript | High-performance, SEO-ready, server-rendered and static hybrid |
 | **UI & Design System** | StitchMCP, Vanilla Tailwind CSS, Framer Motion | Custom healthcare palette (Deep Teal, Medical Blue, Warm Amber) |
 | **Edge AI Engine** | TensorFlow.js (In-Browser Neural Network) | 100% offline triage classification with zero server dependency |
 | **Offline Storage** | IndexedDB v2 (`idb` wrapper) | Stores longitudinal patients, visits, referrals, tokens, and drug inventory locally |

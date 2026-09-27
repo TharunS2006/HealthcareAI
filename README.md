@@ -1,10 +1,10 @@
 # NalamMesh (नलममेश)
 
-Offline-first digital public healthcare platform for rural Maharashtra — built for Smart India Hackathon 2025, Problem Statement #26133. Full project context, problem analysis, and module descriptions are in [`SIH_PROJECT_CONTEXT.md`](./SIH_PROJECT_CONTEXT.md).
+Offline-first digital public healthcare platform for rural Maharashtra — built for Smart India Hackathon 2026, Problem Statement #26133. Full project context, problem analysis, and module descriptions are in [`SIH_PROJECT_CONTEXT.md`](./SIH_PROJECT_CONTEXT.md).
 
 ## Stack
 
-- **Next.js 14** (App Router, static export) + React 18 + TypeScript
+- **Next.js 15** (App Router, static export) + React 19 + TypeScript
 - **TensorFlow.js** — in-browser edge AI triage, trained on-device from a seeded synthetic dataset (`lib/triage/model.ts`), backed by a deterministic IPHS clinical rule engine that always has the final say on danger signs
 - **IndexedDB** (`idb`) — offline-first patient/queue/referral/inventory storage (`lib/db.ts`)
 - **Zustand** — app state (`stores/`)
@@ -302,3 +302,8 @@ npm run cap:open        # open the Android project in Android Studio
 
 - The triage model (`lib/triage/model.ts`) is heavily commented on its own invariants (seeded determinism, clinical-override-outranks-network, timeout/fallback behavior) — read the file header before changing it.
 - `lib/socket.ts` reports real connection state (`CONNECTING` / `ONLINE` / `STANDALONE`); never hardcode a "connected" badge in a new page — use `lib/hooks/useMeshStatus.ts`.
+
+## Licence
+
+Copyright © 2026 Team TechDevs_6 (SIH 2026 Team ID 178601), R M K College of Engineering and Technology. **All rights reserved.**
+The code is public so it can be read and evaluated; it may not be copied, used, deployed or modified without the team's written permission. See [LICENSE](./LICENSE).

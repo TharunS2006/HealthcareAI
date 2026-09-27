@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Enterprise-Grade Digital Public Infrastructure for zero-downtime medical data exchange",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev -p 3000",
     "dev:full": "npm run server & next dev -p 3000",
