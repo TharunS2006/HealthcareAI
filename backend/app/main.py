@@ -147,6 +147,19 @@ app.add_middleware(
 
 # ────────────────────────────── health ──────────────────────────────
 
+@app.get("/", tags=["service"], summary="What this service is and where to look")
+def root():
+    # Opening the service's address in a browser used to answer {"detail":"Not Found"},
+    # which reads as "the service is broken". It is an API, so say so and point on.
+    return {
+        "service": "NalamMesh District Reporting Service",
+        "status": "running",
+        "health": "/health",
+        "api_docs": "/docs",
+        "note": "An API for the NalamMesh app, not a web page. Open the app itself to use NalamMesh.",
+    }
+
+
 @app.get("/health", tags=["service"], summary="Liveness and store depth")
 def health(session: Session = Depends(get_session)):
     chat = _resolve_provider()

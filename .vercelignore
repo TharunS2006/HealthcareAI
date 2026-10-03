@@ -12,3 +12,5 @@ backend/
 android/
 out/
 .next/
+dist/
+brag-output*/
