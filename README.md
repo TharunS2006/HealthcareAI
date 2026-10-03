@@ -2,6 +2,18 @@
 
 Offline-first digital public healthcare platform for rural Maharashtra — built for Smart India Hackathon 2026, Problem Statement #26133. Full project context, problem analysis, and module descriptions are in [`SIH_PROJECT_CONTEXT.md`](./SIH_PROJECT_CONTEXT.md).
 
+## Live demo
+
+| | |
+|---|---|
+| **App** | https://healthcare-ai-beryl.vercel.app |
+| **Overview** | https://nalammesh-landing.vercel.app |
+| **Demo video** | https://youtu.be/K2yBPrX-flQ |
+
+This is an evaluation build: every patient, referral and staff member is fictional. Staff sign in from **Staff Login** with any demo account and the PIN shown in the banner on every page. To watch a referral travel between two facilities, sign in as the District Health Officer and open **Two-User Demo**; on two devices, sign in as an ANM on one and the receiving Medical Officer on the other.
+
+The district reporting service holds identified patient records, so it runs only on a facility or district network and is not hosted; the Pre-Arrival Board and Data Inspector say so when it is out of reach.
+
 ## Stack
 
 - **Next.js 15** (App Router, static export) + React 19 + TypeScript
