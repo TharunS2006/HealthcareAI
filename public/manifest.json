@@ -1,45 +1,68 @@
 {
-    "name": "NalamMesh — Offline Healthcare",
+    "name": "NalamMesh — Rural Public Healthcare Platform | Govt of Maharashtra",
     "short_name": "NalamMesh",
-    "description": "Offline-first disaster healthcare mesh network with AI triage",
-    "theme_color": "#0E4D45",
-    "background_color": "#F7F9FB",
+    "description": "Offline-capable rural public healthcare platform for OPD triage, high-risk follow-up, essential medicine stock and 108/102 emergency referrals. Public Health Department, Government of Maharashtra & National Health Mission (NHM).",
+    "lang": "mr",
+    "dir": "ltr",
+    "theme_color": "#1F3A6E",
+    "background_color": "#F4F6FA",
     "display": "standalone",
     "orientation": "portrait",
     "scope": "/",
     "start_url": "/",
     "id": "/",
-    "categories": ["medical", "health"],
+    "categories": ["medical", "health", "government"],
     "icons": [
         {
             "src": "/icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
         },
         {
             "src": "/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any maskable"
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "screenshots": [],
     "shortcuts": [
         {
-            "name": "Triage Station",
-            "url": "/triage",
-            "description": "Open field triage interface"
+            "name": "OPD Triage",
+            "short_name": "Triage",
+            "url": "/opd",
+            "description": "Register a patient and run on-device AI triage"
         },
         {
-            "name": "Command Center",
+            "name": "District Command Centre",
+            "short_name": "Dashboard",
             "url": "/dashboard",
-            "description": "Operations dashboard"
+            "description": "District health operations dashboard"
         },
         {
-            "name": "Ambulance",
-            "url": "/ambulance",
-            "description": "Paramedic portal"
+            "name": "Emergency SOS (108 / 102)",
+            "short_name": "SOS",
+            "url": "/emergency",
+            "description": "Emergency escalation and ambulance dispatch"
+        },
+        {
+            "name": "OPD Queue",
+            "short_name": "Queue",
+            "url": "/queue",
+            "description": "Token and waiting queue management"
         }
     ]
 }

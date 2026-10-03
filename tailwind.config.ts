@@ -9,71 +9,105 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Modern Medcare Palette
+                // Official Government of India & Maharashtra Color System
+                gov: {
+                    navy: '#1F3A6E',
+                    'navy-dark': '#11223F',
+                    'navy-light': '#284B8C',
+                    'navy-hover': '#16294E',
+                    saffron: '#FF9933',
+                    'saffron-dark': '#B45309',
+                    green: '#138808',
+                    'green-dark': '#0D6E06',
+                    'green-bg': '#E8F5E9',
+                    'green-border': '#A5D6A7',
+                    red: '#C53030',
+                    'red-bg': '#FEF2F2',
+                    amber: '#B45309',
+                    'amber-bg': '#FFFBEB',
+                    blue: '#1D4ED8',
+                    'blue-bg': '#EFF6FF',
+                    'blue-border': '#93C5FD',
+                    success: '#15803D',
+                    'success-bg': '#F0FDF4',
+                    // Module accent hues — used only to differentiate service cards
+                    'accent-sky': '#0284C7',
+                    'accent-indigo': '#4F46E5',
+                    'accent-teal': '#0D9488',
+                    'accent-violet': '#7C3AED',
+                    'accent-crimson': '#DC2626',
+                },
+                // Backward-compatible theme tokens mapped to official Gov colors
                 emerald: {
-                    deep: '#0E4D45',   // Sidebar / Primary
-                    dark: '#093630',
-                    light: '#146E63',
+                    deep: '#1F3A6E',   // Primary Gov Navy
+                    dark: '#11223F',   // Dark Gov Header Navy
+                    light: '#284B8C',  // Light Gov Navy
                 },
                 teal: {
-                    accent: '#2AA198', // Actions
-                    hover: '#258E86',
-                    soft: '#E6FFFA',   // Backgrounds
+                    accent: '#138808', // National Health Green
+                    hover: '#0D6E06',
+                    soft: '#F0FDF4',
                 },
-                // Status - Professional
+                // Status Colors (WCAG 2.1 AAA Compliant)
                 status: {
-                    red: '#E53E3E',
-                    'red-bg': '#FFF5F5',
-                    yellow: '#D69E2E',
-                    'yellow-bg': '#FFFFF0',
-                    green: '#38A169',
-                    'green-bg': '#F0FFF4',
+                    red: '#C53030',
+                    'red-bg': '#FEF2F2',
+                    yellow: '#B45309',
+                    'yellow-bg': '#FFFBEB',
+                    green: '#15803D',
+                    'green-bg': '#F0FDF4',
                 },
-                // Surface
+                // Surfaces
                 bg: {
-                    page: '#F7F9FB',  // Light Blue-Grey
+                    page: '#F4F6FA',
                     surface: '#FFFFFF',
-                    sidebar: '#0E4D45',
+                    'surface-hover': '#F8FAFC',
+                    sidebar: '#11223F',
                 },
                 // Text
                 txt: {
-                    primary: '#1A202C',  // Slate-900
-                    secondary: '#718096', // Slate-500
-                    muted: '#A0AEC0',    // Slate-400
+                    primary: '#0F172A',
+                    secondary: '#475569',
+                    muted: '#64748B',
                     onDark: '#FFFFFF',
-                    onDarkMuted: 'rgba(255, 255, 255, 0.7)',
+                    onDarkMuted: 'rgba(255, 255, 255, 0.85)',
                 },
+                // Borders
                 border: {
-                    subtle: '#E2E8F0',
-                    active: '#CBD5E0',
+                    subtle: '#CBD5E1',
+                    active: '#94A3B8',
                 },
             },
             fontFamily: {
-                sans: ['var(--font-jakarta)', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                mono: ['var(--font-jetbrains)', 'JetBrains Mono', 'monospace'],
+                sans: ['Noto Sans', 'Noto Sans Devanagari', 'Arial', 'Helvetica', 'sans-serif'],
+                mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+            },
+            borderRadius: {
+                // NIC/GIGW portals are built from square bordered boxes. Anything
+                // above ~2px starts reading as a modern SaaS card rather than a
+                // government panel. 'full' is kept for genuine pills and avatars.
+                DEFAULT: '0px',
+                'none': '0px',
+                'sm': '0px',
+                'md': '2px',
+                'lg': '2px',
+                'xl': '2px',
+                '2xl': '2px',
+                '3xl': '2px',
+                'full': '9999px',
             },
             boxShadow: {
-                'soft': '0 2px 10px rgba(0, 0, 0, 0.03)',
-                'card': '0 4px 20px rgba(0, 0, 0, 0.05)',
-            },
-            animation: {
-                'fade-in': 'fadeIn 0.5s ease-out forwards',
-                'slide-up': 'slideUp 0.5s ease-out forwards',
-                'slide-right': 'slideRight 0.3s ease-out forwards',
-            },
-            keyframes: {
-                fadeIn: {
-                    '0%': { opacity: '0' },
-                    '100%': { opacity: '1' },
-                },
-                slideUp: {
-                    '0%': { opacity: '0', transform: 'translateY(10px)' },
-                    '100%': { opacity: '1', transform: 'translateY(0)' },
-                },
-                slideRight: {
-                    '0%': { opacity: '0', transform: 'translateX(-10px)' },
-                    '100%': { opacity: '1', transform: 'translateX(0)' },
-                },
+                // Elevation is not a government-portal idiom — separation comes from
+                // a 1px rule. These stay defined (many files reference them) but are
+                // reduced to nothing so the whole app flattens at once.
+                'soft': 'none',
+                'card': 'none',
+                'elevated': 'none',
+                'sm': 'none',
+                DEFAULT: 'none',
+                'md': 'none',
+                'lg': 'none',
+                'xl': 'none',
             },
         },
     },

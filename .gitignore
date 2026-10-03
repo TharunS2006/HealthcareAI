@@ -9,6 +9,9 @@ out/
 build/
 dist/
 
+# TypeScript incremental build cache (regenerated on every build)
+*.tsbuildinfo
+
 # debug logs
 npm-debug.log*
 yarn-debug.log*
@@ -27,3 +30,19 @@ android/.gradle
 android/build
 android/app/build
 android/.idea
+deck/
+android/local.properties
+
+# Local tool config — contains API keys, must never be committed
+.codex/
+
+# FastAPI service
+backend/__pycache__/
+backend/app/__pycache__/
+backend/*.db
+backend/.venv/
+.vercel
+
+# Local signing secret shared by the mesh relay and the district service (server/relay/auth.ts)
+.nalammesh-dev-secret
+__pycache__/

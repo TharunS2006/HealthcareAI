@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you refer to this work, please cite it as below."
+title: "NalamMesh: Offline Triage and Tracked Referrals for Rural Public Health in Maharashtra"
+type: software
+authors:
+  - given-names: Tharun
+    family-names: S
+  - given-names: TamilMani
+    family-names: B
+  - given-names: Trilochan
+    family-names: V
+  - given-names: Jagasree
+    family-names: K V
+  - given-names: Surendar Hariprasad
+    family-names: P
+  - given-names: Yogesh
+    family-names: S
+repository-code: "https://github.com/TharunS2006/HealthcareAI"
+url: "https://healthcare-ai-beryl.vercel.app"
+date-released: 2026-09-27
+keywords:
+  - rural healthcare
+  - referral tracking
+  - offline-first
+  - triage
+  - Smart India Hackathon 2026

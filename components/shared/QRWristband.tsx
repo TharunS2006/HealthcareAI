@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Patient } from '@/types/patient';
+import Icon from '@/components/gov/Icon';
 
 interface QRWristbandProps {
     patient: Patient;
@@ -157,8 +158,8 @@ export default function QRWristband({ patient }: QRWristbandProps) {
                     <div className="text-sm font-bold text-emerald-deep">
                         SpO2: {patient.vitals.spo2}% | HR: {patient.vitals.heartRate}
                     </div>
-                    <div className="text-xs text-txt-muted">
-                        📍 {patient.gps.lat.toFixed(4)}, {patient.gps.lng.toFixed(4)}
+                    <div className="text-xs text-txt-muted inline-flex items-center gap-1">
+                        <Icon name="map-pin" className="w-3 h-3" /> {patient.gps.lat.toFixed(4)}, {patient.gps.lng.toFixed(4)}
                     </div>
                 </div>
             </div>

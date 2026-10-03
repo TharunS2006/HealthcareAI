@@ -1,50 +1,173 @@
 /**
  * Patient Detail View — Client Component
+ *
+ * Resolves the patient id from EITHER the dynamic route segment (/dashboard/[id])
+ * or a query parameter (/record?id=…). The query-param route is the one that works
+ * for patients created at runtime, because `output: 'export'` can only prerender
+ * the ids known at build time.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Patient } from '@/types/patient';
 import { getPatient } from '@/lib/db';
 import { usePatientStore } from '@/stores/patientStore';
 import Sidebar from '@/components/shared/Sidebar';
 import QRWristband from '@/components/shared/QRWristband';
+import FHIRModal from '@/components/shared/FHIRModal';
 import { getRecommendedHospital, getResourceChecklist } from '@/lib/data/hospitals';
 import toast from 'react-hot-toast';
+import { useSession } from '@/lib/auth/session';
+import { isDistrictWide, ROLE_HOME } from '@/lib/auth/permissions';
+import { useReferralStore } from '@/stores/referralStore';
 
 export default function PatientDetailClient() {
     const params = useParams();
+    const searchParams = useSearchParams();
     const router = useRouter();
-    const { patients } = usePatientStore();
+    const { patients, loadPatients } = usePatientStore();
     const [patient, setPatient] = useState<Patient | null>(null);
+    const [status, setStatus] = useState<'loading' | 'found' | 'not-found'>('loading');
     const [showQR, setShowQR] = useState(false);
+    const [showFHIRModal, setShowFHIRModal] = useState(false);
+    const session = useSession();
+    const referrals = useReferralStore(s => s.referrals);
+    const home = session ? ROLE_HOME[session.role] : '/';
+
+    // /dashboard/[id] takes precedence; /record?id=… is the runtime-safe route.
+    const patientId = (params?.id as string | undefined) || searchParams.get('id') || '';
+
+    // Make sure IndexedDB records are in the store even on a cold deep-link.
+    useEffect(() => {
+        if (patients.length === 0) loadPatients();
+    }, [patients.length, loadPatients]);
 
     useEffect(() => {
-        const id = params?.id as string;
-        if (!id) return;
+        let cancelled = false;
 
-        // Try from store first (faster), then from DB
-        const fromStore = patients.find(p => p.id === id);
+        if (!patientId) {
+            setStatus('not-found');
+            return;
+        }
+
+        setStatus('loading');
+
+        // Try the store first (already hydrated), then fall back to IndexedDB.
+        const fromStore = patients.find((p) => p.id === patientId);
         if (fromStore) {
             setPatient(fromStore);
-        } else {
-            getPatient(id).then(p => {
-                if (p) setPatient(p);
-            });
+            setStatus('found');
+            return;
         }
-    }, [params?.id, patients]);
+
+        getPatient(patientId)
+            .then((p) => {
+                if (cancelled) return;
+                if (p) {
+                    setPatient(p);
+                    setStatus('found');
+                } else {
+                    setStatus('not-found');
+                }
+            })
+            .catch(() => {
+                if (!cancelled) setStatus('not-found');
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [patientId, patients]);
+
+    if (status === 'loading' || (!patient && status !== 'not-found')) {
+        return (
+            <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                        <div className="w-16 h-16 border-4 border-teal-accent border-t-transparent rounded-full animate-spin mx-auto" />
+                        <p className="text-txt-secondary">Loading patient record…</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     if (!patient) {
         return (
             <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
                 <Sidebar />
-                <main className="flex-1 md:ml-64 p-8 flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                        <div className="w-16 h-16 border-4 border-teal-accent border-t-transparent rounded-full animate-spin mx-auto" />
-                        <p className="text-txt-secondary">Loading patient record...</p>
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="surface-card max-w-md w-full p-8 text-center space-y-4">
+                        <div className="w-14 h-14 mx-auto rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center">
+                            <svg className="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 className="text-lg font-bold text-[#1F3A6E]">Patient record not found</h1>
+                            <p className="text-sm text-txt-secondary mt-1">
+                                रुग्ण नोंद सापडली नाही.{' '}
+                                {patientId ? (
+                                    <>
+                                        No record matches ID <span className="font-mono font-bold">{patientId}</span> on this device.
+                                    </>
+                                ) : (
+                                    <>No patient ID was supplied.</>
+                                )}
+                            </p>
+                            <p className="text-xs text-txt-muted mt-2">
+                                Records are stored locally per device. If this patient was registered on another
+                                device, sync the mesh relay first.
+                            </p>
+                        </div>
+                        <div className="flex gap-2 justify-center pt-1">
+                            <Link
+                                href={home}
+                                className="px-4 py-2 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-sm rounded transition-colors"
+                            >
+                                Back to my workspace
+                            </Link>
+                            <Link
+                                href="/opd"
+                                className="px-4 py-2 bg-white border border-[#1F3A6E] text-[#1F3A6E] hover:bg-slate-50 font-bold text-sm rounded transition-colors"
+                            >
+                                Register Patient
+                            </Link>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    // A patient belongs to the facility that registered them, and to any
+    // facility a referral has taken them to or from. Everyone else is refused —
+    // a deep link is not a way around facility scoping.
+    const involved = new Set<string>([
+        ...(patient.registeredAtFacilityId ? [patient.registeredAtFacilityId] : []),
+        ...referrals.filter(r => r.patientId === patient.id).flatMap(r => [r.fromFacilityId, r.toFacilityId]),
+        ...(patient.visits ?? []).map(v => v.facilityId),
+    ]);
+    const mayView = isDistrictWide(session?.role ?? null) || Boolean(session?.facilityId && involved.has(session.facilityId));
+    if (!mayView) {
+        return (
+            <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
+                <Sidebar />
+                <main className="flex-1 p-8 flex items-center justify-center">
+                    <div className="surface-card max-w-md w-full p-8 text-center space-y-3">
+                        <h1 className="text-lg font-bold text-[#1F3A6E]">Not permitted</h1>
+                        <p className="text-sm text-txt-secondary">
+                            This patient is not registered at, or referred to or from, {session?.facilityName ?? 'your facility'}.
+                            Records are shown only to the facilities caring for the patient and to district officers.
+                        </p>
+                        <Link href={home} className="inline-block px-4 py-2 bg-[#1F3A6E] hover:bg-[#16294E] text-white font-bold text-sm rounded">
+                            Back to my workspace
+                        </Link>
                     </div>
                 </main>
             </div>
@@ -85,7 +208,7 @@ export default function PatientDetailClient() {
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
             <Sidebar />
 
-            <main className="flex-1 md:ml-64 p-4 md:p-8 overflow-y-auto h-screen relative">
+            <main className="flex-1 p-4 md:p-6 overflow-y-auto min-w-0">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-teal-accent/5 rounded-full blur-3xl -z-10" />
 
                 <div className="max-w-5xl mx-auto">
@@ -100,9 +223,20 @@ export default function PatientDetailClient() {
                             </svg>
                         </button>
                         <div className="flex-1">
-                            <h1 className="text-2xl font-bold text-emerald-deep">Patient #{patient.id.slice(0, 6)}</h1>
+                            {/* Name first, full id beside it: a truncated id renders every
+                                "p-gad-XXXX" patient identically, which is a misidentification risk
+                                on a record a clinician acts from. */}
+                            <h1 className="text-2xl font-bold text-emerald-deep">
+                                {patient.name}
+                                <span className="ml-2 text-base font-normal text-txt-muted">
+                                    ({patient.age}
+                                    {patient.gender ? ` / ${patient.gender}` : ''})
+                                </span>
+                            </h1>
                             <p className="text-sm text-txt-secondary">
-                                Registered: {new Date(patient.timestamp).toLocaleString()}
+                                <span className="font-mono">{patient.id}</span>
+                                {patient.abhaId ? <span className="font-mono"> • {patient.abhaId}</span> : null}
+                                {' • '}Registered: {new Date(patient.timestamp).toLocaleString()}
                             </p>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-bold ${colors.badge}`}>
@@ -168,7 +302,7 @@ export default function PatientDetailClient() {
                                 <h2 className="text-lg font-bold text-emerald-deep mb-6">Patient Journey Timeline</h2>
                                 <div className="relative">
                                     {/* Vertical line */}
-                                    <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-teal-accent via-emerald-300 to-gray-200" />
+                                    <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gray-200" />
 
                                     <div className="space-y-6">
                                         {timeline.map((event, i) => (
@@ -249,12 +383,14 @@ export default function PatientDetailClient() {
                                     <p className="text-xs text-txt-muted">{hospital.location.address}</p>
                                     <div className="flex gap-3 mt-2">
                                         <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">{hospital.capacity.icu.total - hospital.capacity.icu.occupied}</span>
-                                            <span className="text-[10px] uppercase font-bold">ICU</span>
+                                            <span className="block text-lg font-bold">
+                                                {hospital.beds.icu ? hospital.beds.icu.total - hospital.beds.icu.occupied : hospital.beds.total - hospital.beds.occupied}
+                                            </span>
+                                            <span className="text-[10px] uppercase font-bold">Avail Beds</span>
                                         </div>
                                         <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">{hospital.capacity.emergency.total - hospital.capacity.emergency.occupied}</span>
-                                            <span className="text-[10px] uppercase font-bold">ER</span>
+                                            <span className="block text-lg font-bold">{hospital.ambulanceAvailable}</span>
+                                            <span className="text-[10px] uppercase font-bold">Ambulance</span>
                                         </div>
                                     </div>
                                 </div>
@@ -282,26 +418,32 @@ export default function PatientDetailClient() {
                             <div className="space-y-3">
                                 <button
                                     onClick={() => setShowQR(!showQR)}
-                                    className="w-full py-3 bg-gradient-to-r from-emerald-deep to-teal-accent text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                                    className="gov-btn gov-btn-primary w-full py-3"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
                                     <span>{showQR ? 'Hide QR Wristband' : 'Generate QR Wristband'}</span>
                                 </button>
 
                                 <button
-                                    onClick={() => {
-                                        import('@/lib/fhir').then(m => m.downloadFHIRRecord(patient));
-                                        toast.success('ABDM FHIR R4 Record Exported');
-                                    }}
+                                    onClick={() => setShowFHIRModal(true)}
                                     className="w-full py-3 bg-white border-2 border-indigo-600 text-indigo-700 font-bold rounded-xl shadow-sm hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                                 >
                                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    Export ABDM / FHIR R4 JSON
+                                    Inspect ABDM / FHIR R4 Bundle
                                 </button>
                             </div>
 
                             {/* QR Wristband */}
                             {showQR && <QRWristband patient={patient} />}
+
+                            {/* ABDM / FHIR R4 Inspector Modal */}
+                            {showFHIRModal && (
+                                <FHIRModal
+                                    patient={patient}
+                                    isOpen={showFHIRModal}
+                                    onClose={() => setShowFHIRModal(false)}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

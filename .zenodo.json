@@ -1,0 +1,15 @@
+{
+  "title": "NalamMesh: Offline Triage and Tracked Referrals for Rural Public Health in Maharashtra",
+  "upload_type": "software",
+  "access_right": "closed",
+  "description": "<p>NalamMesh is an offline-first app for Sub-Centre, PHC, CHC, SDH and District Hospital staff in Maharashtra, built for Smart India Hackathon 2026, Problem Statement 26133 (Government of Maharashtra), by Team TechDevs_6 (Team ID 178601), R M K College of Engineering and Technology.</p><p>It triages patients on the phone using IPHS 2022 danger-sign rules with a small on-device ML model, refers them to the nearest facility with a free bed, the right equipment and a specialist, tracks every referral from sent to discharged, and escalates an emergency that is not acknowledged within 10 minutes to the District Health Officer.</p><p>Copyright (c) 2026 Team TechDevs_6. All rights reserved.</p>",
+  "creators": [
+    { "name": "S, Tharun", "affiliation": "R M K College of Engineering and Technology" },
+    { "name": "B, TamilMani", "affiliation": "R M K College of Engineering and Technology" },
+    { "name": "V, Trilochan", "affiliation": "R M K College of Engineering and Technology" },
+    { "name": "K V, Jagasree", "affiliation": "R M K College of Engineering and Technology" },
+    { "name": "P, Surendar Hariprasad", "affiliation": "R M K College of Engineering and Technology" },
+    { "name": "S, Yogesh", "affiliation": "R M K College of Engineering and Technology" }
+  ],
+  "keywords": ["rural healthcare", "referral tracking", "offline-first", "triage", "Smart India Hackathon 2026"]
+}

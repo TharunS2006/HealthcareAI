@@ -1,0 +1,574 @@
+{
+  "retrievedAt": "2026-09-24T18:52:37.410Z",
+  "portal": "Open Government Data (OGD) Platform India — data.gov.in",
+  "infrastructure2022": {
+    "source": {
+      "title": "State/UT-wise Total Number of Primary Health Centres (PHCs), Sub-Health Centres (SHCs) and District Hospitals in the Country as per Rural Health Statistics (RHS) during 2021-22",
+      "publisher": "Rajya Sabha",
+      "resourceId": "f1cd67be-1623-4e43-8410-d71bea7ba11d",
+      "page": "https://www.data.gov.in/resource/stateut-wise-total-number-primary-health-centres-phcs-sub-health-centres-shcs-and-district",
+      "api": "https://api.data.gov.in/resource/f1cd67be-1623-4e43-8410-d71bea7ba11d",
+      "publishedOnPortal": "2024-11-03T06:22:31Z"
+    },
+    "rows": [
+      {
+        "state": "Andaman and Nicobar Isalnds",
+        "subHealthCentres": 124,
+        "phcs": 27,
+        "districtHospitals": 2
+      },
+      {
+        "state": "Andhra Pradesh",
+        "subHealthCentres": 11480,
+        "phcs": 1689,
+        "districtHospitals": 17
+      },
+      {
+        "state": "Arunachal Pradesh",
+        "subHealthCentres": 367,
+        "phcs": 131,
+        "districtHospitals": 19
+      },
+      {
+        "state": "Assam",
+        "subHealthCentres": 4701,
+        "phcs": 1010,
+        "districtHospitals": 25
+      },
+      {
+        "state": "Bihar",
+        "subHealthCentres": 10399,
+        "phcs": 1760,
+        "districtHospitals": 36
+      },
+      {
+        "state": "Chandigarh",
+        "subHealthCentres": 0,
+        "phcs": 43,
+        "districtHospitals": 1
+      },
+      {
+        "state": "Chhattisgarh",
+        "subHealthCentres": 5494,
+        "phcs": 822,
+        "districtHospitals": 27
+      },
+      {
+        "state": "Dadra and Nagar Haveli and Daman and Diu",
+        "subHealthCentres": 97,
+        "phcs": 14,
+        "districtHospitals": 2
+      },
+      {
+        "state": "Delhi",
+        "subHealthCentres": 14,
+        "phcs": 550,
+        "districtHospitals": 40
+      },
+      {
+        "state": "Goa",
+        "subHealthCentres": 219,
+        "phcs": 28,
+        "districtHospitals": 2
+      },
+      {
+        "state": "Gujarat",
+        "subHealthCentres": 9132,
+        "phcs": 1804,
+        "districtHospitals": 20
+      },
+      {
+        "state": "Haryana",
+        "subHealthCentres": 2653,
+        "phcs": 497,
+        "districtHospitals": 22
+      },
+      {
+        "state": "Himachal Pradesh",
+        "subHealthCentres": 2115,
+        "phcs": 570,
+        "districtHospitals": 9
+      },
+      {
+        "state": "Jammu and Kashmir",
+        "subHealthCentres": 2471,
+        "phcs": 973,
+        "districtHospitals": 15
+      },
+      {
+        "state": "Jharkhand",
+        "subHealthCentres": 3848,
+        "phcs": 361,
+        "districtHospitals": 21
+      },
+      {
+        "state": "Karnataka",
+        "subHealthCentres": 9272,
+        "phcs": 2521,
+        "districtHospitals": 16
+      },
+      {
+        "state": "Kerala",
+        "subHealthCentres": 5412,
+        "phcs": 944,
+        "districtHospitals": 48
+      },
+      {
+        "state": "Ladakh",
+        "subHealthCentres": 288,
+        "phcs": 33,
+        "districtHospitals": 2
+      },
+      {
+        "state": "Lakshadweep",
+        "subHealthCentres": 9,
+        "phcs": 4,
+        "districtHospitals": 1
+      },
+      {
+        "state": "Madhya Pradesh",
+        "subHealthCentres": 10287,
+        "phcs": 1572,
+        "districtHospitals": 52
+      },
+      {
+        "state": "Maharashtra",
+        "subHealthCentres": 10673,
+        "phcs": 2539,
+        "districtHospitals": 23
+      },
+      {
+        "state": "Manipur",
+        "subHealthCentres": 416,
+        "phcs": 95,
+        "districtHospitals": 7
+      },
+      {
+        "state": "Meghalaya",
+        "subHealthCentres": 459,
+        "phcs": 147,
+        "districtHospitals": 11
+      },
+      {
+        "state": "Mizoram",
+        "subHealthCentres": 373,
+        "phcs": 66,
+        "districtHospitals": 12
+      },
+      {
+        "state": "Nagaland",
+        "subHealthCentres": 452,
+        "phcs": 136,
+        "districtHospitals": 12
+      },
+      {
+        "state": "Odisha",
+        "subHealthCentres": 6688,
+        "phcs": 1393,
+        "districtHospitals": 32
+      },
+      {
+        "state": "Puducherry",
+        "subHealthCentres": 81,
+        "phcs": 39,
+        "districtHospitals": 4
+      },
+      {
+        "state": "Punjab",
+        "subHealthCentres": 2951,
+        "phcs": 522,
+        "districtHospitals": 23
+      },
+      {
+        "state": "Rajasthan",
+        "subHealthCentres": 13589,
+        "phcs": 2409,
+        "districtHospitals": 30
+      },
+      {
+        "state": "Sikkim",
+        "subHealthCentres": 153,
+        "phcs": 26,
+        "districtHospitals": 4
+      },
+      {
+        "state": "Tamil Nadu",
+        "subHealthCentres": 8713,
+        "phcs": 1886,
+        "districtHospitals": 20
+      },
+      {
+        "state": "Telangana",
+        "subHealthCentres": 4910,
+        "phcs": 834,
+        "districtHospitals": 5
+      },
+      {
+        "state": "Tripura",
+        "subHealthCentres": 1000,
+        "phcs": 117,
+        "districtHospitals": 7
+      },
+      {
+        "state": "Uttarakhand",
+        "subHealthCentres": 1851,
+        "phcs": 607,
+        "districtHospitals": 13
+      },
+      {
+        "state": "Uttar Pradesh",
+        "subHealthCentres": 20781,
+        "phcs": 3513,
+        "districtHospitals": 169
+      },
+      {
+        "state": "West Bengal",
+        "subHealthCentres": 10357,
+        "phcs": 1371,
+        "districtHospitals": 18
+      },
+      {
+        "state": "Total",
+        "subHealthCentres": 161829,
+        "phcs": 31053,
+        "districtHospitals": 767
+      }
+    ]
+  },
+  "phcChc2021": {
+    "source": {
+      "title": "State/UTs-wise Number of PHCs (Primary Health Centre), CHCs (Community Health Centres) Functioning in Rural and Urban Areas as per RHS (Rural Health Statistics) 2020-21",
+      "publisher": "Rajya Sabha",
+      "resourceId": "4e3c855c-c10c-479e-ae6e-187bfed35ac1",
+      "page": "https://www.data.gov.in/resource/stateuts-wise-number-phcs-primary-health-centre-chcs-community-health-centres-functioning",
+      "api": "https://api.data.gov.in/resource/4e3c855c-c10c-479e-ae6e-187bfed35ac1",
+      "publishedOnPortal": "2023-11-18T05:30:51Z"
+    },
+    "rows": [
+      {
+        "state": "Andhra Pradesh",
+        "phcsRural": 1142,
+        "phcsUrban": 259,
+        "phcsTotal": 1401,
+        "chcsRural": 141,
+        "chcsUrban": 57,
+        "chcsTotal": 198
+      },
+      {
+        "state": "Arunachal Pradesh",
+        "phcsRural": 122,
+        "phcsUrban": 5,
+        "phcsTotal": 127,
+        "chcsRural": 57,
+        "chcsUrban": 0,
+        "chcsTotal": 57
+      },
+      {
+        "state": "Assam",
+        "phcsRural": 948,
+        "phcsUrban": 53,
+        "phcsTotal": 1001,
+        "chcsRural": 197,
+        "chcsUrban": 2,
+        "chcsTotal": 199
+      },
+      {
+        "state": "Bihar",
+        "phcsRural": 1932,
+        "phcsUrban": 102,
+        "phcsTotal": 2034,
+        "chcsRural": 306,
+        "chcsUrban": 0,
+        "chcsTotal": 306
+      },
+      {
+        "state": "Chhattisgarh",
+        "phcsRural": 769,
+        "phcsUrban": 52,
+        "phcsTotal": 821,
+        "chcsRural": 166,
+        "chcsUrban": 3,
+        "chcsTotal": 169
+      },
+      {
+        "state": "Goa",
+        "phcsRural": 23,
+        "phcsUrban": 4,
+        "phcsTotal": 27,
+        "chcsRural": 6,
+        "chcsUrban": 0,
+        "chcsTotal": 6
+      },
+      {
+        "state": "Gujarat",
+        "phcsRural": 1477,
+        "phcsUrban": 322,
+        "phcsTotal": 1799,
+        "chcsRural": 333,
+        "chcsUrban": 27,
+        "chcsTotal": 360
+      },
+      {
+        "state": "Haryana",
+        "phcsRural": 384,
+        "phcsUrban": 100,
+        "phcsTotal": 484,
+        "chcsRural": 124,
+        "chcsUrban": 13,
+        "chcsTotal": 137
+      },
+      {
+        "state": "Himachal Pradesh",
+        "phcsRural": 553,
+        "phcsUrban": 19,
+        "phcsTotal": 572,
+        "chcsRural": 98,
+        "chcsUrban": 0,
+        "chcsTotal": 98
+      },
+      {
+        "state": "Jharkhand",
+        "phcsRural": 291,
+        "phcsUrban": 59,
+        "phcsTotal": 350,
+        "chcsRural": 171,
+        "chcsUrban": 5,
+        "chcsTotal": 176
+      },
+      {
+        "state": "Karnataka",
+        "phcsRural": 2141,
+        "phcsUrban": 390,
+        "phcsTotal": 2531,
+        "chcsRural": 182,
+        "chcsUrban": 30,
+        "chcsTotal": 212
+      },
+      {
+        "state": "Kerala",
+        "phcsRural": 782,
+        "phcsUrban": 158,
+        "phcsTotal": 940,
+        "chcsRural": 213,
+        "chcsUrban": 16,
+        "chcsTotal": 229
+      },
+      {
+        "state": "Madhya Pradesh",
+        "phcsRural": 1234,
+        "phcsUrban": 284,
+        "phcsTotal": 1518,
+        "chcsRural": 295,
+        "chcsUrban": 25,
+        "chcsTotal": 320
+      },
+      {
+        "state": "Maharashtra",
+        "phcsRural": 1839,
+        "phcsUrban": 651,
+        "phcsTotal": 2490,
+        "chcsRural": 270,
+        "chcsUrban": 131,
+        "chcsTotal": 401
+      },
+      {
+        "state": "Manipur",
+        "phcsRural": 86,
+        "phcsUrban": 9,
+        "phcsTotal": 95,
+        "chcsRural": 17,
+        "chcsUrban": 0,
+        "chcsTotal": 17
+      },
+      {
+        "state": "Meghalaya",
+        "phcsRural": 121,
+        "phcsUrban": 24,
+        "phcsTotal": 145,
+        "chcsRural": 28,
+        "chcsUrban": 0,
+        "chcsTotal": 28
+      },
+      {
+        "state": "Mizoram",
+        "phcsRural": 62,
+        "phcsUrban": 6,
+        "phcsTotal": 68,
+        "chcsRural": 9,
+        "chcsUrban": 0,
+        "chcsTotal": 9
+      },
+      {
+        "state": "Nagaland",
+        "phcsRural": 131,
+        "phcsUrban": 7,
+        "phcsTotal": 138,
+        "chcsRural": 21,
+        "chcsUrban": 0,
+        "chcsTotal": 21
+      },
+      {
+        "state": "Odisha",
+        "phcsRural": 1288,
+        "phcsUrban": 91,
+        "phcsTotal": 1379,
+        "chcsRural": 377,
+        "chcsUrban": 7,
+        "chcsTotal": 384
+      },
+      {
+        "state": "Punjab",
+        "phcsRural": 422,
+        "phcsUrban": 100,
+        "phcsTotal": 522,
+        "chcsRural": 150,
+        "chcsUrban": 10,
+        "chcsTotal": 160
+      },
+      {
+        "state": "Rajasthan",
+        "phcsRural": 2130,
+        "phcsUrban": 264,
+        "phcsTotal": 2394,
+        "chcsRural": 589,
+        "chcsUrban": 68,
+        "chcsTotal": 657
+      },
+      {
+        "state": "Sikkim",
+        "phcsRural": 24,
+        "phcsUrban": 2,
+        "phcsTotal": 26,
+        "chcsRural": 2,
+        "chcsUrban": 0,
+        "chcsTotal": 2
+      },
+      {
+        "state": "Tamil Nadu",
+        "phcsRural": 1422,
+        "phcsUrban": 464,
+        "phcsTotal": 1886,
+        "chcsRural": 385,
+        "chcsUrban": 15,
+        "chcsTotal": 400
+      },
+      {
+        "state": "Telangana",
+        "phcsRural": 636,
+        "phcsUrban": 227,
+        "phcsTotal": 863,
+        "chcsRural": 85,
+        "chcsUrban": 10,
+        "chcsTotal": 95
+      },
+      {
+        "state": "Tripura",
+        "phcsRural": 108,
+        "phcsUrban": 8,
+        "phcsTotal": 116,
+        "chcsRural": 22,
+        "chcsUrban": 0,
+        "chcsTotal": 22
+      },
+      {
+        "state": "Uttarakhand",
+        "phcsRural": 245,
+        "phcsUrban": 42,
+        "phcsTotal": 287,
+        "chcsRural": 53,
+        "chcsUrban": 19,
+        "chcsTotal": 72
+      },
+      {
+        "state": "Uttar Pradesh",
+        "phcsRural": 2923,
+        "phcsUrban": 593,
+        "phcsTotal": 3516,
+        "chcsRural": 753,
+        "chcsUrban": 12,
+        "chcsTotal": 765
+      },
+      {
+        "state": "West Bengal",
+        "phcsRural": 915,
+        "phcsUrban": 454,
+        "phcsTotal": 1369,
+        "chcsRural": 348,
+        "chcsUrban": 0,
+        "chcsTotal": 348
+      },
+      {
+        "state": "Andaman and Nicobar Islands",
+        "phcsRural": 22,
+        "phcsUrban": 5,
+        "phcsTotal": 27,
+        "chcsRural": 4,
+        "chcsUrban": 0,
+        "chcsTotal": 4
+      },
+      {
+        "state": "Chandigarh",
+        "phcsRural": 0,
+        "phcsUrban": 42,
+        "phcsTotal": 42,
+        "chcsRural": 0,
+        "chcsUrban": 2,
+        "chcsTotal": 2
+      },
+      {
+        "state": "Dadra and Nagar Haveli and Daman and Diu",
+        "phcsRural": 12,
+        "phcsUrban": 2,
+        "phcsTotal": 14,
+        "chcsRural": 3,
+        "chcsUrban": 1,
+        "chcsTotal": 4
+      },
+      {
+        "state": "Delhi",
+        "phcsRural": 5,
+        "phcsUrban": 544,
+        "phcsTotal": 549,
+        "chcsRural": 0,
+        "chcsUrban": 0,
+        "chcsTotal": 0
+      },
+      {
+        "state": "Jammu and Kashmir",
+        "phcsRural": 891,
+        "phcsUrban": 82,
+        "phcsTotal": 973,
+        "chcsRural": 63,
+        "chcsUrban": 16,
+        "chcsTotal": 79
+      },
+      {
+        "state": "Ladakh",
+        "phcsRural": 32,
+        "phcsUrban": 0,
+        "phcsTotal": 32,
+        "chcsRural": 7,
+        "chcsUrban": 0,
+        "chcsTotal": 7
+      },
+      {
+        "state": "Lakshadweep",
+        "phcsRural": 4,
+        "phcsUrban": 0,
+        "phcsTotal": 4,
+        "chcsRural": 3,
+        "chcsUrban": 0,
+        "chcsTotal": 3
+      },
+      {
+        "state": "Puducherry",
+        "phcsRural": 24,
+        "phcsUrban": 15,
+        "phcsTotal": 39,
+        "chcsRural": 3,
+        "chcsUrban": 1,
+        "chcsTotal": 4
+      }
+    ]
+  }
+}
