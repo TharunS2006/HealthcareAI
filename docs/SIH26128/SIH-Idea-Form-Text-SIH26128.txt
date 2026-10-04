@@ -1,0 +1,43 @@
+SIH-Idea-Form-Text
+
+PROBLEM STATEMENT: SIH26128 - Efficient systems for early detection, prevention, and management of livestock diseases and animal health issues
+
+IDEA TITLE:
+
+PashuRaksha: Catching Livestock Disease Early, From the First Sick Animal to a Coordinated Response
+
+
+IDEA DESCRIPTION:
+
+A farmer notices two of his cows limping, drooling, with sores in the mouth. The veterinary dispensary is far away and he is not sure it is serious, so he tries a home remedy and waits. A neighbour's animals fall sick. Some people hide it, because they have heard that reporting can mean restrictions on moving animals. When the block veterinary officer finally hears, it is as a district number, with no way to see that three villages were affected in the same week. No sample was taken, no one is sure who was vaccinated, and no one told the farmer what happens after he reports. By then the disease has already moved.
+
+Our answer is PashuRaksha. It is a system for the person in the village, the para-veterinary worker, the veterinary officer and the district office, built around one question: how many hours pass between the first report and action?
+
+What it does:
+
+1. Makes reporting quick and safe. A para-veterinary worker or vet reports in about four taps on an offline app, choosing the species, the signs from pictures and local-language labels, the number sick or dead, and the village. A farmer with a basic phone can give a missed call and get an IVR callback in Marathi or Hindi. Reports can be assisted or anonymous, and the reporter always gets advice and a next step, because people report when it helps them.
+
+2. Sorts cases by syndrome. Rules for each species (cattle, buffalo, goat and sheep, poultry, pig) read the combination of signs and give one of three outputs: routine advice, a vet visit, or a suspected notifiable disease. The system never prescribes a drug. The veterinarian decides.
+
+3. Spots outbreaks across villages. Single reports are checked against others in the block. A set of similar cases in several villages within a few days raises an alert. These thresholds are set with veterinary officers. A baseline learned from history is added as data builds up, and where there is no history the system says so and relies on the rules.
+
+4. Keeps prevention on the record. Records are kept by herd, and by animal where an ear tag exists. Each village gets a due-list showing whose animals are overdue for vaccination, with reminders to owners and para-veterinary staff. Weather and past-outbreak data give block-level risk guidance, and advisories go out in local languages.
+
+5. Gets samples and escalations moving. A suspected notifiable case gets a sample checklist and a suggested nearest lab. The status is tracked and the result goes back to the reporter and the officer. If a suspected outbreak is not acknowledged in time, it moves up to the next officer automatically. Diseases that can pass to people (such as anthrax or rabies) raise an alert to the human-health side.
+
+6. Gives officers one picture. The dashboard shows open cases, active clusters on a village map, overdue vaccinations, lab turnaround, and the outbreak clock: the time from first report to action, for every case and every block.
+
+7. Works where the signal does not. The app stores everything on the phone and syncs when a connection returns. SMS and IVR cover reporters who have no smartphone.
+
+How it is meant to be built: an offline-first web and Android app (Next.js and Capacitor, with local storage on the phone), a FastAPI or Node service, PostgreSQL with PostGIS, an IVR provider, Bhashini for language, and MapLibre for the map. It reuses the offline-first and escalation approach our team has already built and tested in another healthcare project. A learned model, where history exists, only helps rank anomalies. The rules decide what is escalated, and every alert shows its reasons.
+
+How we will check it: by running past outbreak reports through the rules to see whether, and when, an alert would have fired; by veterinary review of the syndrome rules and thresholds; by a pilot in one block measuring report-to-response time, the share of suspected cases that get a sample sent, how long escalations take to be acknowledged, due-list coverage and the false-alarm rate; and by tests on unseen blocks and periods once there is enough data. We have not run these yet and we claim no results.
+
+Status: PashuRaksha is at the design stage. The workflow, rules approach, architecture and validation plan are worked out. There is no working prototype for this problem yet.
+
+Reasons for adoption: It runs on phones that para-veterinary staff and offices already have, uses open-source software with no licence cost, and does not need new hardware. It links to existing animal-identification and programme records where they are available and does not ask staff to enter the same data twice. It can start in one block with a few villages, one dispensary and one lab, then grow to the district and the state. Farmers get a reason to report, officers get a view they do not have today, and the number that matters, hours from first report to action, is recorded for everyone to see.
+
+
+ABSTRACT / SUMMARY
+
+Livestock diseases are often found late. Farmers hesitate to report, the dispensary and the lab are far away, vaccination records sit in paper registers, and officers see district totals instead of village patterns. PashuRaksha is a surveillance and response system for villages, blocks and districts. Para-veterinary workers report in about four taps on an offline app, and farmers with basic phones report by missed call and IVR in local languages, with assisted or anonymous options and feedback to the reporter. Species-specific syndrome rules give routine advice, a vet visit or a suspected notifiable disease, and never prescribe. Cluster rules raise alerts when similar cases appear across villages within days. Herd and animal records, vaccination due-lists and weather and history-based risk guidance support prevention. Suspected cases get a sample checklist, a nearest lab and tracked results, unanswered cases escalate to the next officer, and zoonotic signs alert human health. A dashboard shows open cases, a village map, coverage, and the outbreak clock, the time from first report to action. Rules decide, machine learning only assists, and the veterinarian decides. It is built on open-source software, runs offline, can start in one block, and is at the design stage with no results claimed yet.

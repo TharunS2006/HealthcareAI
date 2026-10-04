@@ -1,0 +1,43 @@
+SIH-Idea-Form-Text
+
+PROBLEM STATEMENT: SIH26240 - AI-Based Spring Revival and Recharge Planning for Tribal Areas
+
+IDEA TITLE:
+
+JalSrot: Finding Where a Spring's Water Comes From, and Where to Help It Recharge
+
+
+IDEA DESCRIPTION:
+
+In a hill hamlet, the spring that families have walked to for generations now runs thin by April. The block office wants to help. It can build trenches, pits or check dams, but where? The water that feeds a spring does not always fall on the slope above it. It can travel along tilted rock layers and cracks from a hillside nobody thinks to look at. Working that out normally means a hydrogeologist walking the hills, and there are very few of them for a very large number of springs. So the work waits, and when it happens the choice of site often rests on judgement alone, with little record of whether it worked.
+
+Our answer is JalSrot. It is a decision-support tool that takes the data departments already have and turns it into a short, ranked list of places worth visiting. It does not replace the hydrogeologist. It reduces the amount of hillside the hydrogeologist has to inspect.
+
+What it does:
+
+1. It puts the evidence in one place. Terrain from the elevation model, rock types and structure from geological maps, rainfall, land cover, and what is known about each spring are brought onto one grid. Each layer gets a quality score, so a coarse or old layer is never treated as if it were exact.
+
+2. It estimates the springshed. Instead of drawing the surface watershed and stopping there, JalSrot weights the flow paths by rock dip, fractures and geological contacts. The result is a zone shown as probabilities (core, probable, possible), not a single hard line.
+
+3. It scores recharge suitability. A Random Forest and XGBoost model ranks locations, and SHAP shows which factors drove each score, so an officer can see why a site was ranked high. Geological and terrain rules limit what the model is allowed to suggest. The model ranks within those limits.
+
+4. It states how sure it is, and where not to build. Every output carries a confidence level based on how much and how good the data is. Steep, unstable or low-permeability sites are flagged as high risk, with the reason.
+
+5. It suggests the kind of structure that fits the site. Staggered trenches, percolation pits, boulder checks or plantation, chosen by slope, rock, land cover and drainage. These are indicative suggestions only and are marked "verify on site".
+
+6. It brings field results back. An offline phone app lets the field team record strike and dip with the phone compass, photographs, seepage notes and spring discharge, including seasonal readings. Data syncs when a signal returns, and the next ranking uses what was found on the ground.
+
+It works with whatever data exists. With only elevation and rainfall it gives a rough, low-confidence screening. As geology, spring records and field readings are added, the output becomes more reliable and says so.
+
+How it is meant to be built: Python with GDAL, rasterio and WhiteboxTools for terrain and flow analysis; scikit-learn, XGBoost and SHAP for ranking and explanation; PostgreSQL with PostGIS for storage; FastAPI for the service; Next.js with MapLibre for the map; and an offline web and Android app for the field team. Inputs are open data: SRTM or Cartosat elevation, GSI Bhukosh geology, IMD or CHIRPS rainfall, Bhuvan land use and India-WRIS.
+
+How we will check it: against known spring behaviour and any historical records; on areas the model has not seen; through review of the top-ranked sites by hydrogeologists; and through discharge measurements across wet and dry seasons. We will judge it on Precision@K, recall, ranking quality and whether its confidence levels match reality. We have not run these tests yet and we do not claim any results.
+
+Status: JalSrot is at the design stage. We have worked out the data pipeline, the springshed method, the scoring approach, the validation plan and the field workflow. There is no working prototype yet.
+
+Reasons for adoption: It uses only open data and open-source software, so there is no licence cost, and the pilot can run on a single server. The field team needs only an Android phone. It can start in one block with 20 to 30 mapped springs, be checked by experts there, and then extend to a district and the state. Because it points experts to the best sites first and records the outcome, each season's results make the next season's planning better.
+
+
+ABSTRACT / SUMMARY
+
+Springs in hilly tribal areas depend on rainwater recharging an aquifer that cannot be seen from the surface, and finding the recharge area normally needs a hydrogeologist to survey on foot. That is slow and hard to repeat across remote areas. JalSrot is a decision-support tool that combines elevation, geology and structure, rainfall, land cover and spring records, and estimates a springshed that follows rock dip and fractures instead of only the surface watershed. A Random Forest and XGBoost model then ranks locations for recharge work, SHAP explains each score, and geological rules limit what the model can suggest. Every output carries a confidence level based on data quality, and unsafe or unsuitable sites are flagged. Sites are suggested with an indicative structure type and a "verify on site" note. An offline field app records strike, dip, observations and spring discharge, and these readings improve later rankings. JalSrot does not replace the hydrogeologist; it reduces the area the hydrogeologist has to inspect. It uses open data and open-source software, can start with one block of 20 to 30 springs, and is at the design stage with no results claimed yet.
