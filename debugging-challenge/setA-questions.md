@@ -1,4 +1,4 @@
-# IEEE Inter-Society Code Debugging Challenge — Question Set
+# IEEE Inter-Society Code Debugging Challenge — SET A Questions
 
 > **Instructions for participants:** Each problem has a working idea but **buggy code**. Find and fix the bugs so the program passes all hidden test cases. Use the language given for each problem. Keep the original structure, because fully rewritten solutions may be disqualified. The bug count is a hint.
 >
@@ -9,6 +9,7 @@
 # PART A — MODERATE (15 × 50 pts)
 
 ## M1. Single Neuron Activation · Python · IEEE CIS · AI&DS/CSE · 3 bugs
+**Concept:** Weighted sum, sigmoid activation function.
 Compute the output of a neuron with sigmoid activation: `σ(Σ wᵢxᵢ + b)`, printed with exactly 4 decimals.
 
 **Input:** `n`; then `n` weights; then `n` inputs; then bias `b` (all integers, |values| ≤ 10, 1 ≤ n ≤ 100)
@@ -28,6 +29,7 @@ print(round(1 / (1 - math.exp(-z)), 4))
 ```
 
 ## M2. First Occurrence · C++ · Computer Society · CSE · 3 bugs
+**Concept:** Binary search, lower bound / first occurrence.
 Given a sorted array, print the 0-based index of the **first** occurrence of `t`, or `-1`.
 
 **Input:** `n t`, then `n` sorted integers (1 ≤ n ≤ 10⁵)
@@ -52,6 +54,7 @@ int main() {
 ```
 
 ## M3. Caesar Cipher · Java · Security · Cyber · 3 bugs
+**Concept:** Caesar cipher, modular arithmetic on characters.
 Shift every letter by `k` (k may be negative). Keep the case. Non-letters stay unchanged.
 
 **Input:** `k` (|k| ≤ 1000) on line 1, text on line 2
@@ -80,6 +83,7 @@ public class Main {
 ```
 
 ## M4. Moving Average Filter · Python · Signal Processing Society · ECE · 3 bugs
+**Concept:** Moving-average (FIR low-pass) filter, sliding window sum.
 Print the average of every window of size `k` (n−k+1 values, 2 decimals, space-separated).
 
 **Input:** `n k`, then `n` integers (1 ≤ k ≤ n ≤ 10⁵)
@@ -97,6 +101,7 @@ print(" ".join(f"{v:.2f}" for v in res))
 ```
 
 ## M5. Hamming Distance · C++ · Circuits & Systems · VLSI/ECE · 2 bugs
+**Concept:** XOR, Hamming distance, bit shifting.
 Print the number of bit positions where `x` and `y` differ.
 
 **Input:** `x y` (0 ≤ x, y < 2³¹)
@@ -118,6 +123,7 @@ int main() {
 ```
 
 ## M6. Sentence Palindrome · Java · Computer Society · CSE · 3 bugs
+**Concept:** Two-pointer technique, string normalization.
 Ignore non-alphanumeric characters and case. Print `YES` if the line is a palindrome, otherwise `NO`.
 
 **Input:** one line (length ≤ 10⁵)
@@ -142,6 +148,7 @@ public class Main {
 ```
 
 ## M7. Matrix Multiplication · Python · IEEE CIS · AI&DS · 3 bugs
+**Concept:** Matrix multiplication, list aliasing in Python.
 Multiply A (n×m) by B (m×p). Print C row by row, space-separated.
 
 **Input:** `n m p`, then n rows of A, then m rows of B (≤ 50 each)
@@ -161,6 +168,7 @@ for row in C:
 ```
 
 ## M8. Decimal to Binary · C++ · Circuits & Systems · VLSI · 4 bugs
+**Concept:** Base conversion (decimal → binary), char arithmetic.
 Print the binary representation of `n` without leading zeros.
 
 **Input:** `n` (0 ≤ n ≤ 10⁹)
@@ -181,6 +189,7 @@ int main() {
 ```
 
 ## M9. Balanced Brackets · Java · Computer Society · CSE · 3 bugs
+**Concept:** Stack, bracket matching.
 For each of the `t` strings made of `()[]{}`, print `YES` if it is balanced, otherwise `NO`.
 
 **Input:** `t`, then t lines (each non-empty, length ≤ 10⁵)
@@ -210,6 +219,7 @@ public class Main {
 ```
 
 ## M10. 1-Nearest-Neighbour Classifier · Python · IEEE CIS · AI&DS · 3 bugs
+**Concept:** k-Nearest Neighbours, Euclidean distance.
 Classify the query point with the label of the closest training point (Euclidean distance). On a tie, use the earliest point.
 
 **Input:** `n d`; n lines with d integers and a label; one line with d integers (the query)
@@ -231,6 +241,7 @@ print(label)
 ```
 
 ## M11. Prime Counter (RSA prep) · C++ · Security · Cyber · 4 bugs
+**Concept:** Sieve of Eratosthenes.
 Count the primes ≤ N using the Sieve of Eratosthenes.
 
 **Input:** `N` (1 ≤ N ≤ 10⁷)
@@ -252,6 +263,7 @@ int main() {
 ```
 
 ## M12. Fibonacci mod 1e9+7 · Java · Computer Society · CSE · 3 bugs
+**Concept:** Iterative DP, modular arithmetic, overflow.
 Print F(n) mod 1 000 000 007, where F(0)=0 and F(1)=1.
 
 **Input:** `n` (0 ≤ n ≤ 10⁶)
@@ -274,6 +286,7 @@ public class Main {
 ```
 
 ## M13. Even Parity Generator · Python · Signal Processing / Comm. · ECE · 3 bugs
+**Concept:** Parity bits, error detection.
 Append a parity bit to each binary word so that the total number of 1s is **even**.
 
 **Input:** `t`, then t binary strings
@@ -289,6 +302,7 @@ for _ in range(t):
 ```
 
 ## M14. Maximum Subarray Sum · C++ · IEEE CIS · AI&DS · 3 bugs
+**Concept:** Kadane's algorithm (DP), overflow.
 Print the maximum sum of a non-empty contiguous subarray.
 
 **Input:** `n`, then n integers (n ≤ 10⁵, |aᵢ| ≤ 10⁹)
@@ -311,6 +325,7 @@ int main() {
 ```
 
 ## M15. Password Strength Checker · Java · Security · Cyber · 4 bugs
+**Concept:** Input validation, boolean logic.
 A password is `STRONG` if it has length ≥ 8 **and** at least one uppercase letter, one lowercase letter, one digit and one special character from `!@#$%^&*`. Otherwise it is `WEAK`.
 
 **Input:** one line (no spaces)
@@ -340,6 +355,7 @@ public class Main {
 # PART B — HARD (10 × 100 pts)
 
 ## H1. Shortest Network Latency (Dijkstra) · C++ · Computer Society · CSE · 4 bugs
+**Concept:** Dijkstra's shortest path, min-heap, lazy deletion.
 An **undirected** network has `n` routers and `m` links with latencies. Print the shortest latency from router 1 to every router (`-1` if it can't be reached), space-separated.
 
 **Input:** `n m`, then m lines `u v w` (n, m ≤ 2·10⁵, w ≤ 10⁹)
@@ -369,6 +385,7 @@ int main() {
 ```
 
 ## H2. Linear Regression by Gradient Descent · Python · IEEE CIS · AI&DS · 3 bugs
+**Concept:** Gradient descent, MSE loss, linear regression.
 Fit `y = w·x + b` with batch gradient descent on the MSE loss (gradient `(1/n)Σ err·x`, `(1/n)Σ err`). Start from `w=b=0` and run exactly `T` iterations with learning rate `lr`, updating w and b **simultaneously**. Print `w b` with 4 decimals.
 
 **Input:** `n T lr`, then n lines `x y`
@@ -394,6 +411,7 @@ print(f"{w:.4f} {b:.4f}")
 ```
 
 ## H3. LRU Cache · Java · Computer Society · CSE · 3 bugs
+**Concept:** LRU cache, LinkedHashMap access order.
 Simulate an LRU cache of capacity `c`. `GET k` prints the value or `-1`, and counts as a use. `PUT k v` inserts or updates, and also counts as a use. When the cache is full, evict the least recently used key.
 
 **Input:** `c q`, then q operations
@@ -425,6 +443,7 @@ public class Main {
 ```
 
 ## H4. FIR Filter / Discrete Convolution · C++ · Signal Processing Society · ECE · 3 bugs
+**Concept:** Discrete convolution, FIR filtering.
 Compute `y[n] = Σₖ h[k]·x[n−k]` (full linear convolution, length N+M−1).
 
 **Input:** `N M`, then N values of x, then M values of h (N, M ≤ 2000, |values| ≤ 10⁶)
@@ -448,6 +467,7 @@ int main() {
 ```
 
 ## H5. RSA Decryption · Python · Security · Cyber · 4 bugs
+**Concept:** RSA, modular inverse (Extended Euclid), fast exponentiation.
 Given primes `p q`, public exponent `e` and ciphertext `c`, compute `d = e⁻¹ mod φ(n)` and print `m = c^d mod n`. Do **not** use the built-in `pow` with 3 arguments. Fix the helper functions instead.
 
 **Input:** `p q e c` (p, q < 10⁹)
@@ -482,6 +502,7 @@ print(power(c, d, n))
 ```
 
 ## H6. Course Scheduler (Topological Sort) · Java · Computer Society · CSE · 3 bugs
+**Concept:** Topological sort (Kahn's algorithm), cycle detection.
 There are `n` courses and `m` rules `u v` meaning *u must be taken before v*. Print the **lexicographically smallest** valid order, or `CYCLE` if no order exists.
 
 **Input:** `n m`, then m lines `u v` (1-indexed, n, m ≤ 10⁵)
@@ -517,6 +538,7 @@ public class Main {
 ```
 
 ## H7. Binary Ripple-Carry Adder · C++ · Circuits & Systems · VLSI · 4 bugs
+**Concept:** Ripple-carry adder, binary addition.
 Add two binary strings, the way a ripple-carry adder does, and print the binary sum.
 
 **Input:** two binary strings (length ≤ 10⁵, no leading zeros unless the string is "0")
@@ -541,6 +563,7 @@ int main() {
 ```
 
 ## H8. 1-D K-Means Clustering · Python · IEEE CIS · AI&DS · 4 bugs
+**Concept:** K-means clustering (Lloyd's algorithm).
 Start with the **first k points** as the initial centroids and run exactly `T` iterations:
 1. Assign every point to the nearest centroid (on a tie, the lower index).
 2. Recompute **all** centroids from the new assignment. An empty cluster keeps its old centroid.
@@ -569,6 +592,7 @@ print(" ".join(f"{v:.2f}" for v in sorted(cent)))
 ```
 
 ## H9. Peak Detector (Sliding Window Maximum) · Java · Signal Processing Society · ECE · 3 bugs
+**Concept:** Sliding window maximum, monotonic deque.
 For each window of size `k`, print the maximum signal value. Use the O(n) deque method.
 
 **Input:** `n k`, then n integers (n ≤ 10⁶)
@@ -599,6 +623,7 @@ public class Main {
 ```
 
 ## H10. Edit Distance (Spell-check / DNA) · C++ · IEEE CIS · CSE/AI&DS · 5 bugs
+**Concept:** Dynamic programming, Levenshtein edit distance.
 Print the minimum number of insertions, deletions and substitutions needed to turn `s` into `t`.
 
 **Input:** two strings `s t` (length ≤ 5000)

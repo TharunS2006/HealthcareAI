@@ -7,10 +7,12 @@
 **Languages:** C++, Python, Java
 **Platforms:** free contest hosting on HackerRank Community, with HackerEarth / CodeChef / Codeforces Gym as alternatives
 
-Files:
-- `README.md`: this guide (format, department grouping, scoring, hosting steps)
-- `questions.md`: what participants see (statements plus buggy code)
-- `answer-key.md`: bugs and fixed code. **Keep this file private.** If this repository is public, remove it before the event, or move it somewhere private.
+Files (PDFs in `pdf/`, regenerate with `python build_pdfs.py`):
+- `README.md`: this guide
+- **Set A** (15 moderate + 10 hard): `setA-questions.md` / `pdf/SetA_Questions.pdf`, `setA-answer-key.md` / `pdf/SetA_AnswerKey.pdf`
+- **Set B** (18 easy + 4 moderate + 3 hard, easier): `setB-questions.md` / `pdf/SetB_Questions.pdf`, `setB-answer-key.md` / `pdf/SetB_AnswerKey.pdf`
+- `hackerrank-guide.md` / `pdf/HackerRank_Contest_Setup_Guide.pdf`: step-by-step contest creation
+- **Keep the answer keys private.** If this repository is public, remove them before the event.
 
 ---
 
@@ -51,8 +53,8 @@ Every question is tagged with the IEEE society and the department whose syllabus
 1. Log in at **hackerrank.com** → profile menu → **Administration** → **Manage Contests** → **Create Contest**. Contest hosting for communities and colleges is free.
 2. Set the name, start/end time and a custom URL. Leave the leaderboard on.
 3. **Manage Challenges → Create Challenge** for each question:
-   - Paste the *Problem statement, Input/Output format, Constraints and Sample* from `questions.md`.
-   - **Test cases tab:** add the sample (marked sample) plus 6–10 hidden cases. Generate outputs by running the fixed code from `answer-key.md` locally.
+   - Paste the *Problem statement, Input/Output format, Constraints and Sample* from `setA-questions.md`.
+   - **Test cases tab:** add the sample (marked sample) plus 6–10 hidden cases. Generate outputs by running the fixed code from `setA-answer-key.md` locally.
    - **Languages tab:** enable **only** the problem's language (e.g. only Python 3).
    - **Code stubs / Template:** paste the **buggy code** as the default template for that language so it loads in the editor automatically.
    - Set the score (50 / 100).
@@ -75,4 +77,4 @@ HackerEarth also lets colleges and communities host coding contests (look for **
 - [ ] Verify the buggy code **fails** at least one hidden test and the fixed code **passes** all of them
 - [ ] Restrict languages per problem
 - [ ] Dry-run contest with volunteers
-- [ ] Keep `answer-key.md` private until results are announced
+- [ ] Keep `setA-answer-key.md` private until results are announced
