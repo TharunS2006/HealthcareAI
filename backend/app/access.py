@@ -13,6 +13,16 @@ under is the one its user signed in as, not one it claims.
 Checks are attached as route dependencies (`dependencies=[...]`), not as
 function parameters, so the endpoint functions keep their signatures and the
 verify scripts that call them directly still work.
+
+Revocation. A token is good for 12 hours. The relay re-reads the staff
+directory on every request, so a user the Super Admin deactivates, moves or
+re-roles is refused there at once; this service has no directory of its own.
+With NALAMMESH_RELAY_URL set, it asks the relay (GET /api/auth/me) whether a
+token's user is still the user it names, caching each answer for a minute.
+The relay's "no" is final. A relay that cannot be reached is not treated as
+a "no" — the token's signature and expiry still stand — so a relay outage
+does not lock clinicians out of the pre-arrival board; set
+NALAMMESH_RELAY_CHECK=strict to refuse instead.
 """
 
 import base64
@@ -20,12 +30,17 @@ import hashlib
 import hmac
 import json
 import os
+import threading
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Optional
 
 from fastapi import HTTPException, Request, status
+
+# Imported for its side effect: backend/.env is loaded before the reads below.
+from . import env  # noqa: F401
 
 _TABLE = json.loads((Path(__file__).parent / "permissions.json").read_text())
 ROLE_PERMISSIONS: dict[str, set[str]] = {role: set(perms) for role, perms in _TABLE["roles"].items()}
@@ -81,15 +96,61 @@ def verify_token(token: str, secret: str, now: Optional[float] = None) -> Option
     return Identity(user_id=claims["sub"], role=claims["role"], facility_id=fac if isinstance(fac, str) else None)
 
 
-def identity_from_request(request: Request) -> Optional[Identity]:
-    """The signed-in identity behind a request's bearer token, or None."""
+RELAY_URL = os.environ.get("NALAMMESH_RELAY_URL", "").strip().rstrip("/")
+RELAY_CHECK_STRICT = os.environ.get("NALAMMESH_RELAY_CHECK", "").strip().lower() == "strict"
+_RELAY_CACHE_SECONDS = 60.0
+_relay_cache: "OrderedDict[str, tuple[float, bool]]" = OrderedDict()
+_relay_lock = threading.Lock()
+
+
+def _relay_still_accepts(token: str) -> bool:
+    """Does the relay still accept this token's user? True when no relay is configured."""
+    if not RELAY_URL:
+        return True
+    key = hashlib.sha256(token.encode()).hexdigest()
+    now = time.monotonic()
+    with _relay_lock:
+        hit = _relay_cache.get(key)
+        if hit and now - hit[0] < _RELAY_CACHE_SECONDS:
+            return hit[1]
+    try:
+        import httpx
+
+        response = httpx.get(f"{RELAY_URL}/api/auth/me", headers={"Authorization": f"Bearer {token}"}, timeout=3.0)
+        if response.status_code == 200:
+            accepted = True
+        elif response.status_code in (401, 403):
+            accepted = False
+        else:
+            accepted = not RELAY_CHECK_STRICT
+    except Exception:  # unreachable relay: see the module note
+        accepted = not RELAY_CHECK_STRICT
+    with _relay_lock:
+        _relay_cache[key] = (now, accepted)
+        _relay_cache.move_to_end(key)
+        while len(_relay_cache) > 5000:
+            _relay_cache.popitem(last=False)
+    return accepted
+
+
+def identity_from_request(request: Request, check_relay: bool = True) -> Optional[Identity]:
+    """
+    The signed-in identity behind a request's bearer token, or None.
+
+    check_relay=False skips the revocation check — for the access log, which
+    records who a token names even when that user has since been refused.
+    """
     auth = request.headers.get("authorization", "")
     if not auth.lower().startswith("bearer "):
         return None
     secret = auth_secret()
     if not secret:
         return None
-    return verify_token(auth[7:].strip(), secret)
+    token = auth[7:].strip()
+    who = verify_token(token, secret)
+    if who is None or (check_relay and not _relay_still_accepts(token)):
+        return None
+    return who
 
 
 def require(permission: str, *, facility_query: Optional[str] = None) -> Callable[[Request], Identity]:

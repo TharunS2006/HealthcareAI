@@ -19,6 +19,21 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Production runs the district service on PostgreSQL; verify:postgres
+    # drives it against this one (every other suite uses SQLite).
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nalammesh_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -31,12 +46,14 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-postgres.txt
 
       - name: Install
         run: |
           npm ci
-          python -m pip install -r backend/requirements.txt
+          python -m pip install -r backend/requirements-postgres.txt
 
       - name: Lint
         run: npm run lint
@@ -46,6 +63,8 @@ jobs:
 
       - name: Verify suites
         run: npm run verify
+        env:
+          TEST_POSTGRES_URL: postgresql+psycopg://postgres:postgres@localhost:5432/nalammesh_test
 
       - name: Production build
         run: npm run build
@@ -57,7 +76,8 @@ jobs:
 
       # requirements.txt sets minimum versions, so every install resolves afresh;
       # audit what that resolves to today, under the same Python as the deploys.
+      # requirements-postgres.txt is requirements.txt plus the PostgreSQL driver.
       - name: Python dependency audit
         run: |
           python -m pip install pip-audit
-          pip-audit -r backend/requirements.txt --progress-spinner off
+          pip-audit -r backend/requirements-postgres.txt --progress-spinner off

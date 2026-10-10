@@ -49,8 +49,10 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from app.chat_engine import _chat_completion, _resolve_provider, chat_hosting  # noqa: E402
 from app.chat_guard import ChatCaller, chat_access, redact_identifiers  # noqa: E402
+from app.hardening import BodySizeLimit, api_docs_enabled, security_headers  # noqa: E402
 from app.schemas import ChatIn, ChatOut  # noqa: E402
 
+_DOCS = api_docs_enabled()
 app = FastAPI(
     title="NalamMesh Assistant",
     description=(
@@ -59,6 +61,9 @@ app = FastAPI(
         "service, which is not exposed here."
     ),
     version="1.0.0",
+    docs_url="/docs" if _DOCS else None,
+    redoc_url="/redoc" if _DOCS else None,
+    openapi_url="/openapi.json" if _DOCS else None,
 )
 
 # This endpoint spends a metered API key, so it should not be callable from any
@@ -73,6 +78,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(BodySizeLimit)
+app.middleware("http")(security_headers)
 
 
 @app.get("/health", tags=["service"])

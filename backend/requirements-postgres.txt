@@ -1,0 +1,11 @@
+# The district service on PostgreSQL — what a production deployment should run.
+#
+#   pip install -r requirements-postgres.txt
+#   DATABASE_URL=postgresql+psycopg://user:pass@host:5432/nalammesh
+#
+# SQLite (the default in requirements.txt) is for one machine: a laptop demo or
+# a single facility. A district service with several facilities writing at once,
+# backups and point-in-time recovery needs PostgreSQL. The tables are created at
+# startup either way; nothing in the code changes.
+-r requirements.txt
+psycopg[binary]>=3.2

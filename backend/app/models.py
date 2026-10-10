@@ -1,11 +1,12 @@
 """
 Relational models for the district reporting service.
 
-These deliberately mirror only what a District Health Officer needs for
-aggregate reporting — counts, tiers, triage outcomes, referral throughput.
-They are NOT a copy of the clinical record. Free-text complaints, vitals and
-identifiers stay on the facility device that captured them; centralising those
-would undo the privacy property of the device-first design.
+The first group mirrors only what a District Health Officer needs for
+aggregate reporting — counts, tiers, triage outcomes, referral throughput —
+and holds no identifiers. The second (patient_records, care_referrals) holds
+identified records on purpose, for one job: the receiving facility's
+pre-arrival board; see the note above those tables. access_log records who
+read or uploaded them.
 """
 
 from datetime import datetime, timezone
@@ -109,8 +110,9 @@ class Referral(SQLModel, table=True):
 #
 # A referral is useless to the receiving team without the record it refers to,
 # so the full record travels. The trade is explicit: identifiable health data
-# now rests in this store, which is why it must run behind a real CORS_ORIGINS
-# list and TLS rather than the wide-open LAN defaults the demo ships with.
+# now rests in this store, which is why every route to it needs a relay-signed
+# session token with the right role, every access is logged (access_log), and
+# the service should run behind TLS on the facility or district network.
 #
 # The record itself is held as a JSON payload rather than exploded into columns.
 # The device schema is the clinical source of truth and evolves with the app; a
@@ -168,3 +170,34 @@ class CareReferral(SQLModel, table=True):
     payload: str = Field(description="Full referral as JSON, exactly as the device holds it")
     # See PatientRecord.received_at — same rule.
     received_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+# ───────────────────────────── accountability ─────────────────────────────
+
+
+class AccessLog(SQLModel, table=True):
+    """
+    Who touched identified records, and when — including who was refused.
+
+    Every /api/v1 request except the assistant and the health probe lands
+    here (app/main.py, access-log middleware): the signed-in user, role and
+    posting from their session token, what they asked for and what they were
+    told. Uploads add the record they carried. It answers the question a data
+    protection review starts with — who has seen this patient's record — and
+    a refused request from a valid token is exactly the probing it should
+    show. Read at GET /api/v1/access-log, by the roles that hold audit:view.
+    """
+
+    __tablename__ = "access_log"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), index=True)
+    user_id: Optional[str] = Field(default=None, index=True)
+    role: Optional[str] = None
+    facility_id: Optional[str] = None
+    method: str
+    path: str = Field(index=True)
+    query: Optional[str] = None
+    status: int
+    detail: Optional[str] = None
+    client: Optional[str] = None

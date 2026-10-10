@@ -28,22 +28,25 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, SQLModel, create_engine, func, select
+from starlette.concurrency import run_in_threadpool
 
 # Imported for its side effect — see app/env.py. Must precede the first
 # os.environ.get below, which is DATABASE_URL.
 from . import env  # noqa: F401
-from .access import require
+from .access import identity_from_request, require
 from .chat_engine import _chat_completion, _resolve_provider, chat_hosting
-from .chat_guard import ChatCaller, chat_access, redact_identifiers
-from .models import (CareReferral, Encounter, Facility, FacilityTier,
+from .chat_guard import ChatCaller, chat_access, client_address, redact_identifiers
+from .hardening import BodySizeLimit, api_docs_enabled, security_headers
+from .models import (AccessLog, CareReferral, Encounter, Facility, FacilityTier,
                      PatientRecord, Referral, ReferralStatus, TriagePriority)
-from .schemas import (CareReferralIn, ChatIn, ChatOut, DistrictSummary,
-                      EncounterIn, FacilityIn, FacilityScorecard, IncomingCase,
-                      IncomingList, IngestReceipt, PatientRecordIn, ReferralIn,
-                      StoreDump, StoredPatient, StoredReferral, TierBreakdown,
+from .schemas import (AccessLogEntry, AccessLogPage, CareReferralIn, ChatIn,
+                      ChatOut, DistrictSummary, EncounterIn, FacilityIn,
+                      FacilityScorecard, IncomingCase, IncomingList,
+                      IngestReceipt, PatientRecordIn, ReferralIn, StoreDump,
+                      StoredPatient, StoredReferral, TierBreakdown,
                       TriageBreakdown)
 
 
@@ -123,12 +126,18 @@ async def lifespan(app: FastAPI):
     yield
 
 
+_DOCS = api_docs_enabled()
 app = FastAPI(
     title="NalamMesh — District Reporting Service",
     description=__doc__,
     version="1.0.0",
     lifespan=lifespan,
     contact={"name": "District Health Office"},
+    # API_DOCS=off hides /docs, /redoc and /openapi.json on a deployment that
+    # does not want its routes described to whoever can reach it.
+    docs_url="/docs" if _DOCS else None,
+    redoc_url="/redoc" if _DOCS else None,
+    openapi_url="/openapi.json" if _DOCS else None,
 )
 
 # The clinical app and the relay run on other origins.
@@ -144,6 +153,54 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# An oversized body is refused before any route reads it.
+app.add_middleware(BodySizeLimit)
+app.middleware("http")(security_headers)
+
+
+# ─────────────────────────── access log ───────────────────────────
+#
+# The assistant and the health probe carry no records; everything else under
+# /api/v1 is logged, refused requests included (models.AccessLog).
+_UNLOGGED = {"/api/v1/chat"}
+
+
+def _write_access(entry: AccessLog) -> None:
+    with Session(engine) as session:
+        session.add(entry)
+        session.commit()
+
+
+@app.middleware("http")
+async def access_log(request: Request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.startswith("/api/v1/") and path not in _UNLOGGED:
+        # The token's claims, without asking the relay: the log records who a
+        # request said it was, refused or not, and must not block the loop.
+        who = identity_from_request(request, check_relay=False)
+        entry = AccessLog(
+            user_id=who.user_id if who else None,
+            role=who.role if who else None,
+            facility_id=who.facility_id if who else None,
+            method=request.method,
+            path=path,
+            query=str(request.url.query)[:300] or None,
+            status=response.status_code,
+            detail=getattr(request.state, "audit_detail", None),
+            client=client_address(request),
+        )
+        try:
+            await run_in_threadpool(_write_access, entry)
+        except Exception as exc:  # the log must never take the request down with it
+            print(f"WARNING: access log write failed: {exc}", flush=True)
+    return response
+
+
+def _note(request: Optional[Request], detail: str) -> None:
+    """Attach what a request carried to its access-log row (no-op when called directly)."""
+    if request is not None:
+        request.state.audit_detail = detail
 
 
 # ────────────────────────────── health ──────────────────────────────
@@ -290,7 +347,9 @@ def ingest_referral(payload: ReferralIn, session: Session = Depends(get_session)
     tags=["records"],
     summary="Upload a full patient record",
 )
-def upload_patient_record(payload: PatientRecordIn, session: Session = Depends(get_session)):
+def upload_patient_record(payload: PatientRecordIn, session: Session = Depends(get_session),
+                          request: Request = None):  # type: ignore[assignment]  # injected by FastAPI
+    _note(request, f"patient {payload.id}")
     incoming = _aware(payload.updated_at)
     existing = session.get(PatientRecord, payload.id)
     if existing:
@@ -322,7 +381,9 @@ def upload_patient_record(payload: PatientRecordIn, session: Session = Depends(g
     tags=["records"],
     summary="Upload a referral with its clinical payload",
 )
-def upload_care_referral(payload: CareReferralIn, session: Session = Depends(get_session)):
+def upload_care_referral(payload: CareReferralIn, session: Session = Depends(get_session),
+                         request: Request = None):  # type: ignore[assignment]  # injected by FastAPI
+    _note(request, f"referral {payload.id} for patient {payload.patient_id}")
     incoming = _aware(payload.updated_at)
     existing = session.get(CareReferral, payload.id)
     if existing:
@@ -354,6 +415,7 @@ def upload_care_referral(payload: CareReferralIn, session: Session = Depends(get
 def incoming_cases(
     facility_id: str = Query(..., description="The receiving facility"),
     session: Session = Depends(get_session),
+    request: Request = None,  # type: ignore[assignment]  # injected by FastAPI
 ):
     # COMPLETED and CANCELLED are excluded: the point of this board is what is
     # still coming. A patient who has arrived belongs on the ward list instead.
@@ -385,6 +447,7 @@ def incoming_cases(
                 status=ref.status,
             )
         )
+    _note(request, f"{len(cases)} incoming case(s): " + ", ".join(c.referral.get("patientId", "?") for c in cases)[:500])
     return IncomingList(facility_id=facility_id, count=len(cases), cases=cases)
 
 
@@ -413,11 +476,10 @@ def store_dump(
     the question this screen answers is "did what I just did land?", and device
     clocks in the field are not reliably set.
 
-    SECURITY. This returns identified patient records and it is not
-    authenticated, exactly like every other endpoint on this service. That is
-    a deliberate, known gap for the demo build, not an oversight in this
-    function: see the README. Do not expose this service on a public host until
-    the endpoints carry auth.
+    SECURITY. This returns identified patient records, so it admits only the
+    roles that hold data:inspect (the DHO and the Super Admin), and every call
+    is written to the access log. The service still belongs on the facility or
+    district network, behind TLS.
     """
     patient_total = session.exec(select(func.count()).select_from(PatientRecord)).one()
     referral_total = session.exec(select(func.count()).select_from(CareReferral)).one()
@@ -470,6 +532,28 @@ def store_dump(
     )
 
 # ────────────────────────────── reporting ──────────────────────────────
+
+@app.get(
+    "/api/v1/access-log",
+    dependencies=[Depends(require("audit:view"))],
+    response_model=AccessLogPage,
+    tags=["records"],
+    summary="Who read or uploaded identified records, newest first",
+)
+def access_log_page(
+    limit: int = Query(100, ge=1, le=1000),
+    user_id: Optional[str] = Query(None, description="Only this user's requests"),
+    session: Session = Depends(get_session),
+):
+    query = select(AccessLog).order_by(AccessLog.id.desc()).limit(limit)
+    if user_id:
+        query = query.where(AccessLog.user_id == user_id)
+    rows = session.exec(query).all()
+    return AccessLogPage(
+        count=len(rows),
+        entries=[AccessLogEntry(**row.model_dump(exclude={"id"})) for row in rows],
+    )
+
 
 @app.get(
     "/api/v1/district/summary",

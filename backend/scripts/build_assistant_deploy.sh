@@ -48,9 +48,10 @@ cp "$BACKEND/api/index.py" "$OUT/main.py"
 # Only the modules the chat path actually reaches. models.py is here because
 # schemas.py imports three enums from it — not because anything creates a table.
 # chat_guard.py (size caps, rate limits, redaction) checks session tokens
-# through access.py, which reads the role table in permissions.json.
+# through access.py, which reads the role table in permissions.json;
+# hardening.py adds the body-size limit and the response headers.
 # Copying main.py here would defeat the entire point of this script.
-for f in __init__.py env.py chat_engine.py chat_guard.py access.py permissions.json schemas.py models.py; do
+for f in __init__.py env.py chat_engine.py chat_guard.py access.py hardening.py permissions.json schemas.py models.py; do
   cp "$BACKEND/app/$f" "$OUT/app/$f"
 done
 

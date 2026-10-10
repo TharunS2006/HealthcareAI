@@ -36,13 +36,14 @@ android/local.properties
 # Local tool config — contains API keys, must never be committed
 .codex/
 
+# Python bytecode, anywhere (one compiled file had been committed)
+__pycache__/
+*.py[cod]
+
 # FastAPI service
-backend/__pycache__/
-backend/app/__pycache__/
 backend/*.db
 backend/.venv/
 .vercel
 
 # Local signing secret shared by the mesh relay and the district service (server/relay/auth.ts)
 .nalammesh-dev-secret
-__pycache__/

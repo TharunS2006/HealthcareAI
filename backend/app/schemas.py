@@ -280,3 +280,23 @@ class StoreDump(BaseModel):
     care_referrals_shown: int
     patient_records: List[StoredPatient]
     care_referrals: List[StoredReferral]
+
+
+# ───────────────────────────── accountability ─────────────────────────────
+
+class AccessLogEntry(BaseModel):
+    at: datetime
+    user_id: Optional[str] = None
+    role: Optional[str] = None
+    facility_id: Optional[str] = None
+    method: str
+    path: str
+    query: Optional[str] = None
+    status: int
+    detail: Optional[str] = None
+    client: Optional[str] = None
+
+
+class AccessLogPage(BaseModel):
+    count: int
+    entries: List[AccessLogEntry]

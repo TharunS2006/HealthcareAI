@@ -53,7 +53,9 @@
     "fetch:rhs": "tsx scripts/fetch-rhs.mts",
     "android:network-config": "tsx scripts/android-network-config.mts",
     "export:permissions": "tsx scripts/export-permissions.mts",
-    "verify:access-api": "cd backend && python3 scripts/verify_access.py"
+    "verify:access-api": "cd backend && python3 scripts/verify_access.py",
+    "verify:backend-hardening": "cd backend && python3 scripts/verify_hardening.py",
+    "verify:postgres": "cd backend && python3 scripts/verify_postgres.py"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
