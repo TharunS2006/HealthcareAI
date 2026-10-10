@@ -46,7 +46,8 @@ export function contentSecurityPolicy(env: Env): string {
         // cannot carry per-request nonces. No 'unsafe-eval'.
         'script-src': ["'self'", "'unsafe-inline'"],
         'style-src': ["'self'", "'unsafe-inline'"],
-        'img-src': ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org'],
+        // No third-party images: nothing on any page is loaded from another origin.
+        'img-src': ["'self'", 'data:', 'blob:'],
         'font-src': ["'self'", 'data:'],
         'connect-src': [...new Set(connect)],
         'media-src': ["'self'", 'blob:'],

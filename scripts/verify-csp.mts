@@ -35,7 +35,8 @@ console.log('\n1. LOCKED');
 for (const [name, p] of [['hosted', hosted], ['LAN', lan]] as const) {
     check(`${name}: scripts from this origin only, never eval`, p['script-src'].join(' ') === "'self' 'unsafe-inline'", p['script-src'].join(' '));
     check(`${name}: no plugins, no foreign <base> or form targets`, p['object-src'][0] === "'none'" && p['base-uri'][0] === "'self'" && p['form-action'][0] === "'self'");
-    check(`${name}: map tiles allowed as images`, p['img-src'].includes('https://*.tile.openstreetmap.org'));
+    check(`${name}: no image from another origin (no third-party tiles or trackers)`,
+        p['img-src'].every(src => ["'self'", 'data:', 'blob:'].includes(src)), p['img-src'].join(' '));
 }
 
 console.log('\n2. CONFIGURED');

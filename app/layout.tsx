@@ -11,7 +11,6 @@ import "@fontsource/noto-sans-devanagari/500.css";
 import "@fontsource/noto-sans-devanagari/600.css";
 import "@fontsource/noto-sans-devanagari/700.css";
 import "@fontsource/noto-sans-devanagari/800.css";
-import "leaflet/dist/leaflet.css";
 import "./globals.css";
 import GovPortalHeader from "@/components/gov/GovPortalHeader";
 import GovPortalFooter from "@/components/gov/GovPortalFooter";
