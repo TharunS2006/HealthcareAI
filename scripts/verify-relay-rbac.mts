@@ -294,6 +294,56 @@ check('…but reaches the PHC Medical Officer\'s device without it, marked withh
     upd(userUpdates.mo, 'u-anm-kothi') !== undefined && !upd(userUpdates.mo, 'u-anm-kothi')?.pinHash && upd(userUpdates.mo, 'u-anm-kothi')?.pinHashWithheld === true,
     JSON.stringify(upd(userUpdates.mo, 'u-anm-kothi')));
 check('the Medical Officer gets his own hash', Boolean(upd(userUpdates.mo, 'u-mo-bhamragad')?.pinHash));
+const anonCatchUp = await new Promise<{ referrals: unknown[]; serverTime?: number }>(resolve => anonSock.emit('referral:catchup', { since: 0 }, resolve));
+check('a signed-out socket\'s catch-up returns nothing — and no server time a device could take as its cursor',
+    anonCatchUp.referrals.length === 0 && anonCatchUp.serverTime === undefined, JSON.stringify(anonCatchUp).slice(0, 160));
+const moFull = await new Promise<{ referrals: unknown[] }>(resolve => moSock.emit('referral:catchup', { since: 0 }, resolve));
+const lateSock = await open(null);
+lateSock.emit('session:identify', { token: await tokenFor('u-mo-bhamragad') });
+const lateCatchUp = await new Promise<{ referrals: unknown[]; serverTime?: number }>(resolve => lateSock.emit('referral:catchup', { since: 0 }, resolve));
+check('a catch-up sent right behind a sign-in on an open socket is answered for the user who signed in',
+    moFull.referrals.length > 0 && lateCatchUp.referrals.length === moFull.referrals.length && typeof lateCatchUp.serverTime === 'number',
+    `${lateCatchUp.referrals.length} of ${moFull.referrals.length}`);
+// Again against a relay whose store is slow to answer, as a busy one's is: the
+// sign-in is still being checked when the catch-up behind it arrives. Before the
+// fix the catch-up was answered for the signed-out socket — an MO's first
+// sign-in on a phone missed every referral already on its way.
+{
+    const { createRelay } = await import('../server/relay/app');
+    const { MemoryStore } = await import('../server/relay/store');
+    const { Server: SocketServer } = await import('socket.io');
+    class SlowStore extends MemoryStore {
+        override async getUser(id: string) { await new Promise(r => setTimeout(r, 60)); return super.getUser(id); }
+    }
+    const slowIo = new SocketServer();
+    const slowRelay = createRelay({ store: new SlowStore(), secret: SECRET, io: slowIo });
+    const slowServer = createServer(slowRelay.app);
+    slowIo.attach(slowServer);
+    slowRelay.attachSockets(slowIo);
+    await new Promise<void>(r => slowServer.listen(0, '127.0.0.1', () => r()));
+    const SLOW = `http://127.0.0.1:${(slowServer.address() as { port: number }).port}`;
+    let waiting = must(wf.createReferral({
+        id: `ref-slow-${PORT}`, eventId: 'sc1', at: at(0),
+        patient: { id: 'p-slow', name: 'Slow Store', age: 41, gender: 'F' },
+        from: fac('sc-kothi'), to: fac('phc-bhamragad'),
+        reason: 'Chest pain since morning', priority: 'EMERGENCY', transportMode: 'AMBULANCE_108',
+    }, actor('u-anm-kothi'))).referral;
+    waiting = must(wf.applyAction(waiting, { action: 'SEND', actor: actor('u-anm-kothi'), at: at(0), eventId: 'ss1' })).referral;
+    await post('/api/referrals/publish', { referral: waiting, notifications: [] }, 'u-anm-kothi', SLOW);
+    const fresh = await new Promise<Socket>((resolve, reject) => {
+        const sock = connect(SLOW, { transports: ['websocket'], reconnection: false, timeout: 4000 });
+        sockets.push(sock);
+        sock.on('connect', () => resolve(sock));
+        sock.on('connect_error', reject);
+    });
+    fresh.emit('session:identify', { token: await tokenFor('u-mo-bhamragad', SLOW) });
+    const caught = await new Promise<{ referrals: Array<{ referral: { id: string } }> }>(resolve => fresh.emit('referral:catchup', { since: 0 }, resolve));
+    check('…even when the relay\'s store is slow to answer', caught.referrals.some(r => r.referral.id === waiting.id),
+        `${caught.referrals.length} referral(s)`);
+    fresh.close();
+    slowIo.close();
+    slowServer.close();
+}
 const moCatchUp = await new Promise<{ users: UserUpdate['user'][] }>(resolve => moSock.emit('referral:catchup', { since: 0 }, resolve));
 const leaked = moCatchUp.users.filter(u => u.id !== 'u-mo-bhamragad' && u.pinHash).map(u => u.id);
 check('catch-up gives a PHC device no PIN hash of staff posted elsewhere', leaked.length === 0 && moCatchUp.users.length > 0, leaked.join(', '));

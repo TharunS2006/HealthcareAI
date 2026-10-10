@@ -114,17 +114,30 @@ function tokenRejected(token: string | null): void {
     if (token && s?.token === token) useAuthStore.getState().dropToken();
 }
 
-function readLastSeen(): number {
+/**
+ * How far this device has caught up with the relay — per user. What one user
+ * may see is not what another may (a DHO sees every facility's referrals, an
+ * MO their own), so on a shared device one user's progress must not stand for
+ * another's, and nobody's moves while signed out. Null when nobody is signed in.
+ */
+function lastSeenKey(): string | null {
+    const userId = useAuthStore.getState().session?.userId;
+    return userId ? `${LAST_SEEN_KEY}:${userId}` : null;
+}
+
+function readLastSeen(key: string | null = lastSeenKey()): number {
+    if (!key) return 0;
     try {
-        return Number(localStorage.getItem(LAST_SEEN_KEY)) || 0;
+        return Number(localStorage.getItem(key)) || 0;
     } catch {
         return 0;
     }
 }
 
-function writeLastSeen(value: number): void {
+function writeLastSeen(key: string | null, value: number): void {
+    if (!key) return;
     try {
-        localStorage.setItem(LAST_SEEN_KEY, String(value));
+        localStorage.setItem(key, String(value));
     } catch {
         /* private mode — the next catch-up simply asks for more */
     }
@@ -244,13 +257,14 @@ interface CatchUpBatch {
     serverTime?: number;
 }
 
-function applyBatch(batch: CatchUpBatch | undefined): void {
+/** Apply what the relay sent; `cursor` is the key of the user who asked, read when they asked. */
+function applyBatch(batch: CatchUpBatch | undefined, cursor: string | null): void {
     if (!batch) return;
     batch.referrals?.forEach(r => dispatch({ kind: 'referral', referral: r.referral, notifications: r.notifications ?? [] }));
     batch.resources?.forEach(resources => dispatch({ kind: 'resources', resources }));
     batch.tickets?.forEach(ticket => dispatch({ kind: 'ticket', ticket }));
     batch.users?.forEach(user => dispatch({ kind: 'user', user }));
-    if (typeof batch.serverTime === 'number') writeLastSeen(batch.serverTime);
+    if (typeof batch.serverTime === 'number') writeLastSeen(cursor, batch.serverTime);
 }
 
 /**
@@ -270,8 +284,9 @@ export function startTransport(onReachable: () => void): () => void {
     };
     const catchUp = () => {
         identify();
-        socket.timeout(8000).emit('referral:catchup', { since: readLastSeen() }, (err: Error | null, batch?: CatchUpBatch) => {
-            if (!err) applyBatch(batch);
+        const cursor = lastSeenKey();
+        socket.timeout(8000).emit('referral:catchup', { since: readLastSeen(cursor) }, (err: Error | null, batch?: CatchUpBatch) => {
+            if (!err) applyBatch(batch, cursor);
         });
         onReachable();
     };
@@ -319,8 +334,9 @@ export function startTransport(onReachable: () => void): () => void {
                 if (health.ok) redial();
                 return;
             }
+            const cursor = lastSeenKey();
             const response = await fetchWithTimeout(
-                `${relayBaseUrl()}/api/referrals/since/${readLastSeen()}`,
+                `${relayBaseUrl()}/api/referrals/since/${readLastSeen(cursor)}`,
                 { headers: identityHeaders(token) },
                 6000
             );
@@ -328,7 +344,7 @@ export function startTransport(onReachable: () => void): () => void {
             if (response.status === 401) return tokenRejected(token);
             if (!response.ok) return;
             redial();
-            applyBatch((await response.json()) as CatchUpBatch);
+            applyBatch((await response.json()) as CatchUpBatch, cursor);
             onReachable();
         } catch {
             if (!relayUsesSockets()) reportRelayReachable(false);

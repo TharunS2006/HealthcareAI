@@ -590,10 +590,17 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
                 socket.data.identity = await identify(typeof token === 'string' ? token : null);
                 log('Socket identified', { socketId: socket.id, role: (socket.data.identity as Identity | null)?.role ?? 'signed out' });
             };
-            const ready = authenticate((socket.handshake.auth as { token?: unknown } | undefined)?.token);
+            // The latest identification on this socket. Every handler waits for it, so
+            // an event sent right behind session:identify — the catch-up a device
+            // asks for the moment someone signs in — is answered for the user who
+            // just identified, not for the signed-out socket of a moment before.
+            let ready = authenticate((socket.handshake.auth as { token?: unknown } | undefined)?.token);
             const who = async () => { await ready; return (socket.data.identity as Identity | null | undefined) ?? null; };
 
-            socket.on('session:identify', (raw: { token?: unknown } | null) => { void authenticate(raw?.token); });
+            socket.on('session:identify', (raw: { token?: unknown } | null) => {
+                ready = authenticate(raw?.token);
+                ready.catch(() => undefined);
+            });
 
             socket.on('referral:publish', safely(async (payload: unknown, ack?: (reply: { ok: boolean; reason?: string; retry?: boolean }) => void) => {
                 const result = await acceptReferral(payload, await who());
@@ -609,7 +616,11 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
 
             socket.on('referral:catchup', safely(async (data: { since?: number } | null, ack?: (batch: unknown) => void) => {
                 const me = await who();
-                if (!me) return ack?.({ referrals: [], resources: [], tickets: [], users: [], serverTime: Date.now() });
+                // A signed-out socket learns nothing, so it gets no serverTime: a
+                // device that took one as its cursor would skip, after sign-in,
+                // every referral raised before it — an MO's first sign-in on a new
+                // phone would miss the referrals already on their way.
+                if (!me) return ack?.({ referrals: [], resources: [], tickets: [], users: [] });
                 ack?.(await catchUpFor(me, Number(data?.since) || 0));
             }));
 
