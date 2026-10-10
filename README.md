@@ -210,7 +210,10 @@ accept only that token, and a referral event is only accepted from the user it
 names. With no relay reachable, the PIN is checked on the device and work stays
 there until the user re-enters their PIN while connected. A device holds the PIN
 hashes of its own facility's staff only — never another facility's, a district
-officer's or the Super Admin's.
+officer's or the Super Admin's. Patient records travel the same way: the relay
+sends a record to the devices of the facility that registered the patient, of any
+facility one of their referrals came from or went to, and of the district
+officers — not to every device in the district — and only those may change it.
 
 A signed-in screen left untouched for 15 minutes (`NEXT_PUBLIC_SESSION_IDLE_MINUTES`)
 locks behind a PIN prompt; the work underneath is kept, and five wrong PINs sign

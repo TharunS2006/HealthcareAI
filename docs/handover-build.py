@@ -446,8 +446,10 @@ E.append(PageBreak())
 # ================================================================== 6. MODULES
 E.append(Paragraph("6. The modules", H1))
 E.append(Paragraph(
-    "Nine functional modules, all writing to the same local database — which is why a "
-    "patient seen at a sub-centre is already known at the district hospital.", Lead))
+    "Nine functional modules, all writing to the same local database. A patient's record "
+    "travels to the facilities that need it — the one that registered them, any facility a "
+    "referral of theirs touches, and the district officers — so a patient referred from a "
+    "sub-centre is already known at the hospital that receives them, and nowhere else.", Lead))
 
 E.append(table([
     ["Module", "Route", "What it does"],

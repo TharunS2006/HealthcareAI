@@ -352,6 +352,73 @@ check('…nor does HTTP catch-up give a Sub-Centre device anyone else\'s',
     (httpCatchUp.users ?? []).length > 0 && (httpCatchUp.users ?? []).every(u => u.id === 'u-anm-kothi' || !u.pinHash), JSON.stringify((httpCatchUp.users ?? []).filter(u => u.pinHash).map(u => u.id)));
 
 // ---------------------------------------------------------------------------
+console.log('\n7b. PATIENT RECORDS');
+// ---------------------------------------------------------------------------
+// A patient's record goes to the facility that registered them, the facilities
+// their referrals touch, and the district-wide roles — not to every device in
+// the district.
+{
+    // Tokens minted with the relay's own signer: some of these accounts are locked
+    // by the PIN tests above, and the relay still checks each against its directory.
+    const minted = (userId: string) => {
+        const u = user(userId);
+        return signToken({ sub: u.id, role: u.role, fac: u.facilityId ?? null, name: u.name }, SECRET).token;
+    };
+    const headersAs = (userId: string) => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${minted(userId)}` });
+    const postAs = (path: string, body: unknown, userId: string) => fetch(`${BASE}${path}`, { method: 'POST', headers: headersAs(userId), body: JSON.stringify(body) });
+    const listeners = { kothi: 'u-anm-kothi', govindpur: 'u-anm-govindpur', bhamragad: 'u-mo-bhamragad', perimili: 'u-mo-perimili', dho: 'u-dho' } as const;
+    const heard: Record<keyof typeof listeners, string[]> = { kothi: [], govindpur: [], bhamragad: [], perimili: [], dho: [] };
+    const socks = {} as Record<keyof typeof listeners, Socket>;
+    for (const [name, userId] of Object.entries(listeners) as [keyof typeof listeners, string][]) {
+        socks[name] = await open(minted(userId));
+        socks[name].on('patient:sync', (p: { id: string }) => heard[name].push(p.id));
+    }
+    const settle = () => new Promise(r => setTimeout(r, 400));
+    const pid = `p-scope-${PORT}`;
+    const registeredAt = Date.now() - 60_000;
+    const record = { id: pid, name: 'Scope Test', age: 33, gender: 'F', registeredAtFacilityId: 'sc-kothi', timestamp: new Date(registeredAt).toISOString() };
+    socks.kothi.emit('patient:sync', record);
+    await settle();
+    check('a record registered at Kothi reaches the DHO', heard.dho.includes(pid), JSON.stringify(heard));
+    check('…and no device at another sub-centre or PHC', !heard.govindpur.includes(pid) && !heard.bhamragad.includes(pid) && !heard.perimili.includes(pid), JSON.stringify(heard));
+    const sinceFor = async (userId: string) => ((await (await fetch(`${BASE}/api/sync/since/0`, { headers: headersAs(userId) })).json()) as { records: Array<{ id: string }> }).records.map(r => r.id);
+    check('catch-up gives it to Kothi and the DHO only', (await sinceFor('u-anm-kothi')).includes(pid) && (await sinceFor('u-dho')).includes(pid)
+        && !(await sinceFor('u-anm-govindpur')).includes(pid) && !(await sinceFor('u-mo-bhamragad')).includes(pid));
+    const hijack = await postAs('/api/sync/patient', { ...record, name: 'Overwritten', registeredAtFacilityId: 'sc-govindpur', timestamp: new Date().toISOString() }, 'u-anm-govindpur');
+    check('another facility cannot overwrite it, or claim it by renaming the facility', hijack.status === 403, String(hijack.status));
+
+    const cursor = Date.now();
+    await new Promise(r => setTimeout(r, 20));
+    let scoped = must(wf.createReferral({
+        id: `ref-scope-${PORT}`, eventId: 'pc1', at: at(0),
+        patient: { id: pid, name: 'Scope Test', age: 33, gender: 'F' },
+        from: fac('sc-kothi'), to: fac('phc-bhamragad'),
+        reason: 'Severe anaemia in pregnancy', priority: 'URGENT', transportMode: 'AMBULANCE_102',
+    }, actor('u-anm-kothi'))).referral;
+    scoped = must(wf.applyAction(scoped, { action: 'SEND', actor: actor('u-anm-kothi'), at: at(0), eventId: 'ps1' })).referral;
+    check('the referral to Bhamragad is accepted', (await postAs('/api/referrals/publish', { referral: scoped, notifications: [] }, 'u-anm-kothi')).status === 202);
+    await settle();
+    check('the referral hands the record to the receiving PHC\'s devices', heard.bhamragad.includes(pid), JSON.stringify(heard));
+    check('…and still to no one else', !heard.govindpur.includes(pid) && !heard.perimili.includes(pid));
+    const late = await new Promise<{ patients: Array<{ id: string }>; serverTime?: number }>(resolve => {
+        socks.bhamragad.once('sync:batch', resolve);
+        socks.bhamragad.emit('sync:request', { since: cursor });
+    });
+    check('a PHC device whose cursor is past the registration still gets the record of a patient referred to it since',
+        late.patients.some(p => p.id === pid), JSON.stringify(late.patients.map(p => p.id)));
+    const update = await postAs('/api/sync/patient', { ...record, timestamp: new Date().toISOString() }, 'u-mo-bhamragad');
+    check('…and, being the receiving facility, may update it', update.status === 202, String(update.status));
+    const signedOut = await open(null);
+    const nothing = await new Promise<{ patients: unknown[]; serverTime?: number }>(resolve => {
+        signedOut.once('sync:batch', resolve);
+        signedOut.emit('sync:request', { since: 0 });
+    });
+    check('a signed-out device gets no records and no server time to advance a cursor with', nothing.patients.length === 0 && nothing.serverTime === undefined, JSON.stringify(nothing));
+    Object.values(socks).forEach(sock => sock.close());
+    signedOut.close();
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n8. CONTRACT');
 // ---------------------------------------------------------------------------
 // How lib/referrals/transport.ts reads each answer.

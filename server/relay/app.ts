@@ -261,6 +261,7 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             peer.emit('referral:update', { referral: entry.referral, notifications: notificationsFor(who, fresh) });
             sent += 1;
         }
+        sharePatientOf(entry.referral);
         return sent;
     }
 
@@ -346,27 +347,89 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         return { ok: true, value: stored };
     }
 
+    // ── patient records: who holds them ──────────────────────────────────────
+
+    type PatientLike = { id: string; registeredAtFacilityId?: unknown };
+
+    /** For each patient, the facilities their referrals came from or went to. */
+    async function referralFacilities(): Promise<Map<string, Set<string>>> {
+        const byPatient = new Map<string, Set<string>>();
+        for (const { referral } of await store.listReferrals()) {
+            const facilities = byPatient.get(referral.patientId) ?? new Set<string>();
+            facilities.add(referral.fromFacilityId);
+            facilities.add(referral.toFacilityId);
+            byPatient.set(referral.patientId, facilities);
+        }
+        return byPatient;
+    }
+
+    /**
+     * Whose devices may hold a patient's record: the facility that registered
+     * them, any facility one of their referrals came from or went to, and the
+     * district-wide roles. Records used to go to every device that could view
+     * patients, so a phone lost at one sub-centre carried every patient in the
+     * district.
+     */
+    function mayHoldPatient(who: Identity, patient: PatientLike, facilities: Set<string> | undefined): boolean {
+        if (!can(who.role, 'patient:view')) return false;
+        if (isDistrictWide(who.role)) return true;
+        if (!who.facilityId) return false;
+        return patient.registeredAtFacilityId === who.facilityId || Boolean(facilities?.has(who.facilityId));
+    }
+
     async function publishPatient(patient: unknown, who: Identity | null): Promise<Result<{ id: string }>> {
-        const p = patient as { id?: unknown; timestamp?: string } | undefined;
+        const p = patient as (PatientLike & { timestamp?: string }) | undefined;
         if (!who) return refuse(who, 'Sign in to share patient records');
         if (!can(who.role, 'patient:register')) return refuse(who, `${who.role} may not register patients`);
         if (typeof p?.id !== 'string') return { ok: false, status: 400, reason: 'body must be a patient record with an id' };
+        // A record is changed by those who may hold it: judged on the copy the relay
+        // already has, so a record cannot be moved to another facility by re-sending
+        // it with a different one. A record that names no facility (an older build)
+        // and is new here is taken as sent.
+        const known = (await store.listPatients()).find(e => e.patient.id === p.id)?.patient as PatientLike | undefined;
+        const subject = known ?? p;
+        if (subject.registeredAtFacilityId !== undefined && !mayHoldPatient(who, subject, (await referralFacilities()).get(p.id))) {
+            return refuse(who, 'This patient is registered at another facility, with no referral to yours');
+        }
         await store.putPatient({ patient: p as { id: string }, ts: Date.parse(p.timestamp ?? '') || Date.now() });
         return { ok: true, value: { id: p.id } };
     }
 
-    async function patientsSince(since: number) {
-        return (await store.listPatients()).filter(e => e.ts > since).sort((a, b) => a.ts - b.ts).map(e => e.patient);
+    /**
+     * The records this user may hold that changed after `since` — or that became
+     * theirs after it: a patient registered last week and referred to this
+     * facility today is new to it today.
+     */
+    async function patientsFor(who: Identity, since: number) {
+        const facilities = await referralFacilities();
+        const referredSince = new Set(
+            (await store.listReferrals())
+                .filter(e => e.ts > since && who.facilityId !== null && (e.referral.toFacilityId === who.facilityId || e.referral.fromFacilityId === who.facilityId))
+                .map(e => e.referral.patientId)
+        );
+        return (await store.listPatients())
+            .filter(e => (e.ts > since || referredSince.has(e.patient.id)) && mayHoldPatient(who, e.patient as PatientLike, facilities.get(e.patient.id)))
+            .sort((a, b) => a.ts - b.ts)
+            .map(e => e.patient);
     }
 
-    /** Send to identified sockets that hold `permission` (never to a signed-out socket). */
-    function emitTo(permission: Parameters<typeof can>[1], event: string, data: unknown, except?: Socket) {
+    /** Send a patient record to the connected devices that may hold it. */
+    async function emitPatient(patient: PatientLike, exceptSocketId?: string): Promise<void> {
         if (!io) return;
+        const facilities = (await referralFacilities()).get(patient.id);
         for (const peer of io.sockets.sockets.values()) {
-            if (peer.id === except?.id) continue;
+            if (peer.id === exceptSocketId) continue;
             const who = peer.data.identity as Identity | null | undefined;
-            if (who && can(who.role, permission)) peer.emit(event, data);
+            if (who && mayHoldPatient(who, patient, facilities)) peer.emit('patient:sync', patient);
         }
+    }
+
+    /** A referral makes its patient's record the receiving facility's too: send it there. */
+    function sharePatientOf(referral: ReferralRecord): void {
+        void (async () => {
+            const cached = (await store.listPatients()).find(e => e.patient.id === referral.patientId);
+            if (cached) await emitPatient(cached.patient as PatientLike);
+        })().catch(error => log('Patient hand-over failed', { error: error instanceof Error ? error.message : String(error) }));
     }
 
     // ── HTTP ─────────────────────────────────────────────────────────────────
@@ -454,13 +517,13 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         if (!can(who.role, 'patient:view')) return res.status(403).json({ error: `${who.role} may not read patient records` });
         const since = Number(req.params.timestamp);
         if (!Number.isFinite(since) || since < 0) return res.status(400).json({ error: 'timestamp must be a Unix epoch value in milliseconds' });
-        const records = await patientsSince(since);
+        const records = await patientsFor(who, since);
         res.json({ since, serverTime: Date.now(), count: records.length, records });
     }));
 
     app.post('/api/sync/patient', route(async (req, res) => {
         const result = await publishPatient(req.body, await fromRequest(req));
-        if (result.ok) emitTo('patient:view', 'patient:sync', req.body);
+        if (result.ok) await emitPatient(req.body as PatientLike);
         send(res, result, v => ({ accepted: true, id: v.id }));
     }));
 
@@ -650,13 +713,16 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             socket.on('patient:sync', safely(async (patient: unknown) => {
                 const result = await publishPatient(patient, await who());
                 if (!result.ok) return log('patient:sync refused', { reason: result.reason });
-                emitTo('patient:view', 'patient:sync', patient, socket);
+                await emitPatient(patient as PatientLike, socket.id);
             }));
 
             socket.on('sync:request', safely(async (data: { since?: number } | null) => {
                 const me = await who();
-                if (!me || !can(me.role, 'patient:view')) return socket.emit('sync:batch', { patients: [], serverTime: Date.now() });
-                socket.emit('sync:batch', { patients: await patientsSince(Number(data?.since) || 0), serverTime: Date.now() });
+                // Signed out: nothing, and no serverTime a device could take as its
+                // cursor (see referral:catchup). The batch names whose it is, so a
+                // device that changed user meanwhile does not file it under the new one.
+                if (!me || !can(me.role, 'patient:view')) return socket.emit('sync:batch', { patients: [] });
+                socket.emit('sync:batch', { patients: await patientsFor(me, Number(data?.since) || 0), serverTime: Date.now(), userId: me.userId });
             }));
 
             // Clears every device's demo data: the Super Admin's call, nobody else's.

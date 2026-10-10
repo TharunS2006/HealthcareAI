@@ -7,6 +7,7 @@ import { Patient } from '@/types/patient';
 import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
 import { PRODUCTION } from '@/lib/config/mode';
 import { queuePatient } from '@/lib/sync/outbox';
+import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 
 interface PatientStore {
@@ -26,6 +27,9 @@ interface PatientStore {
     initSocket: () => Promise<void>;
 }
 
+/** The sign-in subscription behind patient catch-up; replaced if the socket is set up again. */
+let unsubscribeSession: (() => void) | undefined;
+
 export const usePatientStore = create<PatientStore>((set, get) => ({
     patients: [],
     unsyncedCount: 0,
@@ -41,23 +45,40 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
             // ---- Catch-up sync -------------------------------------------------
             // patient:sync is a live broadcast; a device that was offline when a
-            // record was created never receives it. On every (re)connect we ask the
-            // relay for everything newer than we last saw and merge it in.
+            // record was created never receives it. On every (re)connect and every
+            // sign-in we ask the relay for everything newer than this user last saw
+            // and merge it in. The relay sends only the records this user may hold.
+            //
+            // The cursor is per user: on a shared device one user's progress must
+            // not stand for another's, and a batch is filed under the user the relay
+            // says it was for — never under nobody, so a signed-out request cannot
+            // move anyone's cursor past records they have not received.
             const LAST_SYNC_KEY = 'nalammesh-last-sync-at';
-            const readLastSync = (): number => {
-                try { return Number(localStorage.getItem(LAST_SYNC_KEY)) || 0; } catch { return 0; }
+            const cursorKey = (userId: string) => `${LAST_SYNC_KEY}:${userId}`;
+            const readLastSync = (userId: string): number => {
+                try { return Number(localStorage.getItem(cursorKey(userId))) || 0; } catch { return 0; }
             };
-            const writeLastSync = (t: number): void => {
-                try { localStorage.setItem(LAST_SYNC_KEY, String(t)); } catch { /* private mode */ }
+            const writeLastSync = (userId: string, t: number): void => {
+                try { localStorage.setItem(cursorKey(userId), String(t)); } catch { /* private mode */ }
             };
 
-            const requestCatchUp = () => socket.emit('sync:request', { since: readLastSync() });
+            const requestCatchUp = () => {
+                const session = useAuthStore.getState().session;
+                if (!session?.token) return;
+                // Identify first, so the relay answers for this user, not for whoever
+                // the socket was a moment ago.
+                socket.emit('session:identify', { token: session.token });
+                socket.emit('sync:request', { since: readLastSync(session.userId) });
+            };
 
             socket.off('sync:batch');
-            socket.on('sync:batch', async (data: { patients: Patient[]; serverTime: number }) => {
+            socket.on('sync:batch', async (data: { patients: Patient[]; serverTime?: number; userId?: string }) => {
                 const incoming = Array.isArray(data?.patients) ? data.patients : [];
+                const fileUnder = (t: number | undefined) => {
+                    if (data?.userId && typeof t === 'number') writeLastSync(data.userId, t);
+                };
                 if (incoming.length === 0) {
-                    writeLastSync(data?.serverTime ?? Date.now());
+                    fileUnder(data?.serverTime);
                     return;
                 }
 
@@ -78,12 +99,16 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
                     await get().loadPatients();
                     toast.success(`Synced ${applied} record${applied === 1 ? '' : 's'} missed while offline`);
                 }
-                writeLastSync(data?.serverTime ?? Date.now());
+                fileUnder(data?.serverTime);
             });
 
             socket.off('connect', requestCatchUp);
             socket.on('connect', requestCatchUp);
             if (socket.connected) requestCatchUp();
+            unsubscribeSession?.();
+            unsubscribeSession = useAuthStore.subscribe((state, previous) => {
+                if (state.session?.userId !== previous.session?.userId || state.session?.token !== previous.session?.token) requestCatchUp();
+            });
 
             socket.off('patient:sync');
             socket.on('patient:sync', (patient: Patient) => {
