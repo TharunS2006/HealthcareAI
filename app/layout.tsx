@@ -21,6 +21,7 @@ import PWAInstall from "@/components/shared/PWAInstall";
 import ChatAssistant from "@/components/shared/ChatAssistant";
 import RouteGuard from "@/components/auth/RouteGuard";
 import NetworkSignIn from "@/components/auth/NetworkSignIn";
+import SessionLock from "@/components/auth/SessionLock";
 import ReferralRuntime from "@/components/referrals/ReferralRuntime";
 import NativeDeepLink from "@/components/shared/NativeDeepLink";
 import EvaluationBanner from "@/components/gov/EvaluationBanner";
@@ -97,6 +98,11 @@ export default function RootLayout({
 
                 {/* Portal footer */}
                 <GovPortalFooter />
+
+                {/* Covers a signed-in session left unused (lib/auth/idleLock.ts). A
+                    direct child of <body>, outside the error boundary, so a crash
+                    elsewhere cannot leave a patient screen uncovered. */}
+                <SessionLock />
 
                 {/* Toast Notification Provider */}
                 <Toaster

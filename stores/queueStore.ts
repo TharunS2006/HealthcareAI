@@ -60,7 +60,10 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
         }
     },
 
-    callNext: async (doctorName = 'Dr. Suresh Atram') => {
+    // doctorName is recorded on the token as its consulting doctor — the
+    // signed-in doctor, or nobody. There used to be a default name here, so
+    // every token called by anyone was recorded against a doctor who never saw it.
+    callNext: async (doctorName?: string) => {
         const { queue, currentServing } = get();
 
         // 2. Prioritize emergency/urgent waiting patients first, then lowest sequence
@@ -94,16 +97,22 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
             return;
         }
 
+        // The same timestamps lib/db.ts updateQueueStatus stored, so the queue's
+        // wait figures (lib/queue/stats.ts) are right before the next reload too.
+        const at = new Date().toISOString();
+        const called = {
+            ...nextPatient,
+            status: 'IN_CONSULTATION' as const,
+            calledAt: at,
+            ...(doctorName ? { consultingDoctor: doctorName } : {}),
+        };
         const updatedQueue = queue.map(q => {
-            if (currentServing && q.id === currentServing.id) return { ...q, status: 'COMPLETED' as const };
-            if (q.id === nextPatient.id) return { ...q, status: 'IN_CONSULTATION' as const, consultingDoctor: doctorName };
+            if (currentServing && q.id === currentServing.id) return { ...q, status: 'COMPLETED' as const, completedAt: at };
+            if (q.id === nextPatient.id) return called;
             return q;
         });
 
-        set({
-            queue: updatedQueue,
-            currentServing: { ...nextPatient, status: 'IN_CONSULTATION', consultingDoctor: doctorName }
-        });
+        set({ queue: updatedQueue, currentServing: called });
 
         toast.success(`Calling Token ${nextPatient.tokenNumber}: ${nextPatient.patientName}`);
     },
@@ -136,8 +145,14 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
         const previousQueue = get().queue;
         const previousServing = get().currentServing;
 
+        const at = new Date().toISOString();
         set(state => ({
-            queue: state.queue.map(q => q.id === id ? { ...q, status } : q),
+            queue: state.queue.map(q => q.id !== id ? q : {
+                ...q,
+                status,
+                ...(status === 'COMPLETED' ? { completedAt: at } : {}),
+                ...(status === 'IN_CONSULTATION' ? { calledAt: at } : {}),
+            }),
             currentServing: (previousServing?.id === id && status === 'COMPLETED') ? null : previousServing
         }));
 

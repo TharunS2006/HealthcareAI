@@ -124,6 +124,33 @@ async function checkOnThisDevice(user: StaffUser, pin: string): Promise<SignInRe
     return { ok: true, mode: 'OFFLINE' };
 }
 
+/**
+ * Unlock a session that locked for inactivity: the same proof as signing in,
+ * for the user already signed in. The relay answers first when it can (and a
+ * fresh token comes back with the unlock); its refusal is final. With no
+ * relay, the device checks the PIN against its own copy of the user — and a
+ * user whose PIN hash this device does not hold (a district officer, the Super
+ * Admin, someone posted elsewhere) cannot unlock offline, only sign out.
+ */
+export async function unlockWithPin(userId: string, pin: string, deviceCopy: StaffUser | undefined): Promise<SignInResult> {
+    if (!PIN_PATTERN.test(pin)) return { ok: false, message: 'Enter your 4–6 digit PIN' };
+    if (deviceCopy && !deviceCopy.active) return { ok: false, message: 'This account is deactivated' };
+
+    const answer = await relaySignIn(userId, pin);
+    if (answer.kind === 'token') {
+        clearLocalFailures(userId);
+        return { ok: true, mode: 'NETWORK', token: answer.token, expiresAt: answer.expiresAt };
+    }
+    if (answer.kind === 'refused') return { ok: false, message: answer.message };
+    if (!deviceCopy) {
+        return {
+            ok: false,
+            message: 'The network cannot be reached and this device cannot check your PIN offline. Sign out, then sign in again when connected.',
+        };
+    }
+    return checkOnThisDevice(deviceCopy, pin);
+}
+
 type StaffIdAnswer =
     | { kind: 'token'; token: string; expiresAt: number; user: StaffUser }
     | { kind: 'refused'; message: string }

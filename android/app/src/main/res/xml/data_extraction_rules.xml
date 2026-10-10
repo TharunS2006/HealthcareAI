@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+: nothing this app stores leaves the phone through a cloud backup
+    or a device-to-device transfer. The WebView's IndexedDB holds patient
+    records, referrals and the staff directory with PIN hashes; a backup would
+    copy them to a personal Google account or to whatever phone the device is
+    migrated to. allowBackup="false" in the manifest stops cloud backup on
+    every version but, from Android 12, not device transfer — these rules stop
+    both. A replacement phone gets its data from the relay and the district
+    service, not from the old phone.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+</data-extraction-rules>

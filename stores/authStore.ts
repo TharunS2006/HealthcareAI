@@ -14,12 +14,16 @@
  * Stored in sessionStorage, not localStorage: each browser tab is its own
  * session. That is what lets a Sub Centre ANM and a PHC Medical Officer be
  * signed in side by side in two tabs of one machine for a demo, and it means a
- * shared clinic device forgets the user when the tab is closed.
+ * shared clinic device forgets the user when the tab is closed. A tab left
+ * open but unused locks (lib/auth/idleLock.ts, components/auth/SessionLock.tsx)
+ * until the same user re-enters their PIN; `locked` is part of the stored
+ * session, so a reload does not unlock it.
  */
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { logAudit, setCurrentActor } from '@/lib/db';
+import { clearIdleClock, resetIdleClock } from '@/lib/auth/idleLock';
 import type { FacilityType } from '@/types/patient';
 import type { StaffRole } from '@/lib/auth/permissions';
 
@@ -40,6 +44,8 @@ export interface StaffSession {
     token?: string;
     /** When the token stops being accepted, Unix ms. */
     tokenExpiresAt?: number;
+    /** Locked for inactivity: the screen is covered until the PIN is re-entered. */
+    locked?: boolean;
 }
 
 interface AuthState {
@@ -50,6 +56,10 @@ interface AuthState {
     setToken: (token: string, expiresAt: number) => void;
     /** The relay no longer accepts the token (expired, or the user was changed). */
     dropToken: () => void;
+    /** Cover the screen after inactivity; the session and its token are kept. */
+    lock: () => void;
+    /** The PIN was re-entered: uncover the screen and restart the idle clock. */
+    unlock: () => void;
 }
 
 const attribute = (s: StaffSession | null) => {
@@ -68,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
                 // write fired by a screen reacting to the login cannot land under
                 // the previous user.
                 attribute(session);
+                resetIdleClock();
                 set({ session });
                 void logAudit('SESSION', session.userId, 'SIGN IN', { after: { role: session.role, facility: session.facilityId } });
             },
@@ -82,10 +93,26 @@ export const useAuthStore = create<AuthState>()(
                 if (current?.token) set({ session: { ...current, token: undefined, tokenExpiresAt: undefined } });
             },
 
+            lock: () => {
+                const current = get().session;
+                if (!current || current.locked) return;
+                set({ session: { ...current, locked: true } });
+                void logAudit('SESSION', current.userId, 'LOCKED (INACTIVE)');
+            },
+
+            unlock: () => {
+                const current = get().session;
+                if (!current?.locked) return;
+                resetIdleClock();
+                set({ session: { ...current, locked: false } });
+                void logAudit('SESSION', current.userId, 'UNLOCKED (PIN RE-ENTERED)');
+            },
+
             logout: () => {
                 const previous = get().session;
                 if (previous) void logAudit('SESSION', previous.userId, 'SIGN OUT', { after: { role: previous.role } });
                 attribute(null);
+                clearIdleClock();
                 set({ session: null });
             },
         }),

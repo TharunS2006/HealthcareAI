@@ -17,6 +17,8 @@ import { usePatientStore } from '@/stores/patientStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { useSession } from '@/lib/auth/session';
+import { pauseIdleLock } from '@/lib/auth/idleLock';
+import { maskedName, minutesWaiting, queueStats } from '@/lib/queue/stats';
 import type { Appointment } from '@/types/appointment';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -45,7 +47,10 @@ export default function QueuePage() {
     useEffect(() => {
         if (session?.facilityId && session.facilityId !== selectedFacilityId) setSelectedFacilityId(session.facilityId);
     }, [session?.facilityId, selectedFacilityId, setSelectedFacilityId]);
-    const facilityName = FACILITY_NETWORK.find(f => f.id === selectedFacilityId)?.name ?? 'PHC Bhamragad';
+    const facilityName = FACILITY_NETWORK.find(f => f.id === selectedFacilityId)?.name ?? session?.facilityName ?? '';
+    // The doctor a called token is recorded against: the signed-in officer when
+    // they are a doctor, otherwise nobody — never a name made up for the record.
+    const callingDoctor = session && (session.role === 'MO' || session.role === 'SPECIALIST') ? session.name : undefined;
     const { patients, loadPatients } = usePatientStore();
 
     const { language } = useLanguageStore();
@@ -63,6 +68,38 @@ export default function QueuePage() {
         return () => clearInterval(timer);
     }, [loadQueue, loadAppointments, loadPatients]);
 
+    // The TV display is watched, not used: it must not lock after the idle
+    // limit. Leaving it (Exit, or Esc as the button says) locks at once if the
+    // limit passed meanwhile — see lib/auth/idleLock.ts.
+    useEffect(() => {
+        if (!isTvMode) return;
+        const resume = pauseIdleLock();
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsTvMode(false);
+        };
+        // In browser full screen, Esc is taken by the browser to leave full
+        // screen and never reaches the page — so leaving full screen leaves the
+        // TV display too, and one Esc does what the button says.
+        const onFullscreen = () => {
+            if (!document.fullscreenElement) setIsTvMode(false);
+        };
+        window.addEventListener('keydown', onKey);
+        document.addEventListener('fullscreenchange', onFullscreen);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.removeEventListener('fullscreenchange', onFullscreen);
+            if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+            resume();
+        };
+    }, [isTvMode]);
+
+    const launchTv = () => {
+        setIsTvMode(true);
+        // Full screen needs the click's user gesture, so it is asked for here.
+        // Refused (an iframe, a kiosk browser) the display still fills the window.
+        void document.documentElement.requestFullscreen?.().catch(() => {});
+    };
+
     // Confirmed appointments due today at this facility — ready to check in as OPD tokens.
     const todayConfirmed = appointments.filter(
         a => a.facilityId === selectedFacilityId && a.status === 'CONFIRMED' && a.requestedDate <= queueTodayISO()
@@ -76,6 +113,8 @@ export default function QueuePage() {
 
     const waitingPatients = queue.filter(q => q.status === 'WAITING');
     const completedPatients = queue.filter(q => q.status === 'COMPLETED');
+    const stats = queueStats(queue, currentTime);
+    const minutesLabel = (m: number | null) => (m === null ? '—' : `${m} min`);
 
     const txt = {
         deptTag: isEn ? 'Smart Queue & Token Calling Engine' : isHi ? 'स्मार्ट ओपीडी कतार व टोकन इंजन' : 'स्मार्ट ओपीडी रांग व टोकन प्रणाली',
@@ -89,13 +128,18 @@ export default function QueuePage() {
         exitTv: isEn ? 'Exit TV Mode (Esc)' : isHi ? 'टीवी मोड से बाहर निकलें' : 'टीव्ही मोड बंद करा',
         nowServing: isEn ? 'Currently In Consultation' : isHi ? 'वर्तमान में परामर्श जारी' : 'सध्या तपासणी सुरू',
         nowServingTv: isEn ? '● Now Serving' : isHi ? '● वर्तमान परामर्श जारी' : '● सध्या तपासणी सुरू',
-        roomLabel: isEn ? 'Room 2 • General OPD' : isHi ? 'कक्ष क्र. २ • सामान्य ओपीडी' : 'खोली क्र. २ • सामान्य ओपीडी',
+        roomLabel: (room?: string) => room
+            ? (isEn ? `Room ${room} • General OPD` : isHi ? `कक्ष ${room} • सामान्य ओपीडी` : `खोली ${room} • सामान्य ओपीडी`)
+            : (isEn ? 'General OPD' : isHi ? 'सामान्य ओपीडी' : 'सामान्य ओपीडी'),
+        tvTitle: isEn ? `${facilityName} — OPD Token Calling Display` : isHi ? `${facilityName} — ओपीडी टोकन डिस्प्ले` : `${facilityName} — ओपीडी टोकन डिस्प्ले`,
         allDone: isEn ? 'All Waiting Patients Consulted' : isHi ? 'सभी प्रतीक्षा कर रहे मरीजों का परामर्श पूर्ण' : 'सर्व प्रतीक्षारत रुग्णांची तपासणी पूर्ण झाली आहे',
         finishConsult: isEn ? '✓ Finish Consultation' : isHi ? '✓ परामर्श पूर्ण करें' : '✓ तपासणी पूर्ण झाली',
         readyNext: isEn ? "Doctor ready for next patient. Click 'Call Next Patient' below." : isHi ? "डॉक्टर अगले मरीज हेतु तैयार हैं। नीचे 'अगले मरीज को बुलाएं' पर क्लिक करें।" : "डॉक्टर पुढील रुग्णासाठी सज्ज आहेत. खालील 'पुढील रुग्णास बोलवा' बटनावर क्लिक करा.",
         callNextBtn: isEn ? 'Call Next Patient' : isHi ? 'अगले मरीज को बुलाएं' : 'पुढील रुग्णास बोलवा',
         waitingQueueTitle: isEn ? 'Waiting Queue' : isHi ? 'प्रतीक्षारत कतार' : 'प्रतीक्षा रांग',
-        estWait: isEn ? 'Est. Avg. Wait: ~15 mins' : isHi ? 'अनुमानित औसत प्रतीक्षा: ~१५ मिनट' : 'सरासरी प्रतीक्षा वेळ: ~१५ मिनिटे',
+        estWait: stats.averageWaitMinutes === null
+            ? ''
+            : isEn ? `Average wait today: ${stats.averageWaitMinutes} min` : isHi ? `आज औसत प्रतीक्षा: ${stats.averageWaitMinutes} मिनट` : `आजची सरासरी प्रतीक्षा: ${stats.averageWaitMinutes} मिनिटे`,
         thToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
         thPatient: isEn ? 'Patient Name' : isHi ? 'मरीज का नाम' : 'रुग्णाचे नाव',
         thPriority: isEn ? 'Priority' : isHi ? 'प्राथमिकता' : 'प्राधान्य',
@@ -105,24 +149,26 @@ export default function QueuePage() {
         overrideBtn: isEn ? 'Override' : isHi ? 'प्राथमिकता दें' : 'अग्रक्रम द्या',
         skipBtn: isEn ? 'Skip' : isHi ? 'छोड़ें' : 'वगळा',
         analyticsTitle: isEn ? 'Queue Performance Today' : isHi ? 'आज का कतार प्रदर्शन' : 'आजचे रांग व्यवस्थापन आकडेवारी',
-        totalServed: isEn ? 'Total Consulted' : isHi ? 'कुल परामर्शित' : 'एकूण तपासलेले रुग्ण',
-        avgWaitTimeLabel: isEn ? 'Avg Wait Time' : isHi ? 'औसत प्रतीक्षा समय' : 'सरासरी प्रतीक्षा वेळ',
-        longestWait: isEn ? 'Longest Wait' : isHi ? 'अधिकतम प्रतीक्षा' : 'कमाल प्रतीक्षा वेळ',
-        activeDoctors: isEn ? 'Doctors On Duty' : isHi ? 'ड्यूटी पर डॉक्टर' : 'कार्यरत वैद्यकीय अधिकारी',
+        totalServed: isEn ? 'Consulted Today' : isHi ? 'आज परामर्शित' : 'आज तपासलेले रुग्ण',
+        avgWaitTimeLabel: isEn ? 'Avg Wait Today' : isHi ? 'आज औसत प्रतीक्षा' : 'आजची सरासरी प्रतीक्षा',
+        longestWait: isEn ? 'Longest Wait Today' : isHi ? 'आज अधिकतम प्रतीक्षा' : 'आजची कमाल प्रतीक्षा',
+        activeDoctors: isEn ? 'Doctors Seeing Patients' : isHi ? 'परामर्श दे रहे डॉक्टर' : 'तपासणी करणारे डॉक्टर',
         completedTitle: isEn ? 'Completed Consultations' : isHi ? 'परामर्श पूर्ण मरीज' : 'तपासणी पूर्ण झालेले रुग्ण',
     };
 
     // TV Mode
     if (isTvMode) {
         return (
-            <div className="min-h-screen bg-slate-950 text-white p-8 flex flex-col justify-between select-none">
+            // Fixed over the whole window, above the portal header and the
+            // assistant button: this is the screen the waiting room watches.
+            <div className="fixed inset-0 z-[60] overflow-y-auto bg-slate-950 text-white p-8 flex flex-col justify-between select-none">
                 {/* TV Header */}
                 <header className="flex justify-between items-center border-b border-slate-800 pb-4">
                     <div className="flex items-center gap-3">
                         <div className="w-4 h-4 rounded-full bg-emerald-500 animate-pulse" />
                         <div>
                             <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide text-emerald-400 uppercase">
-                                {isEn ? 'PHC Bhamragad — OPD Token Calling Display' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र भामरागढ़ — ओपीडी टोकन डिस्प्ले' : 'प्राथमिक आरोग्य केंद्र भामरागड — ओपीडी टोकन डिस्प्ले'}
+                                {txt.tvTitle}
                             </h1>
                             <p className="text-sm text-slate-400">
                                 {isEn ? 'Department of Public Health • Government of Maharashtra' : isHi ? 'लोक स्वास्थ्य विभाग • महाराष्ट्र सरकार' : 'सार्वजनिक आरोग्य विभाग • महाराष्ट्र शासन'}
@@ -162,11 +208,13 @@ export default function QueuePage() {
                                 <div className="text-8xl md:text-9xl font-extrabold font-mono text-emerald-400 tracking-tighter drop-shadow-lg">
                                     {currentServing.tokenNumber}
                                 </div>
+                                {/* Anyone in the waiting room reads this screen: first name and
+                                    initials only, beside the token the patient was given. */}
                                 <h2 className="text-4xl font-extrabold text-white">
-                                    {currentServing.patientName}
+                                    {maskedName(currentServing.patientName)}
                                 </h2>
                                 <p className="text-xl text-slate-300">
-                                    {txt.roomLabel} • {currentServing.consultingDoctor || 'Dr. Suresh Atram'}
+                                    {txt.roomLabel(currentServing.roomNo)}
                                 </p>
                             </motion.div>
                         ) : (
@@ -195,14 +243,12 @@ export default function QueuePage() {
                                             <div className="text-2xl font-mono font-extrabold text-emerald-300">
                                                 {entry.tokenNumber}
                                             </div>
-                                            <div className="text-sm font-semibold text-slate-200">{entry.patientName}</div>
+                                            <div className="text-sm font-semibold text-slate-200">{maskedName(entry.patientName)}</div>
                                         </div>
                                     </div>
-                                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${
-                                        entry.priority === 'EMERGENCY' ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-700 text-slate-300'
-                                    }`}>
-                                        {entry.priority}
-                                    </span>
+                                    {/* No priority on the public screen: "EMERGENCY" beside a
+                                        name tells the whole room about someone's health. The
+                                        order already reflects it. */}
                                 </div>
                             ))}
                         </div>
@@ -245,7 +291,7 @@ export default function QueuePage() {
 
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={() => setIsTvMode(true)}
+                                onClick={launchTv}
                                 className="gov-btn gov-btn-primary text-xs"
                             >
                                 <Icon name="tv" className="w-3.5 h-3.5" /> {txt.launchTv}
@@ -299,7 +345,7 @@ export default function QueuePage() {
                                     <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
                                         ● {txt.nowServing}
                                     </span>
-                                    <span className="text-xs text-txt-muted">{txt.roomLabel}</span>
+                                    <span className="text-xs text-txt-muted">{txt.roomLabel(currentServing?.roomNo)}</span>
                                 </div>
 
                                 {currentServing ? (
@@ -332,7 +378,7 @@ export default function QueuePage() {
                                 {/* Calling Actions */}
                                 <div className="pt-4 border-t border-gray-100 flex gap-3">
                                     <button
-                                        onClick={() => callNext()}
+                                        onClick={() => callNext(callingDoctor)}
                                         className="flex-1 py-3.5 bg-emerald-deep hover:bg-emerald-800 text-white font-bold text-sm rounded transition-all flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         <Icon name="megaphone" className="w-4 h-4" />
@@ -348,7 +394,7 @@ export default function QueuePage() {
                                     <h3 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wider">
                                         {txt.waitingQueueTitle} ({waitingPatients.length})
                                     </h3>
-                                    <span className="text-xs text-txt-muted">{txt.estWait}</span>
+                                    {txt.estWait && <span className="text-xs text-txt-muted">{txt.estWait}</span>}
                                 </div>
 
                                 <div className="overflow-x-auto">
@@ -391,7 +437,7 @@ export default function QueuePage() {
                                                             </span>
                                                         </td>
                                                         <td className="py-3.5 text-txt-muted">
-                                                            ~{entry.estimatedWaitMinutes} mins
+                                                            {minutesLabel(minutesWaiting(entry, currentTime))}
                                                         </td>
                                                         <td className="py-3.5 text-right space-x-1.5">
                                                             {entry.priority !== 'EMERGENCY' && (
@@ -430,19 +476,19 @@ export default function QueuePage() {
                                 <div className="grid grid-cols-2 gap-3">
                                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
                                         <span className="text-[10px] font-bold text-emerald-800 block uppercase">{txt.totalServed}</span>
-                                        <strong className="text-2xl font-black text-[#1F3A6E]">{completedPatients.length + 38}</strong>
+                                        <strong className="text-2xl font-black text-[#1F3A6E]">{stats.consultedToday}</strong>
                                     </div>
                                     <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl">
                                         <span className="text-[10px] font-bold text-teal-800 block uppercase">{txt.avgWaitTimeLabel}</span>
-                                        <strong className="text-2xl font-black text-teal-800">14 min</strong>
+                                        <strong className="text-2xl font-black text-teal-800">{minutesLabel(stats.averageWaitMinutes)}</strong>
                                     </div>
                                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
                                         <span className="text-[10px] font-bold text-amber-800 block uppercase">{txt.longestWait}</span>
-                                        <strong className="text-2xl font-black text-amber-800">28 min</strong>
+                                        <strong className="text-2xl font-black text-amber-800">{minutesLabel(stats.longestWaitMinutes)}</strong>
                                     </div>
                                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl">
                                         <span className="text-[10px] font-bold text-blue-800 block uppercase">{txt.activeDoctors}</span>
-                                        <strong className="text-2xl font-black text-blue-800">2 (MOs)</strong>
+                                        <strong className="text-2xl font-black text-blue-800">{stats.doctorsToday ?? '—'}</strong>
                                     </div>
                                 </div>
                             </div>
