@@ -1,25 +1,29 @@
 """
-NalamMesh — District Reporting Service (FastAPI)
+NalamMesh — District Record Service (FastAPI)
 
 WHY THIS EXISTS
 ---------------
 The clinical platform is device-first: every facility's records live in that
-device's own IndexedDB, and the mesh relay only forwards them between peers.
-That design is what lets a sub-centre keep working when it is cut off for days,
-and it keeps patient data on the device that captured it.
+device's own IndexedDB, and the mesh relay forwards referrals between peers.
+That design is what lets a sub-centre keep working when it is cut off for days.
 
-It has one honest cost: nobody can answer a district-wide question. "How many
-RED cases across all seven facilities this week?" has no home in that
-architecture, because there is no place that sees all seven.
+Two things have no home in that design, and this service is that home:
 
-This service is that place, and nothing more. Facilities push a reduced,
-de-identified summary of what they handled; the district queries aggregates.
+  - The pre-arrival hand-off. Every patient a device registers or updates, and
+    every referral, is queued on the device and uploaded here when it has a
+    connection. A receiving facility reads its Pre-Arrival Board from here, so
+    the record reaches the hospital before the ambulance does. These are
+    identified records: every route that touches them needs a relay-signed
+    session token, is scoped by role and posting, and is written to the access
+    log, which the District Health Officer reads.
+  - District oversight: the Data Inspector, the access log, and aggregates over
+    de-identified encounters (which the app does not send yet).
 
 WHAT IT IS NOT
 --------------
-It is not the clinical source of truth, and the app never reads from it. If this
-service is down, care continues — which is the whole point. Nothing here is on
-the path between a health worker and their patient's record.
+It is not the clinical source of truth. If this service is down, care
+continues: devices keep working, uploads wait in their outbox, and every screen
+that reads from here says it could not be reached rather than showing nothing.
 """
 
 import json
@@ -128,7 +132,7 @@ async def lifespan(app: FastAPI):
 
 _DOCS = api_docs_enabled()
 app = FastAPI(
-    title="NalamMesh — District Reporting Service",
+    title="NalamMesh — District Record Service",
     description=__doc__,
     version="1.0.0",
     lifespan=lifespan,
@@ -210,7 +214,7 @@ def root():
     # Opening the service's address in a browser used to answer {"detail":"Not Found"},
     # which reads as "the service is broken". It is an API, so say so and point on.
     return {
-        "service": "NalamMesh District Reporting Service",
+        "service": "NalamMesh District Record Service",
         "status": "running",
         "health": "/health",
         "api_docs": "/docs",
@@ -241,7 +245,7 @@ def health(session: Session = Depends(get_session)):
         # "self-hosted" or "external": whether a question leaves the department's
         # own infrastructure — the first thing a data-protection review asks.
         "chat_hosting": chat_hosting(chat[0] if chat else None),
-        "note": "Reporting only. Clinical care does not depend on this service.",
+        "note": "Pre-arrival hand-off and district oversight. Clinical care does not depend on this service: devices keep working and their uploads wait.",
     }
 
 
