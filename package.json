@@ -15,6 +15,7 @@
     "verify": "node scripts/verify-all.mjs",
     "check:a11y": "node scripts/check-a11y.mjs",
     "check:offline": "node scripts/check-offline.mjs",
+    "check:production": "node scripts/check-production-flow.mjs",
     "server": "tsx server/mesh-server.ts",
     "verify:triage": "tsx scripts/verify-triage.mts",
     "verify:metrics": "tsx scripts/verify-metrics.mts",

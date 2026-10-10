@@ -165,7 +165,7 @@ E.append(table([
     ["Stack", "Next.js 15 (App Router, static export) · React 19 · TypeScript · Zustand · "
               "IndexedDB · Socket.io relay · FastAPI district service"],
     ["Scale", "45 routes · 13 on-device stores · 6 staff roles · 7 modelled facilities · "
-              "37 verify suites and 2 browser checks"],
+              "37 verify suites and 3 browser checks"],
     ["Status", "Software ready for a supervised pilot; approvals still due before real "
                "patients — see docs/PRODUCTION_READINESS.md"],
     ["Languages", "English, Hindi and Marathi — every citizen-facing screen is trilingual"],
@@ -313,8 +313,9 @@ E.append(table([
                      "<font face='Courier' size='7.5'>CACHE_VERSION</font> whenever you "
                      "change the pre-cache list, or clients keep the stale shell."],
     ["scripts/", "37 verify suites (<font face='Courier' size='7.5'>npm run verify</font>) "
-                 "and two browser checks (<font face='Courier' size='7.5'>check:a11y</font>, "
-                 "<font face='Courier' size='7.5'>check:offline</font>). CI runs them all."],
+                 "and three browser checks (<font face='Courier' size='7.5'>check:a11y</font>, "
+                 "<font face='Courier' size='7.5'>check:offline</font>, "
+                 "<font face='Courier' size='7.5'>check:production</font>). CI runs them all."],
     ["server/", "The mesh relay: <font face='Courier' size='7.5'>mesh-server.ts</font> on a "
                 "server, <font face='Courier' size='7.5'>relay/vercel.ts</font> hosted; rules "
                 "in <font face='Courier' size='7.5'>relay/app.ts</font>."],
@@ -604,7 +605,8 @@ E.append(Paragraph(
     "npm run verify          # all 37 suites, with a summary<br/>"
     "npm run build           # static export, then stamps the service worker<br/>"
     "npm run check:offline   # opens the ANM's screens with the server stopped<br/>"
-    "npm run check:a11y      # WCAG 2.1 A/AA on 28 pages", Code))
+    "npm run check:a11y      # WCAG 2.1 A/AA on 28 pages<br/>"
+    "npm run check:production  # the first day's flow, in production mode", Code))
 
 E.append(Paragraph("Testing offline properly", H2))
 E.append(Paragraph(
@@ -654,6 +656,8 @@ E.append(table([
     ["Triage clinical suite", "20 / 20, through all three decision paths"],
     ["Offline", "Every ANM screen starts with the server stopped (check:offline)"],
     ["Accessibility", "No axe-core WCAG 2.1 A/AA violation on 28 pages (check:a11y)"],
+    ["Production flow", "Accounts, a RED referral, the pre-arrival board, the access log, revocation "
+                        "and a relay restart, in a browser against real servers (check:production)"],
     ["Dependency audits", "npm audit and pip-audit: no known vulnerabilities"],
 ], [70 * mm, W - 70 * mm]))
 

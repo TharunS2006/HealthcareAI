@@ -305,12 +305,14 @@ npm run verify         # every verify:* suite below, with a summary
 npm run build          # static export to out/, then stamps the service worker
 npm run check:a11y     # axe-core WCAG 2.1 A/AA on 28 pages, signed in per role (after a build)
 npm run check:offline  # install, stop the server, open the ANM's screens from cache (after a build)
+npm run check:production # production build + relay + district service: the first day's flow in a browser
 ```
 
 GitHub Actions runs all of these on every push, with the district service tested
 against a real PostgreSQL, plus `npm audit` and `pip-audit`
-(`.github/workflows/ci.yml`). The two browser checks need Chromium:
-`npx playwright install chromium` once.
+(`.github/workflows/ci.yml`). The browser checks need Chromium:
+`npx playwright install chromium` once. `check:production` rebuilds `out/` in
+production mode, so run it after the other two.
 
 ### Other scripts
 

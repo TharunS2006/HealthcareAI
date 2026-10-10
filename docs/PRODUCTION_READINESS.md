@@ -21,6 +21,7 @@ unless marked otherwise.
 
 | Area | What holds | Checked by |
 |---|---|---|
+| The whole system | A production build, the relay on its store file and the district service, driven in a browser: the Super Admin creates staff; an ANM on a new device registers a RED patient and the referral goes up a tier; the receiving MO sees the patient on the Pre-Arrival Board; the DHO sees the access log; a deactivated MO is refused by both servers; a restarted relay keeps every account | `check:production` (browser) |
 | Sign-in | PIN checked by the relay; five wrong tries lock the account for five minutes (unknown Staff IDs too); signed 12-hour session tokens; a device holds PIN hashes of its own facility's staff only | `verify:relay`, `verify:permissions` |
 | Roles and scope | Six roles; every screen, action and server route checks the role and the posting — a PHC reads its own pre-arrival board, not the District Hospital's | `verify:permissions`, `verify:access-api`, `verify:referral-flow` |
 | Production mode | No demo patients, accounts or pages; the first Super Admin from a bootstrap PIN, ignored once one exists; demonstration referrals refused | `verify:production-mode`, `verify:relay` |
@@ -164,5 +165,5 @@ repository-root [`.env.example`](../.env.example) and
    Board; the DHO sees both requests in the access log on the Audit screen.
    Remove the test patient afterwards.
 8. **On each release**, CI must be green on the release commit: lint,
-   typecheck, `npm run verify`, the build, `check:a11y`, `check:offline`, and
-   both dependency audits.
+   typecheck, `npm run verify`, the build, `check:a11y`, `check:offline`,
+   `check:production`, and both dependency audits.

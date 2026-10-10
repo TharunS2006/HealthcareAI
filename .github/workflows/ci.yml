@@ -81,6 +81,14 @@ jobs:
       - name: Offline (service worker, server stopped)
         run: npm run check:offline
 
+      # The whole system in production mode, as a district starts it: a
+      # production build, the relay on its store file, the district service,
+      # and the first day's flow in a browser — accounts, a RED referral, the
+      # pre-arrival board, the access log, revocation, a relay restart.
+      # Rebuilds out/ in production mode, so it runs after the checks above.
+      - name: Production flow (relay, district service, browser)
+        run: npm run check:production
+
       # express and socket.io are runtime dependencies (the relay runs on them),
       # so this audit covers the relay as well as the app.
       - name: Production dependency audit

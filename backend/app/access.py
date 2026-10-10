@@ -18,7 +18,8 @@ Revocation. A token is good for 12 hours. The relay re-reads the staff
 directory on every request, so a user the Super Admin deactivates, moves or
 re-roles is refused there at once; this service has no directory of its own.
 With NALAMMESH_RELAY_URL set, it asks the relay (GET /api/auth/me) whether a
-token's user is still the user it names, caching each answer for a minute.
+token's user is still the user it names, caching each answer for a minute
+(NALAMMESH_RELAY_CHECK_SECONDS; 0 asks on every request).
 The relay's "no" is final. A relay that cannot be reached is not treated as
 a "no" — the token's signature and expiry still stand — so a relay outage
 does not lock clinicians out of the pre-arrival board; set
@@ -98,7 +99,19 @@ def verify_token(token: str, secret: str, now: Optional[float] = None) -> Option
 
 RELAY_URL = os.environ.get("NALAMMESH_RELAY_URL", "").strip().rstrip("/")
 RELAY_CHECK_STRICT = os.environ.get("NALAMMESH_RELAY_CHECK", "").strip().lower() == "strict"
-_RELAY_CACHE_SECONDS = 60.0
+
+
+def _cache_seconds() -> float:
+    """How long the relay's answer about a token is reused: NALAMMESH_RELAY_CHECK_SECONDS, default 60."""
+    try:
+        value = float(os.environ.get("NALAMMESH_RELAY_CHECK_SECONDS", "").strip() or 60)
+    except ValueError:
+        return 60.0
+    return value if value >= 0 else 60.0
+
+
+# The longest a deactivated, moved or re-roled account keeps reading records here.
+_RELAY_CACHE_SECONDS = _cache_seconds()
 _relay_cache: "OrderedDict[str, tuple[float, bool]]" = OrderedDict()
 _relay_lock = threading.Lock()
 
