@@ -317,7 +317,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                     <section className="border border-[#1F3A6E] bg-[#F8FAFC] p-2.5 space-y-2" aria-label="Actions">
                         <div className="flex flex-wrap gap-2">
                             {may('ACKNOWLEDGE') && (
-                                <button type="button" disabled={busy} className={secondary} onClick={() => void run(() => act(ref.id, { action: 'ACKNOWLEDGE' }, session), 'Acknowledged — the sender has been notified')}>
+                                <button type="button" disabled={busy} className={secondary} onClick={() => void run(() => act(ref.id, { action: 'ACKNOWLEDGE' }, session), 'Acknowledged — the sender will be notified')}>
                                     Acknowledge
                                 </button>
                             )}
@@ -347,7 +347,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                     disabled={busy || !canReserve}
                                     title={canReserve ? undefined : 'No suitable bed is free right now'}
                                     className={secondary}
-                                    onClick={() => void run(() => act(ref.id, { action: 'RESERVE_BED', reservation: reservation ?? undefined }, session), 'Bed reserved — the sender has been notified')}
+                                    onClick={() => void run(() => act(ref.id, { action: 'RESERVE_BED', reservation: reservation ?? undefined }, session), 'Bed reserved — the sender will be notified')}
                                 >
                                     {canReserve ? `Reserve ${WARD_LABELS[check.bedWard!]} bed` : 'No bed free to reserve'}
                                 </button>
@@ -428,7 +428,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                                     reservation: canReserve || !check.bedRequired ? (reservation ?? undefined) : undefined,
                                                     override: needsOverride ? { reason: overrideReason } : undefined,
                                                 }, session),
-                                                canReserve ? 'Accepted — bed reserved, sender notified' : 'Accepted — sender notified'
+                                                canReserve ? 'Accepted — bed reserved; the sender will be notified' : 'Accepted — the sender will be notified'
                                             )
                                         }
                                     >
@@ -468,7 +468,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                         type="button"
                                         disabled={busy || (rejectCode === 'OTHER' && !rejectDetail.trim())}
                                         className={danger}
-                                        onClick={() => void run(() => act(ref.id, { action: 'REJECT', reject: { code: rejectCode, detail: rejectDetail } }, session), 'Rejected — the sender has been notified')}
+                                        onClick={() => void run(() => act(ref.id, { action: 'REJECT', reject: { code: rejectCode, detail: rejectDetail } }, session), 'Rejected — the sender will be notified')}
                                     >
                                         Confirm rejection
                                     </button>
@@ -514,7 +514,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                         onClick={() =>
                                             void run(
                                                 () => act(ref.id, { action: 'DISPATCH', dispatch: { vehicleNo: vehicle, etaMinutes: eta.trim() ? Number(eta) : undefined } }, session),
-                                                'Dispatched — the receiving facility has been notified'
+                                                'Dispatched — the receiving facility will be notified'
                                             )
                                         }
                                     >

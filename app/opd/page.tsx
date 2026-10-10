@@ -106,7 +106,9 @@ export default function OPDPage() {
             : isHi
             ? 'ओपीडी पंजीयन व नैदानिक जांच • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)'
             : 'ओपीडी रुग्ण नोंदणी व नैदानिक तपासणी • महाराष्ट्र शासन • ABDM-सज्ज (FHIR R4)',
-        searchPlaceholder: isEn ? 'Search ABHA ID / Aadhaar / Name...' : isHi ? 'ABHA ID / आधार क्रमांक / नाम खोजें...' : 'ABHA ID / आधार क्रमांक / नाव शोधा...',
+        // What the search actually matches (name, ABHA, record id); a scanned
+        // wristband types the record id here. Aadhaar is never stored in full.
+        searchPlaceholder: isEn ? 'Name, ABHA number or record ID (scan a wristband)…' : isHi ? 'नाम, ABHA नंबर या रिकॉर्ड ID (रिस्टबैंड स्कैन करें)…' : 'नाव, ABHA क्रमांक किंवा नोंद ID (रिस्टबँड स्कॅन करा)…',
         searchBtn: isEn ? 'Search' : isHi ? 'खोजें' : 'शोधा',
         sec1Title: isEn ? '1. Patient Demographics & ABHA' : isHi ? '१. मरीज की प्राथमिक जानकारी (ABHA)' : '१. रुग्णाची प्राथमिक माहिती (Demographics & ABHA)',
         fullName: isEn ? 'Patient Full Name' : isHi ? 'मरीज का पूरा नाम' : 'रुग्णाचे पूर्ण नाव',

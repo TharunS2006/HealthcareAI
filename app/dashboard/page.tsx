@@ -34,6 +34,7 @@ import ReferralCommand from '@/components/dashboard/ReferralCommand';
 import FacilityTree from '@/components/dashboard/FacilityTree';
 import { clinicalSummary } from '@/lib/analytics/patientSummary';
 import { districtSuffix } from '@/lib/config/deployment';
+import { PRODUCTION } from '@/lib/config/mode';
 import OfficialHealthContext from '@/components/dashboard/OfficialHealthContext';
 import { isOpenReferral } from '@/lib/referrals/workflow';
 import { useSession } from '@/lib/auth/session';
@@ -278,7 +279,8 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {districtWide && <DemoModeToggle />}
+                            {/* Evaluation builds only: it adds made-up patients to this device. */}
+                            {districtWide && !PRODUCTION && <DemoModeToggle />}
                             {/* Reflects the actual relay socket — see lib/socket.ts for why this must
                                 never be hardcoded to "Online". */}
                             <div

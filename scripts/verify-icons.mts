@@ -40,6 +40,9 @@ let checked = 0;
 for (const f of files) {
   const src = readFileSync(f, 'utf8');
   for (const m of src.matchAll(/\bd="([^"]+)"/g)) {
+    // A path built at run time (d="${...}") cannot be read here; its generator
+    // is checked by its own suite (lib/qr.ts → verify:qr).
+    if (m[1].includes('${')) continue;
     checked++;
     const err = validate(m[1]);
     if (err) { bad++; const line = src.slice(0, m.index).split('\n').length; console.log(`${f}:${line}  ${err}`); }

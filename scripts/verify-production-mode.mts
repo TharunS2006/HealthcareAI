@@ -7,8 +7,9 @@
  *   1. EMPTY START   a new device gets the facility list and nothing else —
  *                    no fictional patient, referral, stock, bed report or
  *                    demo account
- *   2. NO DEMO       the demonstration pages are closed and the reset to
- *                    demonstration data refuses
+ *   2. NO DEMO       the demonstration pages are closed, the reset to
+ *                    demonstration data refuses, and the Command Center's demo
+ *                    patient generator adds nobody
  *   3. STAFF ID      with no relay, a Staff ID this device has never seen
  *                    cannot sign in, and says to connect once
  */
@@ -65,6 +66,13 @@ let refused = false;
 try { await DB.resetToDefaultSeed(); } catch { refused = true; }
 check('resetting to demonstration data refuses', refused);
 check('…and wrote nothing', (await count('patients')) === 0 && (await count('users')) === 0);
+const { startDemoMode, isDemoRunning, stopDemoMode } = await import('../lib/demoMode');
+const generated: unknown[] = [];
+startDemoMode(p => generated.push(p));
+await new Promise(r => setTimeout(r, 100));
+check('the demo patient generator does not start', !isDemoRunning(), 'it is running');
+check('…and adds no patient', generated.length === 0 && (await count('patients')) === 0, `${generated.length} generated`);
+stopDemoMode();
 
 print('\n3. STAFF ID');
 const unknown = await signInWithStaffId('ANM-KOT-1021', '2468', await DB.getUsers());

@@ -1,130 +1,65 @@
 /**
- * QR Wristband Generator — Offline printable patient tag
- * Generates a QR code from patient data for physical wristband printing
+ * QR Wristband — a printable patient tag that a scanner can read.
+ *
+ * The QR code holds the patient's record id (lib/qr.ts). A handheld scanner
+ * types it into the OPD search box, which finds the record. The tag shows who
+ * the patient is — name, age and sex, id, triage priority at registration —
+ * so a nurse can check it against the patient. It no longer carries the
+ * registration GPS position or a vitals snapshot: one is private, the other
+ * is out of date by the next shift.
  */
 
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Patient } from '@/types/patient';
-import Icon from '@/components/gov/Icon';
+import { qrSvg } from '@/lib/qr';
 
 interface QRWristbandProps {
     patient: Patient;
 }
 
-/**
- * Generate QR code as SVG using a simple implementation
- * No external library needed — uses a compact QR generation algorithm
- */
-function generateQRSVG(data: string, size: number = 200): string {
-    // Simple QR-like pattern using data encoding
-    // For a real hackathon, you'd use a library — this creates a visual representation
-    const modules = 21; // QR version 1
-    const cellSize = size / modules;
-    const hash = Array.from(data).reduce((acc, ch) => ((acc << 5) - acc + ch.charCodeAt(0)) | 0, 0);
-
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
-    svg += `<rect width="${size}" height="${size}" fill="white"/>`;
-
-    // Generate pseudo-QR pattern from data hash
-    const seedA = Math.abs(hash);
-    const seedB = Math.abs(hash * 31);
-
-    for (let row = 0; row < modules; row++) {
-        for (let col = 0; col < modules; col++) {
-            // Finder patterns (top-left, top-right, bottom-left)
-            const isFinder = (
-                (row < 7 && col < 7) ||   // top-left
-                (row < 7 && col >= modules - 7) || // top-right
-                (row >= modules - 7 && col < 7) // bottom-left
-            );
-
-            const isFinderBorder = isFinder && (
-                row === 0 || row === 6 || col === 0 || col === 6 ||
-                row === modules - 7 || row === modules - 1 ||
-                col === modules - 7 || col === modules - 1
-            );
-
-            const isFinderInner = isFinder && (
-                (row >= 2 && row <= 4 && col >= 2 && col <= 4) ||
-                (row >= 2 && row <= 4 && col >= modules - 5 && col <= modules - 3) ||
-                (row >= modules - 5 && row <= modules - 3 && col >= 2 && col <= 4)
-            );
-
-            // Data area
-            const dataIdx = row * modules + col;
-            const isData = !isFinder && ((seedA * (dataIdx + 1) + seedB) % 3 !== 0);
-
-            if (isFinderBorder || isFinderInner || isData) {
-                svg += `<rect x="${col * cellSize}" y="${row * cellSize}" width="${cellSize}" height="${cellSize}" fill="#0E4D45"/>`;
-            }
-        }
-    }
-
-    svg += '</svg>';
-    return svg;
-}
+const escapeHtml = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
 export default function QRWristband({ patient }: QRWristbandProps) {
-    const printRef = useRef<HTMLDivElement>(null);
-    const [qrSVG, setQrSVG] = useState('');
-
-    useEffect(() => {
-        // Encode minimal patient data into QR
-        const qrData = JSON.stringify({
-            id: patient.id.slice(0, 8),
-            s: patient.triageStatus,
-            spo2: patient.vitals.spo2,
-            hr: patient.vitals.heartRate,
-            gps: `${patient.gps.lat.toFixed(4)},${patient.gps.lng.toFixed(4)}`,
-            t: new Date(patient.timestamp).toISOString().slice(11, 16),
-        });
-        setQrSVG(generateQRSVG(qrData, 160));
-    }, [patient]);
+    const svg = useMemo(() => qrSvg(patient.id, 160), [patient.id]);
+    const registered = new Date(patient.timestamp);
+    const registeredText = Number.isFinite(registered.getTime()) ? registered.toLocaleString() : '';
 
     const handlePrint = () => {
-        if (!printRef.current) return;
-        const printWindow = window.open('', '_blank');
+        const printWindow = window.open('', '_blank', 'width=520,height=360');
         if (!printWindow) return;
-
-        const statusColor = patient.triageStatus === 'RED' ? '#E53E3E' :
-            patient.triageStatus === 'YELLOW' ? '#D69E2E' : '#38A169';
-
-        printWindow.document.write(`
-            <html>
-            <head><title>Wristband — Patient #${patient.id.slice(0, 6)}</title>
+        const statusColor = patient.triageStatus === 'RED' ? '#C53030' : patient.triageStatus === 'YELLOW' ? '#B7791F' : '#2F855A';
+        // Every patient field is escaped: a name is typed by a person and goes
+        // into markup here. No inline script — the page's Content Security
+        // Policy carries over to this window — so printing is started from here.
+        printWindow.document.write(`<!doctype html><html><head><meta charset="utf-8">
+            <title>Wristband — ${escapeHtml(patient.name)}</title>
             <style>
-                body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; }
-                .wristband { border: 3px dashed #333; padding: 16px; width: 400px; display: flex; gap: 16px; align-items: center; }
-                .qr { flex-shrink: 0; }
-                .info { flex: 1; }
-                .status { font-size: 24px; font-weight: bold; color: ${statusColor}; border: 3px solid ${statusColor}; padding: 4px 12px; border-radius: 8px; display: inline-block; }
-                .field { font-size: 12px; color: #555; margin-top: 4px; }
-                .value { font-size: 14px; font-weight: bold; color: #111; }
-                @media print { .no-print { display: none; } }
-            </style></head>
-            <body>
-                <p class="no-print" style="margin-bottom:10px; font-size:12px; color:#888;">Cut along the dashed line and attach to patient</p>
-                <div class="wristband">
-                    <div class="qr">${qrSVG}</div>
-                    <div class="info">
-                        <div class="status">${patient.triageStatus}</div>
-                        <div class="field" style="margin-top: 8px;">Patient ID</div>
-                        <div class="value">#${patient.id.slice(0, 8)}</div>
-                        <div class="field">Vitals</div>
-                        <div class="value">SpO2: ${patient.vitals.spo2}% | HR: ${patient.vitals.heartRate} bpm</div>
-                        <div class="field">Location</div>
-                        <div class="value">${patient.gps.lat.toFixed(4)}, ${patient.gps.lng.toFixed(4)}</div>
-                        <div class="field">Time</div>
-                        <div class="value">${new Date(patient.timestamp).toLocaleTimeString()}</div>
-                    </div>
+                body { font-family: Arial, sans-serif; margin: 0; padding: 16px; }
+                .band { border: 2px dashed #333; padding: 12px; width: 440px; display: flex; gap: 14px; align-items: center; }
+                .status { font-size: 20px; font-weight: bold; color: ${statusColor}; border: 3px solid ${statusColor}; padding: 2px 10px; border-radius: 6px; display: inline-block; }
+                .name { font-size: 16px; font-weight: bold; margin-top: 6px; }
+                .field { font-size: 11px; color: #444; margin-top: 3px; }
+                .id { font-family: monospace; font-size: 11px; word-break: break-all; }
+                @media print { .hint { display: none; } }
+            </style></head><body>
+            <p class="hint" style="font-size:12px;color:#666;margin:0 0 8px">Cut along the dashed line and attach to the patient.</p>
+            <div class="band">
+                <div>${svg}</div>
+                <div>
+                    <div class="status">${escapeHtml(patient.triageStatus)}</div>
+                    <div class="name">${escapeHtml(patient.name)}</div>
+                    <div class="field">${escapeHtml(String(patient.age))} y · ${escapeHtml(patient.gender)}</div>
+                    <div class="field id">${escapeHtml(patient.id)}</div>
+                    <div class="field">Registered ${escapeHtml(registeredText)}</div>
                 </div>
-                <script>window.onload = function() { window.print(); }</script>
-            </body></html>
-        `);
+            </div></body></html>`);
         printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
     };
 
     const statusColor = patient.triageStatus === 'RED' ? 'border-red-500 bg-red-50' :
@@ -138,15 +73,11 @@ export default function QRWristband({ patient }: QRWristbandProps) {
         >
             <h3 className="text-sm font-bold text-emerald-deep mb-4 uppercase tracking-wide">QR Wristband</h3>
 
-            <div ref={printRef} className={`border-2 border-dashed ${statusColor} rounded-xl p-4 flex items-center gap-4`}>
-                {/* QR Code */}
-                <div
-                    className="shrink-0 bg-white rounded-lg p-2 shadow-sm"
-                    dangerouslySetInnerHTML={{ __html: qrSVG }}
-                />
+            <div className={`border-2 border-dashed ${statusColor} rounded-xl p-4 flex items-center gap-4`}>
+                {/* Generated from the module grid only (lib/qr.ts): no patient text in this markup. */}
+                <div className="shrink-0 bg-white rounded-lg p-1 shadow-sm" dangerouslySetInnerHTML={{ __html: svg }} />
 
-                {/* Patient Summary */}
-                <div className="min-w-0 space-y-1.5">
+                <div className="min-w-0 space-y-1">
                     <div className={`inline-block px-3 py-1 rounded-lg text-sm font-bold ${
                         patient.triageStatus === 'RED' ? 'bg-red-100 text-red-800' :
                         patient.triageStatus === 'YELLOW' ? 'bg-yellow-100 text-yellow-800' :
@@ -154,15 +85,14 @@ export default function QRWristband({ patient }: QRWristbandProps) {
                     }`}>
                         {patient.triageStatus}
                     </div>
-                    <div className="text-xs text-txt-muted">ID: #{patient.id.slice(0, 8)}</div>
-                    <div className="text-sm font-bold text-emerald-deep">
-                        SpO2: {patient.vitals.spo2}% | HR: {patient.vitals.heartRate}
-                    </div>
-                    <div className="text-xs text-txt-muted inline-flex items-center gap-1">
-                        <Icon name="map-pin" className="w-3 h-3" /> {patient.gps.lat.toFixed(4)}, {patient.gps.lng.toFixed(4)}
-                    </div>
+                    <div className="text-sm font-bold text-emerald-deep">{patient.name}</div>
+                    <div className="text-xs text-txt-muted">{patient.age} y · {patient.gender}</div>
+                    <div className="text-[11px] text-txt-muted font-mono break-all">{patient.id}</div>
                 </div>
             </div>
+            <p className="mt-2 text-[11px] text-txt-muted">
+                Scan with a handheld scanner into the OPD search box to open this record.
+            </p>
 
             <button
                 onClick={handlePrint}
@@ -176,4 +106,3 @@ export default function QRWristband({ patient }: QRWristbandProps) {
         </motion.div>
     );
 }
-

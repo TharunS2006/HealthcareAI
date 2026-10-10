@@ -236,7 +236,7 @@ export default function FHIRModal({ patient, isOpen, onClose }: FHIRModalProps) 
                                                 Milestone 1 (M1): ABHA Creation & Verification
                                             </strong>
                                             <p className="mt-0.5">
-                                                Generates and validates 14-digit ABHA IDs via Aadhaar OTP / mobile simulation and issues compliant offline QR wristbands.
+                                                Citizens verify an existing 14-digit ABHA number through the ABDM sandbox (an OTP to the ABHA-linked mobile), once the department&rsquo;s ABDM credentials are configured. Creating a new ABHA is not built. The QR wristband carries the local record id, not an ABHA.
                                             </p>
                                         </div>
                                     </div>

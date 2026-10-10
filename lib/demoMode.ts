@@ -7,6 +7,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Patient, TriageStatus, TriagePriority } from '@/types/patient';
 import { usePatientStore } from '@/stores/patientStore';
+import { PRODUCTION } from '@/lib/config/mode';
 import toast from 'react-hot-toast';
 
 let demoInterval: NodeJS.Timeout | null = null;
@@ -98,6 +99,13 @@ let presetIndex = 0;
  */
 export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
     if (demoInterval) return;
+    // A production device holds real patients, and these would join them as
+    // ordinary records (with made-up ABHA numbers) and queue for upload to the
+    // district service. The toggle is hidden there too; this is the backstop.
+    if (PRODUCTION) {
+        toast.error('Demonstration patients are not available in a production build');
+        return;
+    }
 
     toast('Maharashtra Rural Public Health Live Demo Mode Activated', {
         duration: 4000,
