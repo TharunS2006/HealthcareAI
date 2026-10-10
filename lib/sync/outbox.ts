@@ -168,15 +168,26 @@ export async function uploadStatusOf(
 // ── flushing ─────────────────────────────────────────────────────────────────
 
 let flushing = false;
+/**
+ * Set when a flush is asked for while one is running. That pass listed what was
+ * due when it began, so a record queued since — an emergency referral queued a
+ * moment after its patient — is not in it, and would otherwise wait for the
+ * minute sweep: a minute the receiving team would not have to prepare.
+ */
+let flushAgain = false;
 
 /**
  * Push everything due up to the cloud. Safe to call at any time, from anywhere:
- * it returns immediately when offline, when already running, or on any error.
+ * it returns immediately when offline or on any error; called while a pass is
+ * running, it returns at once and that pass runs again when it ends.
  *
  * Resolves to the number of records that reached the cloud in this pass.
  */
 export async function flushOutbox(): Promise<number> {
-    if (flushing) return 0;
+    if (flushing) {
+        flushAgain = true;
+        return 0;
+    }
     if (typeof navigator !== 'undefined' && !navigator.onLine) return 0;
     // Nobody signed in with a relay token: the service would answer 401 to every
     // record. They stay queued, untouched, and go up on the first flush after a
@@ -241,6 +252,10 @@ export async function flushOutbox(): Promise<number> {
     } finally {
         flushing = false;
         await notify();
+    }
+    if (flushAgain) {
+        flushAgain = false;
+        sent += await flushOutbox();
     }
     return sent;
 }

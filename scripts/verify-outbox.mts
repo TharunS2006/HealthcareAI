@@ -10,6 +10,9 @@
  *   3. 401          a session the service refuses keeps the record queued, to retry
  *   4. REFUSED      a record the service rejects (400) is set aside, not deleted
  *   5. OFFLINE      an unreachable service stops the pass; every record stays
+ *   6. MID-PASS     a record queued while a pass runs goes up when that pass
+ *                   ends — an emergency referral queued just after its patient
+ *                   used to wait for the minute sweep
  */
 
 import 'fake-indexeddb/auto';
@@ -38,7 +41,7 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     return answer(call);
 }) as typeof fetch;
 
-const { addToSyncQueue, getSyncQueue } = await import('../lib/db');
+const { addToSyncQueue, getSyncQueue, removeFromSyncQueue } = await import('../lib/db');
 const { flushOutbox } = await import('../lib/sync/outbox');
 const { setIdentityProvider } = await import('../lib/sync/cloudRecords');
 const { SEED_PATIENTS } = await import('../lib/data/facilities');
@@ -89,6 +92,26 @@ answer = () => { throw new TypeError('fetch failed'); };
 await flushOutbox();
 check('an unreachable service stops the pass after one attempt', calls.length === 1, `${calls.length} request(s)`);
 check('every record is still queued', Boolean(await queued('q-3')) && Boolean(await queued('q-4')));
+
+print('\n6. MID-PASS');
+calls.length = 0;
+// q-4 was never attempted in 5 (the pass stopped at q-3), so it is due; q-3 is
+// waiting out its backoff and must stay put.
+await removeFromSyncQueue('q-4');
+await queue('q-5');
+let release!: () => void;
+const held = new Promise<void>(resolve => { release = resolve; });
+answer = async () => { await held; return new Response('{}', { status: 200 }); };
+const pass = flushOutbox();                 // uploading q-5, held until released
+await new Promise(resolve => setTimeout(resolve, 20));
+await queue('q-6');                         // queued mid-pass…
+const asked = flushOutbox();                // …which asks for a flush, as enqueue() does
+check('a flush asked for during a pass returns at once', (await asked) === 0);
+release();
+const sentInPass = await pass;
+check('the record queued mid-pass goes up as soon as the pass ends', !(await queued('q-6')) && !(await queued('q-5')), `${calls.length} request(s)`);
+check('…in that same call, not at the next sweep', sentInPass === 2, `sent ${sentInPass}`);
+check('…and a record waiting out a backoff is not tried early', Boolean(await queued('q-3')) && calls.length === 2, `${calls.length} request(s)`);
 
 print(failures === 0 ? '\nAll outbox checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);
