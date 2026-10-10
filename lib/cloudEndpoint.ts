@@ -48,8 +48,8 @@ export function reportingBaseUrl(): string {
  * address the moment one of them was deployed. The assistant holds nothing but
  * an API key, so it can sit on a public HTTPS URL — which it must, since a
  * browser refuses to let an HTTPS page call a plain-HTTP backend. The record
- * store holds identified patient data and has no authentication, so it stays on
- * the LAN.
+ * store holds identified patient data, so even behind its session-token checks
+ * it stays on the facility or district network.
  *
  * Defaults to the reporting address, so the single-machine demo — one FastAPI
  * process serving both — needs no configuration at all and behaves exactly as

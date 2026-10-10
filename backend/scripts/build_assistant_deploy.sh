@@ -7,9 +7,9 @@
 # Deploying backend/ directly does not work, and not for a reason a flag can
 # fix: Vercel inspects the uploaded tree, finds Procfile ("web: uvicorn
 # app.main:app"), and persists a project-level service pointing at the district
-# service. That is the half that owns identified patient records and has no
-# authentication, so the wrong deploy is not merely broken, it is the one that
-# must never be public. .vercelignore does not undo it, because the detection is
+# service. That is the half that owns identified patient records, so the wrong
+# deploy is not merely broken, it is the one that must never be public — its
+# session-token checks are a second line, not a reason to expose it. .vercelignore does not undo it, because the detection is
 # already saved against the project.
 #
 # So the assistant is deployed from a tree where the district service does not
@@ -27,7 +27,7 @@ BACKEND="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 #
 # Inside it, the Vercel CLI kept resolving the project link upward into
 # backend/ — the tree that holds Procfile, app/main.py and district.db — and a
-# deploy rooted there publishes the unauthenticated district service. Vercel
+# deploy rooted there publishes the district service and its record store. Vercel
 # infers the root from the surrounding git repository, so the only reliable fix
 # is to stage where no repository, Procfile or database sits above us.
 OUT="${1:-$HOME/nalammesh-assistant-deploy}"
@@ -47,8 +47,10 @@ cp "$BACKEND/api/index.py" "$OUT/main.py"
 
 # Only the modules the chat path actually reaches. models.py is here because
 # schemas.py imports three enums from it — not because anything creates a table.
+# chat_guard.py (size caps, rate limits, redaction) checks session tokens
+# through access.py, which reads the role table in permissions.json.
 # Copying main.py here would defeat the entire point of this script.
-for f in __init__.py env.py chat_engine.py schemas.py models.py; do
+for f in __init__.py env.py chat_engine.py chat_guard.py access.py permissions.json schemas.py models.py; do
   cp "$BACKEND/app/$f" "$OUT/app/$f"
 done
 

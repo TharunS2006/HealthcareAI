@@ -1,0 +1,24 @@
+{
+  "about": "Identifier redaction before a question reaches a cloud model. Both copies — lib/chat/redact.ts on the device and backend/app/chat_guard.py on the server — must turn each input into exactly this output. Checked by npm run verify:chat-redaction and npm run verify:chat-guard.",
+  "cases": [
+    { "note": "ten-digit mobile", "input": "Patient phone 9876543210 has fever", "output": "Patient phone [phone number removed] has fever", "removed": 1 },
+    { "note": "mobile with +91 and spaces", "input": "call +91 98765 43210 now", "output": "call [phone number removed] now", "removed": 1 },
+    { "note": "mobile with +91, no spaces", "input": "+919876543210", "output": "[phone number removed]", "removed": 1 },
+    { "note": "mobile with +91 and hyphens", "input": "son: +91-98765-43210", "output": "son: [phone number removed]", "removed": 1 },
+    { "note": "mobile with a trunk 0", "input": "ring 098765 43210", "output": "ring [phone number removed]", "removed": 1 },
+    { "note": "Aadhaar in groups of four", "input": "Aadhaar 2345 6789 0123 please", "output": "Aadhaar [Aadhaar number removed] please", "removed": 1 },
+    { "note": "Aadhaar unbroken", "input": "aadhaar 234567890123", "output": "aadhaar [Aadhaar number removed]", "removed": 1 },
+    { "note": "ABHA number", "input": "ABHA 12-3456-7890-1234", "output": "ABHA [ABHA number removed]", "removed": 1 },
+    { "note": "ABHA address", "input": "ABHA address ramesh.patil@abdm", "output": "ABHA address [email or ABHA address removed]", "removed": 1 },
+    { "note": "email", "input": "email asha.worker@example.gov.in", "output": "email [email or ABHA address removed]", "removed": 1 },
+    { "note": "any other long number", "input": "MCTS id 1234567890123456789", "output": "MCTS id [ID number removed]", "removed": 1 },
+    { "note": "ten digits not starting 6-9", "input": "card 1234567890", "output": "card [ID number removed]", "removed": 1 },
+    { "note": "Devanagari digits", "input": "फोन ९८७६५४३२१० है", "output": "फोन [phone number removed] है", "removed": 1 },
+    { "note": "two numbers", "input": "Two numbers: 9876543210 and 9123456780", "output": "Two numbers: [phone number removed] and [phone number removed]", "removed": 2 },
+    { "note": "vitals are never touched", "input": "BP 180/110, HR 120, SpO2 88%, glucose 350, temp 102.4F, 32 weeks pregnant", "output": "BP 180/110, HR 120, SpO2 88%, glucose 350, temp 102.4F, 32 weeks pregnant", "removed": 0 },
+    { "note": "dates, times and lab values are never touched", "input": "Hb 6.5 g/dL on 10/10/2026 at 09:30, platelets 1,20,000", "output": "Hb 6.5 g/dL on 10/10/2026 at 09:30, platelets 1,20,000", "removed": 0 },
+    { "note": "helpline numbers and counts are never touched", "input": "8 beds free, call 108 or 102, 104 helpline", "output": "8 beds free, call 108 or 102, 104 helpline", "removed": 0 },
+    { "note": "a pincode is not an identifier on its own", "input": "village pincode 442605", "output": "village pincode 442605", "removed": 0 },
+    { "note": "a question with nothing personal", "input": "Where do I refer a RED case if the CHC has no beds free?", "output": "Where do I refer a RED case if the CHC has no beds free?", "removed": 0 }
+  ]
+}

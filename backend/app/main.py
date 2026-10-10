@@ -36,7 +36,8 @@ from sqlmodel import Session, SQLModel, create_engine, func, select
 # os.environ.get below, which is DATABASE_URL.
 from . import env  # noqa: F401
 from .access import require
-from .chat_engine import _chat_completion, _resolve_provider
+from .chat_engine import _chat_completion, _resolve_provider, chat_hosting
+from .chat_guard import ChatCaller, chat_access, redact_identifiers
 from .models import (CareReferral, Encounter, Facility, FacilityTier,
                      PatientRecord, Referral, ReferralStatus, TriagePriority)
 from .schemas import (CareReferralIn, ChatIn, ChatOut, DistrictSummary,
@@ -180,6 +181,9 @@ def health(session: Session = Depends(get_session)):
         # out to be. Never the key itself, only which variable was found.
         "chat_provider": chat[0] if chat else None,
         "chat_model": chat[1] if chat else None,
+        # "self-hosted" or "external": whether a question leaves the department's
+        # own infrastructure — the first thing a data-protection review asks.
+        "chat_hosting": chat_hosting(chat[0] if chat else None),
         "note": "Reporting only. Clinical care does not depend on this service.",
     }
 
@@ -192,9 +196,14 @@ def health(session: Session = Depends(get_session)):
     tags=["chat"],
     summary="Layer 2 of the chat assistant — cloud LLM, grounded in client-supplied context",
 )
-def chat(payload: ChatIn):
+def chat(payload: ChatIn, caller: ChatCaller = Depends(chat_access)):
+    # chat_access has already applied the sign-in policy and the rate limit.
+    # A signed-in caller's role comes from their token, never from the body.
+    question, _ = redact_identifiers(payload.question)
+    who = caller.identity
     answer, model = _chat_completion(
-        payload.question, payload.context, payload.role, payload.language
+        question, payload.context, who.role if who else payload.role, payload.language,
+        role_verified=who is not None,
     )
     return ChatOut(answer=answer, model=model)
 

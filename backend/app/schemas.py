@@ -6,12 +6,26 @@ forcing a schema migration, and so FastAPI's generated OpenAPI docs describe
 exactly what a caller should send.
 """
 
+import os
 from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+# Imported for its side effect: backend/.env is loaded before the read below.
+from . import env  # noqa: F401
 from .models import FacilityTier, ReferralStatus, TriagePriority
+
+
+def _positive_int_env(name: str, default: int) -> int:
+    try:
+        value = int(os.environ.get(name, "").strip() or default)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+MAX_CONTEXT_CHARS = _positive_int_env("CHAT_MAX_CONTEXT_CHARS", 32_000)
 
 
 # ───────────────────────────── ingest ─────────────────────────────
@@ -102,10 +116,21 @@ class ChatIn(BaseModel):
     keeps the cloud answer from drifting away from what the app itself says.
     """
 
-    question: str = Field(examples=["Where do I refer a RED case if the CHC has no beds free?"])
-    context: str = Field(examples=["REFERRAL PATHWAY: SC → PHC → CHC → SDH → DH\n..."])
-    role: Optional[str] = Field(default=None, examples=["ASHA"])
-    language: str = Field(default="en", examples=["en"])
+    # The caps are what keep this endpoint from being a free model proxy: every
+    # character here is a token billed to the department's key. The question
+    # box in the widget stops at the same 1000; the brief the app renders is
+    # about 8,300 characters for the seven-facility district, so 32,000 leaves
+    # room for a larger facility list (CHAT_MAX_CONTEXT_CHARS raises it).
+    question: str = Field(
+        min_length=1, max_length=1000,
+        examples=["Where do I refer a RED case if the CHC has no beds free?"],
+    )
+    context: str = Field(
+        max_length=MAX_CONTEXT_CHARS,
+        examples=["REFERRAL PATHWAY: SC → PHC → CHC → SDH → DH\n..."],
+    )
+    role: Optional[str] = Field(default=None, max_length=40, examples=["ASHA"])
+    language: str = Field(default="en", pattern=r"^(en|hi|mr)$", examples=["en"])
 
 
 class ChatOut(BaseModel):

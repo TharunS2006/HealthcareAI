@@ -56,7 +56,7 @@ def check(label, condition, detail=""):
 
 CHAT_ENV = ("XAI_API_KEY", "GROK_API_KEY", "GROQ_API_KEY", "ANTHROPIC_API_KEY",
             "CHAT_PROVIDER", "XAI_MODEL", "GROQ_MODEL", "ANTHROPIC_MODEL",
-            "XAI_BASE_URL", "GROQ_BASE_URL")
+            "XAI_BASE_URL", "GROQ_BASE_URL", "CHAT_BASE_URL", "CHAT_MODEL", "CHAT_API_KEY")
 
 
 def load(**env):
@@ -171,7 +171,7 @@ except HTTPException as exc:
     detail = str(exc.detail)
     check("unconfigured → 503", exc.status_code == 503, f"got {exc.status_code}")
     check("the 503 names every key it accepts, so the fix is obvious",
-          all(k in detail for k in ("GROQ_API_KEY", "XAI_API_KEY", "ANTHROPIC_API_KEY")), detail)
+          all(k in detail for k in ("CHAT_BASE_URL", "GROQ_API_KEY", "XAI_API_KEY", "ANTHROPIC_API_KEY")), detail)
     check("the 503 says offline answers still work", "ffline" in detail, detail)
 
 
@@ -295,6 +295,66 @@ try:
     check("sends the Groq model", groq_sent["model"] == "openai/gpt-oss-120b",
           groq_sent.get("model"))
     check("the answer is attributed to the Groq model", model == "openai/gpt-oss-120b", model)
+finally:
+    httpx.post = _real_post
+
+# ── 4c. a model the department hosts itself ─────────────────────────────────
+# Data residency: a department that runs its own OpenAI-compatible server
+# (vLLM, Ollama, TGI) must be able to keep every question in-house. Configured
+# means a base URL and a model; the key is optional on a private network.
+print("\nA self-hosted model is used, first, and needs no third-party key:")
+
+m = load(CHAT_BASE_URL="http://10.20.0.5:8000/v1/", CHAT_MODEL="llama-3.3-70b")
+check("CHAT_BASE_URL + CHAT_MODEL alone → self-hosted",
+      m._resolve_provider() == ("self-hosted", "llama-3.3-70b"), f"got {m._resolve_provider()}")
+check("its hosting is reported as self-hosted", m.chat_hosting("self-hosted") == "self-hosted")
+check("a third-party provider is reported as external",
+      all(m.chat_hosting(p) == "external" for p in ("groq", "grok", "anthropic")))
+check("no provider → no hosting claim", m.chat_hosting(None) is None)
+
+m = load(CHAT_BASE_URL="http://10.20.0.5:8000/v1", CHAT_MODEL="llama-3.3-70b", GROQ_API_KEY="gsk_test",
+         ANTHROPIC_API_KEY="sk-ant-test")
+check("a self-hosted model outranks third-party keys left in the environment",
+      m._resolve_provider()[0] == "self-hosted", f"got {m._resolve_provider()}")
+
+m = load(CHAT_BASE_URL="http://10.20.0.5:8000/v1", GROQ_API_KEY="gsk_test")
+check("a base URL with no model is not 'configured' — the next provider answers",
+      m._resolve_provider()[0] == "groq", f"got {m._resolve_provider()}")
+
+m = load(GROQ_API_KEY="gsk_test", CHAT_PROVIDER="self-hosted")
+check("CHAT_PROVIDER=self-hosted with nothing configured → 503, never a silent third-party fallback",
+      m._resolve_provider() is None, f"got {m._resolve_provider()}")
+
+m = load(CHAT_BASE_URL="http://10.20.0.5:8000/v1/", CHAT_MODEL="llama-3.3-70b")
+local_sent = {}
+
+
+def fake_local_post(url, headers=None, json=None, timeout=None):
+    local_sent.update(url=url, headers=headers, model=json["model"], user=json["messages"][1]["content"])
+    return FakeResponse(payload={"choices": [{"message": {"content": "local ok"}}]})
+
+
+httpx.post = fake_local_post
+try:
+    answer, model = m._chat_completion("q", "c", "ANM", "en", role_verified=True)
+    check("posts to the department's server, trailing slash handled",
+          local_sent["url"] == "http://10.20.0.5:8000/v1/chat/completions", local_sent.get("url"))
+    check("no Authorization header when no key is set",
+          "Authorization" not in local_sent["headers"], str(local_sent["headers"]))
+    check("the answer is attributed to the self-hosted model", (answer, model) == ("local ok", "llama-3.3-70b"),
+          f"{answer!r} {model!r}")
+    check("a verified role is labelled as verified for the model",
+          "Worker role: ANM (verified by staff sign-in)" in local_sent["user"], local_sent["user"][-200:])
+    m._chat_completion("q", "c", "MO", "en")
+    check("an unverified role is labelled self-reported",
+          "Worker role: MO (self-reported; not verified by sign-in)" in local_sent["user"], local_sent["user"][-200:])
+    m._chat_completion("q", "c", None, "en")
+    check("no role is 'unspecified'", "Worker role: unspecified" in local_sent["user"], local_sent["user"][-200:])
+
+    m = load(CHAT_BASE_URL="https://llm.health.example.gov.in/v1", CHAT_MODEL="m", CHAT_API_KEY="local-key")
+    m._chat_completion("q", "c", None, "en")
+    check("a key, when set, is sent as a bearer token",
+          local_sent["headers"].get("Authorization") == "Bearer local-key", str(local_sent["headers"]))
 finally:
     httpx.post = _real_post
 

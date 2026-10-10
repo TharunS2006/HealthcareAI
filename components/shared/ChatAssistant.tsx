@@ -5,8 +5,10 @@
  *   1. lib/chat/retrieve.ts — offline lookup over the app's own facility, threshold
  *      and entitlement data. Composes answers from real records, so it cannot invent
  *      a fact, and it works with the network down.
- *   2. lib/chat/cloudClient.ts — the district service's Claude endpoint, used only
- *      when Layer 1 finds nothing and the device is online.
+ *   2. lib/chat/cloudClient.ts — the cloud assistant endpoint (a model the
+ *      department hosts, or a third-party one), used only when Layer 1 finds
+ *      nothing and the device is online. Phone, Aadhaar and ABHA numbers are
+ *      removed from the question before it is sent (lib/chat/redact.ts).
  *
  * Open to everyone. A signed-in worker gets their cadre's answers (the navigation map
  * filters by role); a visitor with no session gets the same protocol facts plus only
@@ -18,7 +20,8 @@
  *
  * It sits in the corner the Emergency SOS launcher used to occupy, so it carries the
  * 108/102 numbers in its header: removing that button must not remove the fastest
- * path to an ambulance. /emergency remains in the sidebar for the full dispatch flow.
+ * path to an ambulance. /emergency remains in the sidebar for raising the emergency
+ * referral; the app never dispatches a vehicle itself.
  */
 
 'use client';
@@ -27,7 +30,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useLanguageStore } from '@/stores/languageStore';
 import { retrieveOffline } from '@/lib/chat/retrieve';
-import { askCloud, type CloudResult } from '@/lib/chat/cloudClient';
+import { askCloud, MAX_QUESTION_CHARS, type CloudResult } from '@/lib/chat/cloudClient';
 import { renderAnswer } from '@/lib/chat/renderAnswer';
 import { isInScope, outOfScopeReply } from '@/lib/chat/scopeGuard';
 
@@ -66,7 +69,7 @@ export default function ChatAssistant() {
             : (isEn ? 'Health information from this portal\'s own records' : isHi ? 'इसी पोर्टल के अभिलेखों से स्वास्थ्य जानकारी' : 'याच पोर्टलच्या नोंदींमधून आरोग्य माहिती'),
         // The SOS launcher used to live in this corner. Its numbers stay on screen.
         emergency: isEn ? 'Medical emergency? Call 108 (ambulance) or 102 (maternity).' : isHi ? 'आपातकाल? 108 (एम्बुलेंस) या 102 (प्रसूति) पर कॉल करें।' : 'तातडीची स्थिती? 108 (रुग्णवाहिका) किंवा 102 (प्रसूती) वर कॉल करा.',
-        emergencyLink: isEn ? 'Open emergency dispatch' : isHi ? 'आपातकालीन डिस्पैच खोलें' : 'आपत्कालीन डिस्पॅच उघडा',
+        emergencyLink: isEn ? 'Open the emergency page' : isHi ? 'आपातकालीन पृष्ठ खोलें' : 'आपत्कालीन पान उघडा',
         close: isEn ? 'Close assistant' : isHi ? 'सहायक बंद करें' : 'सहाय्यक बंद करा',
         placeholder: isEn ? 'e.g. Where do I refer a RED case?' : isHi ? 'जैसे: RED केस कहाँ रेफर करें?' : 'उदा. RED रुग्ण कुठे संदर्भित करावा?',
         send: isEn ? 'Ask' : isHi ? 'पूछें' : 'विचारा',
@@ -99,6 +102,34 @@ export default function ChatAssistant() {
                 : isHi
                     ? 'केवल जानकारी — निदान नहीं। दवा की मात्रा कभी नहीं बताता। कोई भी कदम उठाने से पहले डॉक्टर से मिलें।'
                     : 'फक्त माहिती — निदान नाही. औषधाची मात्रा कधीही सांगत नाही. कृती करण्यापूर्वी डॉक्टरांना भेटा.'),
+        // Questions this device cannot answer may go to a cloud model. Phone,
+        // Aadhaar and ABHA numbers are stripped automatically; names cannot be.
+        privacy: isEn
+            ? 'Do not type anyone\'s name. Phone, Aadhaar and ABHA numbers are removed before a question leaves this device.'
+            : isHi
+                ? 'किसी का नाम न लिखें। फ़ोन, आधार और ABHA नंबर प्रश्न भेजने से पहले हटा दिए जाते हैं।'
+                : 'कोणाचेही नाव लिहू नका. फोन, आधार व ABHA क्रमांक प्रश्न पाठवण्यापूर्वी काढून टाकले जातात.',
+        redactedNote: (n: number) => isEn
+            ? `${n} identifier${n === 1 ? '' : 's'} removed before sending`
+            : isHi
+                ? `भेजने से पहले ${n} पहचान संख्या हटाई गई`
+                : `पाठवण्यापूर्वी ${n} ओळख क्रमांक काढले`,
+        restricted: isStaff
+            ? (isEn
+                ? 'The cloud assistant needs your network sign-in: re-enter your PIN while connected. Meanwhile, contact your supervising Medical Officer.'
+                : isHi
+                    ? 'क्लाउड सहायक के लिए नेटवर्क साइन-इन चाहिए: कनेक्ट रहते हुए अपना PIN फिर से डालें। तब तक अपने चिकित्सा अधिकारी से संपर्क करें।'
+                    : 'क्लाउड सहाय्यकासाठी नेटवर्क साइन-इन आवश्यक आहे: जोडलेले असताना तुमचा PIN पुन्हा टाका. तोपर्यंत वैद्यकीय अधिकाऱ्यांशी संपर्क साधा.')
+            : (isEn
+                ? 'I have no entry for that, and on this portal the cloud assistant answers health staff only. Please visit your nearest health centre, or call the 104 health helpline.'
+                : isHi
+                    ? 'इसके लिए जानकारी नहीं है, और इस पोर्टल पर क्लाउड सहायक केवल स्वास्थ्य कर्मियों के लिए है। नजदीकी स्वास्थ्य केंद्र जाएँ या 104 पर कॉल करें।'
+                    : 'यासाठी नोंद नाही, आणि या पोर्टलवर क्लाउड सहाय्यक फक्त आरोग्य कर्मचाऱ्यांसाठी आहे. जवळच्या आरोग्य केंद्रात जा किंवा 104 वर कॉल करा.'),
+        busy: isEn
+            ? 'The cloud assistant has had too many questions just now. Try again in a minute — offline answers still work.'
+            : isHi
+                ? 'क्लाउड सहायक के पास अभी बहुत अधिक प्रश्न हैं। एक मिनट बाद फिर कोशिश करें — ऑफलाइन उत्तर काम करते रहेंगे।'
+                : 'क्लाउड सहाय्यकाकडे सध्या खूप प्रश्न आले आहेत. एका मिनिटाने पुन्हा प्रयत्न करा — ऑफलाइन उत्तरे चालू राहतील.',
         noAnswerOffline: isStaff
             ? (isEn
                 ? 'I have no protocol entry for that, and the device is offline so I cannot ask the cloud assistant. Contact your supervising Medical Officer or the district helpline.'
@@ -130,7 +161,10 @@ export default function ChatAssistant() {
     }, [turns, isThinking]);
 
     const cloudFailureText = (reason: CloudResult['reason']): string =>
-        reason === 'offline' ? t.noAnswerOffline : t.noAnswerCloud;
+        reason === 'offline' ? t.noAnswerOffline
+            : reason === 'restricted' ? t.restricted
+                : reason === 'busy' ? t.busy
+                    : t.noAnswerCloud;
 
     const handleAsk = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -165,6 +199,7 @@ export default function ChatAssistant() {
         }
 
         const cloud = await askCloud(question, { role, language });
+        const redactedSuffix = cloud.redacted ? ` · ${t.redactedNote(cloud.redacted)}` : '';
         setTurns((prev) => [
             ...prev,
             cloud.answer
@@ -172,14 +207,14 @@ export default function ChatAssistant() {
                     id: `${Date.now()}`,
                     question,
                     answer: cloud.answer,
-                    source: `${t.cloudBadge}${cloud.model ? ` · ${cloud.model}` : ''}`,
+                    source: `${t.cloudBadge}${cloud.model ? ` · ${cloud.model}` : ''}${redactedSuffix}`,
                     layer: 'cloud' as const,
                 }
                 : {
                     id: `${Date.now()}`,
                     question,
                     answer: cloudFailureText(cloud.reason),
-                    source: t.noAnswerSource,
+                    source: `${t.noAnswerSource}${redactedSuffix}`,
                     layer: 'none' as const,
                 },
         ]);
@@ -298,6 +333,7 @@ export default function ChatAssistant() {
                         id="nalammesh-assistant-input"
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
+                        maxLength={MAX_QUESTION_CHARS}
                         placeholder={t.placeholder}
                         aria-label={t.placeholder}
                         className="flex-1 rounded border border-slate-400 px-2.5 py-2 text-[0.8125rem] text-gov-navy-dark focus:border-gov-navy focus:outline-none focus:ring-1 focus:ring-gov-navy"
@@ -310,7 +346,7 @@ export default function ChatAssistant() {
                         {t.send}
                     </button>
                 </div>
-                <p className="mt-1.5 text-[0.6875rem] leading-snug text-slate-600">{t.disclaimer}</p>
+                <p className="mt-1.5 text-[0.6875rem] leading-snug text-slate-600">{t.disclaimer} {t.privacy}</p>
             </form>
         </section>
     );

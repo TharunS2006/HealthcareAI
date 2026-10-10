@@ -522,8 +522,9 @@ function WhatThisShows() {
             </ol>
             <p className="mt-3 border-t border-border-subtle pt-2 text-[0.6875rem] text-txt-muted">
                 <span className="font-bold text-gov-amber">Note for deployment:</span> the district endpoints,
-                including the one behind this screen, are unauthenticated in this build and return identified
-                patient records. That is acceptable on a demo LAN and is not acceptable on a public host.
+                including the one behind this screen, answer only a signed-in staff session whose role allows
+                it, and they return identified patient records. Keep the service on the facility or district
+                network, behind HTTPS, even so.
             </p>
         </section>
     );

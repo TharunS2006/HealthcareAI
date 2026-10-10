@@ -29,14 +29,26 @@ from . import env  # noqa: F401
 # Optional by design: an unset key disables cloud chat without touching any
 # other endpoint, matching the "cloud is a courier, never a dependency" rule
 # the rest of this service already follows.
-# Three providers are supported, because the key a given host happens to have is
-# not something this code should care about. Whichever key is present answers;
+# Four providers are supported, because the key a given host happens to have is
+# not something this code should care about. Whichever is configured answers;
 # CHAT_PROVIDER pins one when several are set.
 #
-#   groq      — api.groq.com, open-weight models, OpenAI-shaped wire format
-#   grok      — api.x.ai, xAI's Grok, the same wire format
-#   anthropic — Claude, its own SDK
+#   self-hosted — any OpenAI-compatible server the department runs itself
+#                 (vLLM, Ollama, TGI on a State Data Centre or an empanelled
+#                 cloud), so questions never leave its own infrastructure
+#   groq        — api.groq.com, open-weight models, OpenAI-shaped wire format
+#   grok        — api.x.ai, xAI's Grok, the same wire format
+#   anthropic   — Claude, its own SDK
+#
+# The last three are third-party services outside the department's own
+# infrastructure. /health says which kind is answering ("chat_hosting").
 CHAT_PROVIDER = os.environ.get("CHAT_PROVIDER", "auto").strip().lower()
+
+# A model the department hosts. Configured means a base URL and a model name;
+# the key is optional because a server on a private network often has none.
+SELF_HOSTED_BASE_URL = os.environ.get("CHAT_BASE_URL", "").strip().rstrip("/")
+SELF_HOSTED_MODEL = os.environ.get("CHAT_MODEL", "").strip()
+SELF_HOSTED_API_KEY = os.environ.get("CHAT_API_KEY", "").strip() or None
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5")
@@ -125,13 +137,22 @@ def _resolve_provider() -> Optional[Tuple[str, str]]:
     Resolution is by key presence rather than by configuration, so a host that
     sets one key gets a working assistant without also having to remember to set
     CHAT_PROVIDER. Pinning it matters only when both keys are present.
+
+    A self-hosted model, once configured, comes first under "auto": a
+    department that stood up its own server did so to keep questions in-house,
+    and a third-party key left in the environment must not quietly outrank it.
     """
+    self_hosted = bool(SELF_HOSTED_BASE_URL and SELF_HOSTED_MODEL)
+    if CHAT_PROVIDER in ("self-hosted", "selfhosted", "self_hosted", "local"):
+        return ("self-hosted", SELF_HOSTED_MODEL) if self_hosted else None
     if CHAT_PROVIDER == "groq":
         return ("groq", GROQ_MODEL) if GROQ_API_KEY else None
     if CHAT_PROVIDER in ("grok", "xai"):
         return ("grok", XAI_MODEL) if XAI_API_KEY else None
     if CHAT_PROVIDER in ("anthropic", "claude"):
         return ("anthropic", ANTHROPIC_MODEL) if ANTHROPIC_API_KEY else None
+    if self_hosted:
+        return ("self-hosted", SELF_HOSTED_MODEL)
     if GROQ_API_KEY:
         return ("groq", GROQ_MODEL)
     if XAI_API_KEY:
@@ -141,14 +162,22 @@ def _resolve_provider() -> Optional[Tuple[str, str]]:
     return None
 
 
-def _openai_chat_completion(label: str, base_url: str, api_key: str, model: str,
+def chat_hosting(provider: Optional[str]) -> Optional[str]:
+    """Where the configured provider runs: the department's own server, or not."""
+    if provider is None:
+        return None
+    return "self-hosted" if provider == "self-hosted" else "external"
+
+
+def _openai_chat_completion(label: str, base_url: str, api_key: Optional[str], model: str,
                             user_content: str) -> str:
     """
-    One call shape, two providers.
+    One call shape, three providers.
 
-    Groq and xAI both serve OpenAI's /chat/completions contract — a system
-    message and a user message in, the answer at choices[0].message.content —
-    so they differ only in base URL, key and model name. Called over plain httpx
+    Groq, xAI and every common self-hosted server (vLLM, Ollama, TGI) serve
+    OpenAI's /chat/completions contract — a system message and a user message
+    in, the answer at choices[0].message.content — so they differ only in base
+    URL, key and model name. A self-hosted server may have no key at all. Called over plain httpx
     rather than a vendor SDK so this service gains no dependency it does not
     already have, and so the failure text below is the provider's own words.
 
@@ -158,12 +187,12 @@ def _openai_chat_completion(label: str, base_url: str, api_key: str, model: str,
     import httpx
 
     try:
+        headers = {"Content-Type": "application/json"}
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
         response = httpx.post(
             f"{base_url}/chat/completions",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
+            headers=headers,
             json={
                 "model": model,
                 "messages": [
@@ -231,27 +260,43 @@ def _anthropic_completion(model: str, user_content: str) -> str:
 
 
 def _chat_completion(
-    question: str, context: str, role: Optional[str], language: str
+    question: str, context: str, role: Optional[str], language: str,
+    role_verified: bool = False,
 ) -> Tuple[str, str]:
     """Answer, and the model that produced it — reported back so the widget's
-    attribution line names what actually answered, not what was configured."""
+    attribution line names what actually answered, not what was configured.
+
+    `role_verified` is true only when the role came from a relay-signed session
+    token rather than the request body; the model is told which, so a visitor
+    typing "Medical Officer" is not mistaken for one."""
     resolved = _resolve_provider()
     if resolved is None:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
-            "Cloud assistant is not configured (set GROQ_API_KEY for Groq, "
-            "XAI_API_KEY for Grok, or ANTHROPIC_API_KEY for Claude). "
-            "Offline answers still work.",
+            "Cloud assistant is not configured (set CHAT_BASE_URL and CHAT_MODEL for a "
+            "self-hosted model, GROQ_API_KEY for Groq, XAI_API_KEY for Grok, or "
+            "ANTHROPIC_API_KEY for Claude). Offline answers still work.",
         )
     provider, model = resolved
 
+    if role and role_verified:
+        role_line = f"Worker role: {role} (verified by staff sign-in)"
+    elif role:
+        role_line = f"Worker role: {role} (self-reported; not verified by sign-in)"
+    else:
+        role_line = "Worker role: unspecified"
+
     user_content = (
         f"CONTEXT (ground truth — do not contradict):\n{context}\n\n"
-        f"Worker role: {role or 'unspecified'}\n"
+        f"{role_line}\n"
         f"Reply in language code: {language}\n\n"
         f"Question: {question}"
     )
 
+    if provider == "self-hosted":
+        return _openai_chat_completion(
+            "Self-hosted model", SELF_HOSTED_BASE_URL, SELF_HOSTED_API_KEY, model, user_content
+        ), model
     if provider == "groq":
         return _openai_chat_completion("Groq", GROQ_BASE_URL, GROQ_API_KEY, model, user_content), model
     if provider == "grok":

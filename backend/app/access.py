@@ -81,7 +81,8 @@ def verify_token(token: str, secret: str, now: Optional[float] = None) -> Option
     return Identity(user_id=claims["sub"], role=claims["role"], facility_id=fac if isinstance(fac, str) else None)
 
 
-def _identity(request: Request) -> Optional[Identity]:
+def identity_from_request(request: Request) -> Optional[Identity]:
+    """The signed-in identity behind a request's bearer token, or None."""
     auth = request.headers.get("authorization", "")
     if not auth.lower().startswith("bearer "):
         return None
@@ -101,7 +102,7 @@ def require(permission: str, *, facility_query: Optional[str] = None) -> Callabl
     """
 
     def dependency(request: Request) -> Identity:
-        who = _identity(request)
+        who = identity_from_request(request)
         if who is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

@@ -2,8 +2,11 @@
  * NalamMesh Assistant — cloud client (Layer 2).
  *
  * Calls the district reporting service's /api/v1/chat endpoint, which relays the
- * question plus a grounding brief to whichever model that service has a key for
- * (Groq, Grok or Claude — it reports back which one answered). This is strictly
+ * question plus a grounding brief to whichever model that service is configured
+ * for (a self-hosted model, Groq, Grok or Claude — it reports back which one
+ * answered). Personal identifiers are removed from the question first
+ * (lib/chat/redact.ts), and a signed-in worker's relay token rides along so the
+ * service knows their role rather than taking the widget's word for it. This is strictly
  * a fallback: Layer 1 (lib/chat/retrieve.ts) answers offline from real app data,
  * and this path only runs when Layer 1 finds no confident match, the question is
  * inside the assistant's declared scope (lib/chat/scopeGuard.ts), AND the device
@@ -15,15 +18,34 @@
  */
 
 import type { Language } from '@/stores/languageStore';
+import { useAuthStore } from '@/stores/authStore';
 import { chatBaseUrl, reportingBaseUrl } from '@/lib/cloudEndpoint';
 import { buildGroundingBrief } from './groundingBrief';
+import { redactIdentifiers } from './redact';
 import { isInScope } from './scopeGuard';
 
 export interface CloudResult {
     answer: string | null;
-    /** Why there is no answer. Shown to the worker so a silent blank never happens. */
-    reason?: 'out-of-scope' | 'offline' | 'not-configured' | 'unreachable' | 'timeout' | 'error';
+    /**
+     * Why there is no answer. Shown to the worker so a silent blank never happens.
+     * 'restricted': this deployment's cloud layer answers signed-in staff only.
+     * 'busy': the service's rate limit refused the question for now.
+     */
+    reason?: 'out-of-scope' | 'offline' | 'not-configured' | 'restricted' | 'busy' | 'unreachable' | 'timeout' | 'error';
     model?: string;
+    /** How many personal identifiers were removed from the question before it was sent. */
+    redacted?: number;
+}
+
+/** The longest question the service accepts (backend/app/schemas.py ChatIn). */
+export const MAX_QUESTION_CHARS = 1000;
+
+/** The signed-in user's relay token, while it is still valid — proof of role for the service. */
+function sessionAuthHeader(): Record<string, string> {
+    const session = useAuthStore.getState().session;
+    return session?.token && (session.tokenExpiresAt ?? 0) > Date.now()
+        ? { Authorization: `Bearer ${session.token}` }
+        : {};
 }
 
 // The address moved to lib/cloudEndpoint.ts once the record outbox needed it too.
@@ -52,15 +74,20 @@ export async function askCloud(
         return { answer: null, reason: 'offline' };
     }
 
+    // Identifiers never leave the device; the service repeats this for any
+    // other caller. The count is reported so the widget can say so.
+    const { text: outbound, removed } = redactIdentifiers(question.slice(0, MAX_QUESTION_CHARS));
+    const redacted = removed || undefined;
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
     try {
         const response = await fetch(`${chatBaseUrl()}/api/v1/chat`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...sessionAuthHeader() },
             body: JSON.stringify({
-                question,
+                question: outbound,
                 context: buildGroundingBrief(ctx.language),
                 role: ctx.role,
                 language: ctx.language,
@@ -70,7 +97,15 @@ export async function askCloud(
 
         if (response.status === 503) {
             await warnWithServerReason(response, 'cloud assistant not configured');
-            return { answer: null, reason: 'not-configured' };
+            return { answer: null, reason: 'not-configured', redacted };
+        }
+        if (response.status === 401 || response.status === 403) {
+            await warnWithServerReason(response, 'cloud assistant is for signed-in staff on this deployment');
+            return { answer: null, reason: 'restricted', redacted };
+        }
+        if (response.status === 429) {
+            await warnWithServerReason(response, 'cloud assistant rate limit');
+            return { answer: null, reason: 'busy', redacted };
         }
         if (!response.ok) {
             // The worker sees a calm sentence; the operator needs the real cause.
@@ -78,18 +113,18 @@ export async function askCloud(
             // screen, and both look exactly like "the cloud is down" — which is
             // how a demo gets debugged for an hour in the wrong place.
             await warnWithServerReason(response, 'cloud assistant call failed');
-            return { answer: null, reason: 'error' };
+            return { answer: null, reason: 'error', redacted };
         }
 
         const data = (await response.json()) as { answer?: string; model?: string };
         const answer = data.answer?.trim();
-        if (!answer) return { answer: null, reason: 'error' };
-        return { answer, model: data.model };
+        if (!answer) return { answer: null, reason: 'error', redacted };
+        return { answer, model: data.model, redacted };
     } catch (err) {
         if (err instanceof DOMException && err.name === 'AbortError') {
-            return { answer: null, reason: 'timeout' };
+            return { answer: null, reason: 'timeout', redacted };
         }
-        return { answer: null, reason: 'unreachable' };
+        return { answer: null, reason: 'unreachable', redacted };
     } finally {
         clearTimeout(timer);
     }
