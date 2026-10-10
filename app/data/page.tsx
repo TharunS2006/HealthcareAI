@@ -329,9 +329,9 @@ function SummaryStrip({
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {tiles.map((tile) => (
                 <div key={tile.label} className={`border p-3 ${toneClass[tile.tone]}`}>
-                    <p className="text-[0.625rem] font-bold uppercase tracking-wider opacity-80">{tile.label}</p>
+                    <p className="text-[0.625rem] font-bold uppercase tracking-wider">{tile.label}</p>
                     <p className="text-2xl font-extrabold tabular-nums leading-tight mt-0.5">{tile.value}</p>
-                    <p className="text-[0.6875rem] leading-snug mt-0.5 opacity-90">{tile.note}</p>
+                    <p className="text-[0.6875rem] leading-snug mt-0.5">{tile.note}</p>
                 </div>
             ))}
         </div>

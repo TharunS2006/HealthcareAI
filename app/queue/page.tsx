@@ -218,7 +218,7 @@ export default function QueuePage() {
                                 </p>
                             </motion.div>
                         ) : (
-                            <div className="py-16 text-slate-500 text-2xl font-bold">
+                            <div className="py-16 text-slate-400 text-2xl font-bold">
                                 {txt.allDone}
                             </div>
                         )}
@@ -238,7 +238,7 @@ export default function QueuePage() {
                                     className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl flex items-center justify-between"
                                 >
                                     <div className="flex items-center gap-4">
-                                        <span className="text-lg font-bold text-slate-500 font-mono">#{idx + 1}</span>
+                                        <span className="text-lg font-bold text-slate-400 font-mono">#{idx + 1}</span>
                                         <div>
                                             <div className="text-2xl font-mono font-extrabold text-emerald-300">
                                                 {entry.tokenNumber}
@@ -256,7 +256,7 @@ export default function QueuePage() {
                 </div>
 
                 {/* TV Footer */}
-                <footer className="text-center text-xs text-slate-500 border-t border-slate-800 pt-3">
+                <footer className="text-center text-xs text-slate-400 border-t border-slate-800 pt-3">
                     NalamMesh Digital Public Infrastructure • Government of Maharashtra
                 </footer>
             </div>
@@ -503,7 +503,7 @@ export default function QueuePage() {
                                         <div key={entry.id} className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between text-xs">
                                             <div>
                                                 <strong className="text-slate-900">{entry.patientName}</strong>
-                                                <span className="text-[10px] text-slate-500 ml-2 font-mono">Token {entry.tokenNumber}</span>
+                                                <span className="text-[10px] text-slate-600 ml-2 font-mono">Token {entry.tokenNumber}</span>
                                             </div>
                                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
                                                 ✓ {isEn ? 'Completed' : isHi ? 'पूर्ण' : 'पूर्ण'}

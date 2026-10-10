@@ -251,7 +251,7 @@ export default function DiagnosticsPage() {
                                             {isEn ? item.name : isHi ? item.nameHi : item.nameMr}
                                         </span>
                                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap ${
-                                            item.localAvail ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'
+                                            item.localAvail ? 'bg-emerald-700 text-white' : 'bg-amber-700 text-white'
                                         }`}>
                                             {item.localAvail ? txt.inHouse : txt.referLab}
                                         </span>
@@ -326,7 +326,7 @@ export default function DiagnosticsPage() {
                                                      order.status === 'SAMPLE_COLLECTED' ? txt.sampleCollected : txt.ordered}
                                                 </span>
                                                 {order.isAbnormal && (
-                                                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">
+                                                    <span className="inline-flex items-center gap-1 text-[10px] font-extrabold bg-red-700 text-white px-2 py-0.5 rounded-full">
                                                         <Icon name="warning" className="w-2.5 h-2.5" /> {txt.abnormalBadge}
                                                     </span>
                                                 )}

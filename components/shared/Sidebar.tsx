@@ -270,7 +270,7 @@ export default function Sidebar() {
             {/* Government Official Cadre Station Header */}
             <div className="p-3.5 bg-[#F8FAFC] border-b border-slate-200">
                 <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider">
                         {stationMeta.badge}
                     </span>
                     <span className="px-1.5 py-0.5 text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 rounded font-mono">
@@ -284,7 +284,7 @@ export default function Sidebar() {
                     {stationMeta.sub}
                 </p>
                 <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-500 font-medium">{stationMeta.doctorLabel}</span>
+                    <span className="text-slate-600 font-medium">{stationMeta.doctorLabel}</span>
                     <strong className="text-slate-800 font-bold">{stationMeta.doctorName}</strong>
                 </div>
             </div>
@@ -296,7 +296,7 @@ export default function Sidebar() {
                         return (
                             <div
                                 key={`section-${idx}`}
-                                className="px-2 pt-3 pb-1 text-[9.5px] font-black text-slate-500 uppercase tracking-wider border-b border-slate-100"
+                                className="px-2 pt-3 pb-1 text-[9.5px] font-black text-slate-600 uppercase tracking-wider border-b border-slate-100"
                             >
                                 {item.section}
                             </div>
@@ -318,7 +318,7 @@ export default function Sidebar() {
                             aria-current={isActive ? 'page' : undefined}
                         >
                             <div className="flex items-center gap-2.5 min-w-0">
-                                <span className={`${isActive ? 'text-white' : item.isAlert ? 'text-red-700' : 'text-slate-500'}`} aria-hidden="true">
+                                <span className={`${isActive ? 'text-white' : item.isAlert ? 'text-red-700' : 'text-slate-600'}`} aria-hidden="true">
                                     {item.icon}
                                 </span>
                                 <span className="truncate text-[12px]">
@@ -327,10 +327,10 @@ export default function Sidebar() {
                             </div>
                             {item.badge && (
                                 <span className={`hidden xl:inline-block shrink-0 text-[9px] font-bold px-1.5 py-0.5 font-mono ${
-                                    isActive
+                                    item.isAlert
+                                        ? 'bg-red-700 text-white'
+                                        : isActive
                                         ? 'bg-white/20 text-white'
-                                        : item.isAlert
-                                        ? 'bg-red-600 text-white'
                                         : 'bg-slate-200 text-slate-800'
                                 }`}>
                                     {item.badge}
@@ -352,7 +352,7 @@ export default function Sidebar() {
                         {mesh.text}
                     </span>
                 </div>
-                <div className="flex items-center justify-between text-slate-500 text-[9px] pt-1 border-t border-slate-200/60">
+                <div className="flex items-center justify-between text-slate-600 text-[9px] pt-1 border-t border-slate-200/60">
                     <span>{session?.facilityId ? `Facility ID: ${session.facilityId}` : session ? session.staffId : 'Not signed in'}</span>
                     <span className="font-bold text-[#1F3A6E]">{stationMeta.compliance}</span>
                 </div>

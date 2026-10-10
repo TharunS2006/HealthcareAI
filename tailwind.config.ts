@@ -68,7 +68,7 @@ const config: Config = {
                 txt: {
                     primary: '#0F172A',
                     secondary: '#475569',
-                    muted: '#64748B',
+                    muted: '#475569', // slate-600: 4.5:1 or better on the page grey and light tints (WCAG AA)
                     onDark: '#FFFFFF',
                     onDarkMuted: 'rgba(255, 255, 255, 0.85)',
                 },

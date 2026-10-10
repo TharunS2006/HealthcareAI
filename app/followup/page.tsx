@@ -302,7 +302,7 @@ export default function FollowUpPage() {
                                 Assigned Frontline Health Worker (ASHA/ANM) Field Tasks ({filteredTasks.length})
                             </h2>
                             <span className="text-xs text-txt-muted font-medium">
-                                Showing prioritized Gadchiroli sub-centre assignments
+                                Most urgent first
                             </span>
                         </div>
 
@@ -333,7 +333,7 @@ export default function FollowUpPage() {
 
                                                 <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
                                                     task.priority === 'CRITICAL' ? 'bg-red-600 text-white' :
-                                                    task.priority === 'HIGH' ? 'bg-amber-500 text-white' :
+                                                    task.priority === 'HIGH' ? 'bg-amber-700 text-white' :
                                                     'bg-emerald-600 text-white'
                                                 }`}>
                                                     {task.priority}

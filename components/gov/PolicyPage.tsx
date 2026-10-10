@@ -27,7 +27,7 @@ export default function PolicyPage({ slug }: { slug: string }) {
     return (
         <main id="main-content" className="max-w-3xl mx-auto px-4 py-10 md:py-14">
             <nav aria-label="Breadcrumb" className="text-[11px] text-txt-muted mb-4">
-                <Link href="/" className="hover:underline">Home</Link>
+                <Link href="/" className="text-[#1F3A6E] underline hover:no-underline">Home</Link>
                 <span aria-hidden="true"> / </span>
                 <span className="text-txt-secondary font-semibold">{doc.title}</span>
             </nav>

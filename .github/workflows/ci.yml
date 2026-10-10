@@ -69,6 +69,13 @@ jobs:
       - name: Production build
         run: npm run build
 
+      # GIGW 3.0 asks for WCAG 2.1 AA. axe-core's automated rules on every page
+      # of the build, signed in per role — a floor, not a manual audit.
+      - name: Accessibility (axe-core, WCAG 2.1 A/AA)
+        run: |
+          npx playwright install --with-deps chromium
+          npm run check:a11y
+
       # express and socket.io are runtime dependencies (the relay runs on them),
       # so this audit covers the relay as well as the app.
       - name: Production dependency audit

@@ -83,12 +83,12 @@ export default function TranslatableText({ text, className }: { text: string; cl
                                     className="px-2 py-0.5 rounded bg-[#1F3A6E] text-white font-bold disabled:opacity-50">
                                     {busy ? 'Translating…' : 'Translate'}
                                 </button>
-                                <button type="button" onClick={() => { setOpen(false); setResult(null); setError(null); }} className="text-slate-500 underline">Close</button>
+                                <button type="button" onClick={() => { setOpen(false); setResult(null); setError(null); }} className="text-slate-600 underline">Close</button>
                             </div>
                             {result && (
                                 <p lang={result.target} className="text-slate-800">
                                     {result.text}
-                                    <span className="block text-[10px] text-slate-500">Machine translation by Bhashini — check with the sender before acting on it.</span>
+                                    <span className="block text-[10px] text-slate-600">Machine translation by Bhashini — check with the sender before acting on it.</span>
                                 </p>
                             )}
                             {error && <p role="alert" className="text-red-700">{error}</p>}

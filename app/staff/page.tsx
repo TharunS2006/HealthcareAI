@@ -70,14 +70,14 @@ export default function StaffHome() {
     return (
         <div className="space-y-5">
             <div>
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{ROLE_LABELS[session.role]} · {session.facilityName}</p>
+                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">{ROLE_LABELS[session.role]} · {session.facilityName}</p>
                 <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F3A6E] tracking-tight">Welcome, {session.name}</h1>
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
                 {counts.map(c => (
                     <div key={c.label} className={`bg-white border border-[#B9C5D6] border-l-4 ${c.alert ? 'border-l-red-600' : 'border-l-[#1F3A6E]'} px-3 py-2`}>
-                        <span className="block text-[10px] font-bold uppercase text-slate-500">{c.label}</span>
+                        <span className="block text-[10px] font-bold uppercase text-slate-600">{c.label}</span>
                         <strong className={`block text-2xl ${c.alert ? 'text-red-700' : 'text-[#1F3A6E]'}`}>{c.value}</strong>
                     </div>
                 ))}

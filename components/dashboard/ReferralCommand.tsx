@@ -111,7 +111,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2">
                 {tiles.map(([label, value, bar]) => (
                     <div key={label} className={`bg-white border border-[#B9C5D6] border-l-4 ${bar} px-3 py-2`}>
-                        <span className="block text-[10px] font-bold uppercase text-slate-500">{label}</span>
+                        <span className="block text-[10px] font-bold uppercase text-slate-600">{label}</span>
                         <strong className="block text-xl text-[#1F3A6E]">{value}</strong>
                     </div>
                 ))}
@@ -176,7 +176,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
                 <div className="space-y-3">
                     <GovPanel title="Pending emergencies" meta={`${pendingEmergencies.length}`} flush>
                         {pendingEmergencies.length === 0 ? (
-                            <p className="px-3 py-3 text-[12px] text-slate-500">No Emergency referral is waiting for an answer.</p>
+                            <p className="px-3 py-3 text-[12px] text-slate-600">No Emergency referral is waiting for an answer.</p>
                         ) : (
                             <ul className="divide-y divide-slate-200">
                                 {pendingEmergencies.map(r => (
@@ -200,7 +200,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
 
                     <GovPanel title="Escalation alerts" meta="last 24 h" flush>
                         {escalated.length + released.length + rejectedOpen.length === 0 ? (
-                            <p className="px-3 py-3 text-[12px] text-slate-500">No alerts.</p>
+                            <p className="px-3 py-3 text-[12px] text-slate-600">No alerts.</p>
                         ) : (
                             <ul className="divide-y divide-slate-200 text-[12px]">
                                 {escalated.map(r => (
@@ -232,7 +232,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
 
             <div className="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3">
                 <GovPanel title="Bed occupancy by facility" flush>
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Facility network table">
                         <table className="gov-table w-full text-[12px]">
                             <thead>
                                 <tr>
@@ -252,7 +252,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
                                     const down = equipmentDown(a);
                                     return (
                                         <tr key={f.id}>
-                                            <td className="font-semibold">{shortFacilityName(f.name)} <span className="text-[10px] text-slate-500">{f.type}</span></td>
+                                            <td className="font-semibold">{shortFacilityName(f.name)} <span className="text-[10px] text-slate-600">{f.type}</span></td>
                                             {a.reported ? (
                                                 <>
                                                     <td className="text-center">{a.totalBeds}</td>
@@ -270,7 +270,7 @@ export default function ReferralCommand({ scopeFacilityId }: { scopeFacilityId?:
                                                     <td className="text-[11px]">{down.length ? down.map(d => EQUIPMENT_LABELS[d.kind]).join(', ') : '—'}</td>
                                                 </>
                                             ) : (
-                                                <td colSpan={6} className="text-slate-500">Not reported</td>
+                                                <td colSpan={6} className="text-slate-600">Not reported</td>
                                             )}
                                         </tr>
                                     );

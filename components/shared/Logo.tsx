@@ -55,7 +55,7 @@ export default function Logo({ size = 'md', showText = true, variant = 'dark', c
                             ? 'महाराष्ट्र सरकार • लोक स्वास्थ्य विभाग'
                             : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग'}
                     </span>
-                    <span className="text-[9px] text-slate-500 font-medium hidden sm:block">
+                    <span className="text-[9px] text-slate-600 font-medium hidden sm:block">
                         {isEn
                             ? 'National Health Mission • ABDM-Aligned DPI'
                             : isHi

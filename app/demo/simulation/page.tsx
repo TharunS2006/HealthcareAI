@@ -313,13 +313,13 @@ export default function SimulationPage() {
             <div className="bg-white border border-slate-300 p-3 space-y-2">
                 <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
                     <div>
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Demo · Two-user simulation{viewer ? ` · opened by ${viewer.name}` : ''}</p>
+                        <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Demo · Two-user simulation{viewer ? ` · opened by ${viewer.name}` : ''}</p>
                         <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">Sub Centre ANM ↔ PHC Medical Officer</h1>
                         <p className="text-[12px] text-slate-600 max-w-3xl">
                             Each pane is the real app signed in as that user. Act on one side and watch it arrive on the other —
                             notification, status change and acknowledgement. Records created here are real records on this device.
                         </p>
-                        <p className="text-[11px] text-slate-500 mt-1" aria-live="polite">
+                        <p className="text-[11px] text-slate-600 mt-1" aria-live="polite">
                             {!paneAuth.checked
                                 ? 'Signing both panes in to the referral network…'
                                 : paneAuth.left && paneAuth.right
@@ -347,7 +347,7 @@ export default function SimulationPage() {
                     {STEPS.map((label, i) => (
                         <li
                             key={label}
-                            className={`border px-2 py-1.5 ${i < step ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : i === step ? 'bg-[#1F3A6E] border-[#1F3A6E] text-white font-bold' : 'bg-white border-slate-200 text-slate-500'}`}
+                            className={`border px-2 py-1.5 ${i < step ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : i === step ? 'bg-[#1F3A6E] border-[#1F3A6E] text-white font-bold' : 'bg-white border-slate-200 text-slate-600'}`}
                         >
                             <span className="font-mono mr-1">{i + 1}.</span>{label}
                         </li>

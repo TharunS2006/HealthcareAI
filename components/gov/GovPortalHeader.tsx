@@ -162,7 +162,7 @@ export default function GovPortalHeader() {
                         >
                             {isEn ? 'A' : 'अ'}
                         </button>
-                        <span className="text-slate-500">|</span>
+                        <span className="text-slate-400" aria-hidden="true">|</span>
                         {/* Language switcher */}
                         <div className="flex items-center gap-1 bg-slate-900/80 p-0.5 rounded border border-slate-700">
                             <button
@@ -213,7 +213,7 @@ export default function GovPortalHeader() {
                             <p className="text-[11px] sm:text-xs font-bold text-slate-800 leading-snug">
                                 {i18nTexts.subTitle}
                             </p>
-                            <p className="text-[10px] text-slate-500 hidden sm:block">
+                            <p className="text-[10px] text-slate-600 hidden sm:block">
                                 {i18nTexts.subText}
                             </p>
                         </div>
@@ -228,7 +228,7 @@ export default function GovPortalHeader() {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
                                 <div>
-                                    <span className="block text-[8.5px] text-slate-500 font-bold uppercase">{i18nTexts.ambLabel}</span>
+                                    <span className="block text-[8.5px] text-slate-600 font-bold uppercase">{i18nTexts.ambLabel}</span>
                                     <strong className="text-red-700 font-black text-xs">108</strong>
                                 </div>
                             </div>
@@ -237,7 +237,7 @@ export default function GovPortalHeader() {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                 </svg>
                                 <div>
-                                    <span className="block text-[8.5px] text-slate-500 font-bold uppercase">{i18nTexts.maternalLabel}</span>
+                                    <span className="block text-[8.5px] text-slate-600 font-bold uppercase">{i18nTexts.maternalLabel}</span>
                                     <strong className="text-emerald-800 font-black text-xs">102</strong>
                                 </div>
                             </div>
@@ -246,7 +246,7 @@ export default function GovPortalHeader() {
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                                 <div>
-                                    <span className="block text-[8.5px] text-slate-500 font-bold uppercase">{i18nTexts.helplineLabel}</span>
+                                    <span className="block text-[8.5px] text-slate-600 font-bold uppercase">{i18nTexts.helplineLabel}</span>
                                     <strong className="text-[#1F3A6E] font-black text-xs">104</strong>
                                 </div>
                             </div>

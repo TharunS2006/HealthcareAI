@@ -83,7 +83,7 @@ function NotPermitted() {
                         </Link>
                     </div>
 
-                    <p className="text-[11px] text-slate-500 border-t border-slate-200 pt-3">
+                    <p className="text-[11px] text-slate-600 border-t border-slate-200 pt-3">
                         Access is decided by role and posting as configured in the permissions file. If your
                         posting is wrong, ask the Super Admin to correct it in User Management.
                     </p>
@@ -95,7 +95,7 @@ function NotPermitted() {
 
 export default function ForbiddenPage() {
     return (
-        <Suspense fallback={<div className="py-24 text-center text-xs text-slate-500">Loading…</div>}>
+        <Suspense fallback={<div className="py-24 text-center text-xs text-slate-600">Loading…</div>}>
             <NotPermitted />
         </Suspense>
     );

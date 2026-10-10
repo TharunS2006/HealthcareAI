@@ -248,7 +248,7 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
 
             <div className="p-3 space-y-3">
                 <fieldset className="space-y-2">
-                    <legend className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Patient</legend>
+                    <legend className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Patient</legend>
                     <div className="flex gap-3 text-[12px]">
                         <label className="flex items-center gap-1.5"><input type="radio" checked={mode === 'existing'} onChange={() => setMode('existing')} /> Registered here</label>
                         <label className="flex items-center gap-1.5"><input type="radio" checked={mode === 'new'} onChange={() => setMode('new')} /> Register new patient</label>
@@ -281,7 +281,7 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
                 </fieldset>
 
                 <fieldset className="space-y-2">
-                    <legend className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Vitals now</legend>
+                    <legend className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Vitals now</legend>
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                         <label><span className={label}>SpO2 % *</span><input inputMode="numeric" value={spo2} onChange={e => setSpo2(e.target.value)} className={field} /></label>
                         <label><span className={label}>Pulse *</span><input inputMode="numeric" value={pulse} onChange={e => setPulse(e.target.value)} className={field} /></label>
@@ -351,7 +351,7 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
                     </button>
                     {onCancel && <button type="button" onClick={onCancel} className="gov-btn gov-btn-secondary text-[12px]">Cancel</button>}
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-600">
                     Saved on this device first. It shows as <strong>Sent</strong> only once the referral network, or a user at the
                     receiving facility, has confirmed it.
                 </p>

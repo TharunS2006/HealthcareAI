@@ -62,7 +62,7 @@ function ReferralsWorkspace() {
         <div className="max-w-[1500px] mx-auto space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 bg-white border border-slate-300 p-3">
                 <div>
-                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                         {ROLE_LABELS[session.role]} · {session.facilityName}
                     </p>
                     <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">Referrals between facilities</h1>
@@ -99,7 +99,7 @@ export default function ReferralsPage() {
             <Sidebar />
             <main className="flex-1 p-3 md:p-5 overflow-y-auto min-w-0">
                 <MobileMenu />
-                <Suspense fallback={<p className="text-xs text-slate-500 p-6">Loading referrals…</p>}>
+                <Suspense fallback={<p className="text-xs text-slate-600 p-6">Loading referrals…</p>}>
                     <ReferralsWorkspace />
                 </Suspense>
             </main>

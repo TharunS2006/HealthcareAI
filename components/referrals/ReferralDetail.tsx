@@ -181,11 +181,11 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
             <div className="p-3 space-y-3">
                 {/* Route */}
                 <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[12px]">
-                    <span className="text-slate-500">From</span>
+                    <span className="text-slate-600">From</span>
                     <strong className="text-slate-800">{ref.fromFacilityName}</strong>
-                    <span className="text-slate-500">To</span>
+                    <span className="text-slate-600">To</span>
                     <strong className="text-[#1F3A6E]">{ref.toFacilityName}</strong>
-                    <span className="text-slate-500">Raised</span>
+                    <span className="text-slate-600">Raised</span>
                     <span>{dateTime(ref.referredAt)} by {ref.referredBy}</span>
                 </div>
                 {(ref.routeHistory?.length ?? 0) > 0 && (
@@ -277,7 +277,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
 
                 {/* Clinical */}
                 <section className="text-[12px] space-y-1">
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Reason for referral</h3>
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Reason for referral</h3>
                     <TranslatableText text={ref.reason} className="text-slate-800" />
                     {ref.clinicalSummary && <TranslatableText text={ref.clinicalSummary} className="text-slate-600" />}
                     {ref.vitalsAtReferral && (
@@ -289,7 +289,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                             {ref.vitalsAtReferral.isPregnant ? ` · pregnant${ref.vitalsAtReferral.gestationalWeeks ? ` ${ref.vitalsAtReferral.gestationalWeeks} wk` : ''}` : ''}
                         </p>
                     )}
-                    <p className="text-[11px] text-slate-500">Transport: {ref.transportMode.replace(/_/g, ' ')}</p>
+                    <p className="text-[11px] text-slate-600">Transport: {ref.transportMode.replace(/_/g, ' ')}</p>
                 </section>
 
                 {(ref.parentReferralId || ref.onwardReferralId) && (
@@ -616,11 +616,11 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                 {/* Treatment notes */}
                 {(ref.treatmentNotes?.length ?? 0) > 0 && (
                     <section className="space-y-1">
-                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Treatment notes</h3>
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Treatment notes</h3>
                         <ul className="space-y-1.5">
                             {ref.treatmentNotes!.map(n => (
                                 <li key={n.id} className="text-[12px] border-l-2 border-emerald-500 pl-2">
-                                    <span className="text-[10px] text-slate-500">{dateTime(n.at)} · {n.actor.name}</span>
+                                    <span className="text-[10px] text-slate-600">{dateTime(n.at)} · {n.actor.name}</span>
                                     <p className="text-slate-800">{n.text}</p>
                                 </li>
                             ))}
@@ -630,12 +630,12 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
 
                 {/* Timeline */}
                 <section className="space-y-1">
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Timeline</h3>
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Timeline</h3>
                     <ol className="border-l-2 border-[#B9C5D6] ml-1 space-y-2">
                         {ref.timeline.map(e => (
                             <li key={e.id} className="relative pl-3">
                                 <span className={`absolute -left-[5px] top-1 w-2 h-2 rounded-full ${e.action === 'EMERGENCY_ESCALATION' || e.action === 'REJECT' ? 'bg-red-600' : e.actor.role === 'SYSTEM' ? 'bg-slate-400' : 'bg-[#1F3A6E]'}`} />
-                                <div className="text-[11px] text-slate-500">{dateTime(e.at)}</div>
+                                <div className="text-[11px] text-slate-600">{dateTime(e.at)}</div>
                                 <div className="text-[12px] text-slate-900">
                                     <strong>{wf.ACTION_LABELS[e.action]}</strong>
                                     {e.fromStatus && e.fromStatus !== e.toStatus && (
@@ -654,14 +654,14 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
 
                 {/* Comments between the two facilities */}
                 <section className="space-y-1.5">
-                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Messages between facilities</h3>
-                    {ref.comments.length === 0 && <p className="text-[11px] text-slate-500">No messages yet.</p>}
+                    <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-600">Messages between facilities</h3>
+                    {ref.comments.length === 0 && <p className="text-[11px] text-slate-600">No messages yet.</p>}
                     <ul className="space-y-1.5">
                         {ref.comments.map(c => {
                             const mine = c.actor.userId === session.userId;
                             return (
                                 <li key={c.id} className={`text-[12px] px-2 py-1.5 border ${mine ? 'bg-blue-50 border-blue-200 ml-6' : 'bg-slate-50 border-slate-200 mr-6'}`}>
-                                    <span className="block text-[10px] text-slate-500">
+                                    <span className="block text-[10px] text-slate-600">
                                         {c.actor.name}{c.actor.facilityName ? ` · ${c.actor.facilityName}` : ''} · {clockTime(c.at)}
                                     </span>
                                     <TranslatableText text={c.text} />

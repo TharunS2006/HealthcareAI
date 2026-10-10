@@ -24,11 +24,11 @@ function Ratio({ label, value, norm, basis, gapWhen, gapText }: {
     const gap = value != null && (gapWhen === 'below' ? value < norm : value > norm);
     return (
         <div className="border border-slate-200 bg-white px-3 py-2">
-            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-600">{label}</span>
             <span className="text-lg font-bold text-[#1F3A6E]">{value ?? '—'}</span>
             <span className={`ml-2 text-[11px] font-semibold ${gap ? 'text-amber-700' : 'text-slate-600'}`}>norm ≈ {norm}</span>
             {gap && <span className="block text-[11px] font-semibold text-amber-800">{gapText}</span>}
-            <span className="block text-[10px] text-slate-500">{basis}</span>
+            <span className="block text-[10px] text-slate-600">{basis}</span>
         </div>
     );
 }
@@ -60,7 +60,7 @@ export default function OfficialHealthContext() {
                         <div key={label as string} className="border border-slate-200 bg-[#F8FAFC] px-2 py-2">
                             <span className="block text-xl font-bold text-[#1F3A6E]">{fmt(value as number | null)}</span>
                             <span className="block text-[11px] font-semibold text-slate-700">{label}</span>
-                            <span className="block text-[10px] text-slate-500">RHS {year}</span>
+                            <span className="block text-[10px] text-slate-600">RHS {year}</span>
                         </div>
                     ))}
                 </div>
@@ -75,7 +75,7 @@ export default function OfficialHealthContext() {
                     per {RHS_NORMS.populationPerChc.toLocaleString('en-IN')} population in plain areas (lower in hilly and tribal areas) — about{' '}
                     {RHS_NORMS.subCentresPerPhc} Sub-Centres per PHC and {RHS_NORMS.phcsPerChc} PHCs per CHC.
                 </p>
-                <p className="text-[10px] text-slate-500 border-t border-slate-200 pt-2">
+                <p className="text-[10px] text-slate-600 border-t border-slate-200 pt-2">
                     Source: {RHS_SOURCES.portal} —{' '}
                     <a href={RHS_SOURCES.infrastructure2022.page} target="_blank" rel="noreferrer" className="underline">{RHS_SOURCES.infrastructure2022.title}</a>;{' '}
                     <a href={RHS_SOURCES.phcChc2021.page} target="_blank" rel="noreferrer" className="underline">{RHS_SOURCES.phcChc2021.title}</a>.

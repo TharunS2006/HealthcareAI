@@ -42,7 +42,7 @@ export default function FacilityAvailabilityList({ options, availabilityOf, sele
                 const body = (
                     <div className="flex items-start justify-between gap-2 w-full">
                         <div className="min-w-0">
-                            <strong className="block text-[12px] text-[#1F3A6E]">{facility.name} <span className="font-mono text-[10px] text-slate-500">({facility.type})</span></strong>
+                            <strong className="block text-[12px] text-[#1F3A6E]">{facility.name} <span className="font-mono text-[10px] text-slate-600">({facility.type})</span></strong>
                             <span className="block text-[11px] text-slate-600">
                                 {distanceKm.toFixed(0)} km · {a.reported ? bedLine : 'Resources not reported'}
                                 {pct !== null ? ` · ${pct}% occupied` : ''}

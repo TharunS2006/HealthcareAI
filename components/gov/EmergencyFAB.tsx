@@ -62,7 +62,7 @@ export default function EmergencyFAB() {
                     </div>
                     <button
                         onClick={() => setExpanded(false)}
-                        className="mt-2 text-xs text-slate-500 hover:text-slate-700 w-full text-center py-1"
+                        className="mt-2 text-xs text-slate-600 hover:text-slate-700 w-full text-center py-1"
                     >
                         {t.cancel}
                     </button>

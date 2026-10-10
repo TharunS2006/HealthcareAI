@@ -324,7 +324,7 @@ export default function Home() {
                         <h2 className="text-base sm:text-lg font-bold text-gov-navy">
                             {pageTexts.modulesHeading}
                         </h2>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-600">
                             {pageTexts.modulesSub}
                         </p>
                     </div>
@@ -440,7 +440,7 @@ export default function Home() {
                     <span>• Guidelines for Indian Government Websites (GIGW 3.0)</span>
                     <span>• {isEn ? 'Digital Personal Data Protection Act (DPDP)' : 'माहिती तंत्रज्ञान कायदा व DPDP Act 2023'}</span>
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-600">
                     {pageTexts.disclaimer}
                 </p>
             </div>

@@ -75,7 +75,7 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
         // district bed board for one frame shows exactly what was not allowed.
         return (
             <div className="flex items-center justify-center py-24 px-4" role="status" aria-live="polite">
-                <p className="text-xs font-semibold text-slate-500">
+                <p className="text-xs font-semibold text-slate-600">
                     {!restored ? 'Checking your session…' : 'Not permitted — redirecting…'}
                 </p>
             </div>

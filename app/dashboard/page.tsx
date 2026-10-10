@@ -308,7 +308,7 @@ export default function DashboardPage() {
                             <h2 className="text-base font-bold text-[#1F3A6E]">
                                 {districtWide ? 'Referral Command — district, live' : `Referral Command — ${session?.facilityName ?? ''} (read-only)`}
                             </h2>
-                            {session && <span className="text-[11px] text-slate-500">{ROLE_LABELS[session.role]} · {session.name}</span>}
+                            {session && <span className="text-[11px] text-slate-600">{ROLE_LABELS[session.role]} · {session.name}</span>}
                         </div>
                         <ReferralCommand scopeFacilityId={districtWide ? undefined : session?.facilityId ?? undefined} />
                         <OfficialHealthContext />
@@ -631,10 +631,11 @@ export default function DashboardPage() {
                     <div className="bg-white rounded border border-slate-300 shadow-sm">
                         <div className="gov-card-header flex items-center justify-between">
                             <span>{txt.scorecardTitle}</span>
-                            <span className="text-[10px] font-normal normal-case text-slate-500">{txt.scorecardSub}</span>
+                            <span className="text-[10px] font-normal normal-case text-slate-600">{txt.scorecardSub}</span>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        {/* Focusable, so a keyboard user can scroll the wide table too. */}
+                        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={txt.scorecardTitle}>
                             <table className="gov-table">
                                 <thead>
                                     <tr>
@@ -671,7 +672,7 @@ export default function DashboardPage() {
                                                     }>
                                                         {c.score}
                                                     </span>
-                                                    <span className="block text-[10px] text-slate-500">{c.detail}</span>
+                                                    <span className="block text-[10px] text-slate-600">{c.detail}</span>
                                                 </td>
                                             ))}
                                             <td className="text-[11px]">
@@ -679,7 +680,7 @@ export default function DashboardPage() {
                                                     ? <span className="text-emerald-800 font-semibold">{txt.meetsNorms}</span>
                                                     : <span className="text-red-800">{s.gaps[0]}</span>}
                                                 {s.gaps.length > 1 && (
-                                                    <span className="block text-[10px] text-slate-500">
+                                                    <span className="block text-[10px] text-slate-600">
                                                         +{s.gaps.length - 1} {txt.moreGaps}
                                                     </span>
                                                 )}

@@ -29,7 +29,7 @@ export default function CapacityCheckPanel({ check, facilityName, updatedAt }: P
         <section className="border border-[#B9C5D6] bg-white" aria-label="Capacity check">
             <div className="bg-[#EDF1F7] border-b border-[#B9C5D6] px-3 py-1.5 flex items-baseline justify-between gap-2">
                 <h3 className="text-[12px] font-bold text-[#1F3A6E]">Capacity check — {facilityName}</h3>
-                {updatedAt && <span className="text-[10px] text-slate-500">resources updated {new Date(updatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>}
+                {updatedAt && <span className="text-[10px] text-slate-600">resources updated {new Date(updatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>}
             </div>
             <p className={`mx-3 mt-2 px-2 py-1.5 border text-[11px] font-semibold ${summary.style}`}>{summary.text}</p>
             {check.items.length === 0 ? (
@@ -49,7 +49,7 @@ export default function CapacityCheckPanel({ check, facilityName, updatedAt }: P
                             {check.items.map(item => (
                                 <tr key={item.key}>
                                     <td className="font-semibold">
-                                        <span className="block text-[9px] uppercase text-slate-500">{KIND_LABEL[item.kind]}</span>
+                                        <span className="block text-[9px] uppercase text-slate-600">{KIND_LABEL[item.kind]}</span>
                                         {item.required}
                                     </td>
                                     <td className="text-slate-600">{item.why}</td>

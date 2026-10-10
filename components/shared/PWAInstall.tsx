@@ -99,12 +99,12 @@ export default function PWAInstall() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="font-bold text-[#1F3A6E] text-sm leading-tight">{label}</p>
-                    <p className="text-[11px] text-slate-500 leading-tight">{sub}</p>
+                    <p className="text-[11px] text-slate-600 leading-tight">{sub}</p>
                 </div>
                 <div className="flex gap-1.5 shrink-0">
                     <button
                         onClick={dismiss}
-                        className="text-[11px] text-slate-500 hover:text-slate-700 px-2 py-1 cursor-pointer"
+                        className="text-[11px] text-slate-600 hover:text-slate-700 px-2 py-1 cursor-pointer"
                     >
                         {later}
                     </button>

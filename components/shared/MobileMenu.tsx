@@ -209,7 +209,7 @@ export default function MobileMenu() {
                         <strong className="text-xs font-black text-[#1F3A6E] block leading-tight">
                             {language === 'en' ? 'NalamMesh' : 'नलममेश'}
                         </strong>
-                        <span className="text-[9px] text-slate-500 font-bold block">
+                        <span className="text-[9px] text-slate-600 font-bold block">
                             {session
                                 ? `${ROLE_LABELS[session.role]} · ${session.facilityName}`
                                 : language === 'en'
@@ -261,7 +261,7 @@ export default function MobileMenu() {
                                                 : 'text-slate-700 hover:bg-slate-100'
                                         }`}
                                     >
-                                        <span className={isActive ? 'text-white' : 'text-slate-500'}>
+                                        <span className={isActive ? 'text-white' : 'text-slate-600'}>
                                             {item.icon}
                                         </span>
                                         <span>{item.label}</span>

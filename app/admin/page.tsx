@@ -126,7 +126,7 @@ export default function AdminPage() {
                 <MobileMenu />
                 <div className="max-w-6xl mx-auto space-y-4">
                     <div className="bg-white border border-slate-300 p-3">
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{ROLE_LABELS[session.role]} · {session.name}</p>
+                        <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">{ROLE_LABELS[session.role]} · {session.name}</p>
                         <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">Users, roles &amp; facilities</h1>
                         <div className="flex flex-wrap gap-1.5 mt-2">
                             {([['USERS', `Users (${users.length})`], ['ROLES', 'Roles & permissions'], ['FACILITIES', `Facilities (${facilities.length})`]] as const).map(([key, label]) => (
@@ -317,7 +317,7 @@ export default function AdminPage() {
                                     <tbody>
                                         {facilities.map(f => (
                                             <tr key={f.id}>
-                                                <td className="font-semibold">{f.name}<span className="block font-mono text-[10px] text-slate-500">{f.id}</span></td>
+                                                <td className="font-semibold">{f.name}<span className="block font-mono text-[10px] text-slate-600">{f.id}</span></td>
                                                 <td className="text-center">{f.type}</td>
                                                 <td>{f.contact}</td>
                                                 <td>{f.medicalOfficerInCharge}</td>

@@ -384,7 +384,7 @@ function TeleconsultDemonstration() {
                                         onClick={handleDispatchReferral}
                                         disabled={!referringFacility}
                                         title={referringFacility ? undefined : 'Raised by staff at the referring facility (ANM / Medical Officer)'}
-                                        className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <Icon name="ambulance" className="w-4 h-4" /> Raise Emergency Referral to DH Gadchiroli
                                     </button>

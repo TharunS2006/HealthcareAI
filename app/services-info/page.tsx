@@ -134,11 +134,12 @@ export default function ServicesInfoPage() {
 
                     {/* Facility picker */}
                     <div className="surface-card p-4">
-                        <label className="text-xs font-bold text-txt-secondary uppercase tracking-wider block mb-2">
+                        <label htmlFor="services-facility" className="text-xs font-bold text-txt-secondary uppercase tracking-wider block mb-2">
                             {txt.chooseFacility}
                         </label>
                         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                             <select
+                                id="services-facility"
                                 value={facilityId}
                                 onChange={(e) => setFacilityId(e.target.value)}
                                 className="px-3.5 py-2 bg-gray-50 border border-border-subtle rounded-xl text-sm w-full sm:w-96 focus:outline-none focus:ring-2 focus:ring-emerald-deep"
@@ -270,7 +271,7 @@ export default function ServicesInfoPage() {
 
                     {/* Honest disclaimer — awareness, not an eligibility ruling */}
                     <div className="surface-card p-3 bg-slate-50/60 flex items-start gap-2">
-                        <svg className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4 text-slate-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="text-[11px] text-txt-secondary">{txt.disclaimer}</p>

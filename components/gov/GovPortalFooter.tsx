@@ -169,7 +169,7 @@ export default function GovPortalFooter() {
                     <p>
                         {F.rights}
                     </p>
-                    <p className="text-[10px] text-slate-500">
+                    <p className="text-[10px] text-slate-300">
                         {F.designedBy}
                     </p>
                 </div>

@@ -140,7 +140,7 @@ export default function FacilityResourcesPage() {
                 <div className="max-w-6xl mx-auto space-y-4">
                     <div className="bg-white border border-slate-300 p-3 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                         <div>
-                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">
                                 {ROLE_LABELS[session.role]} · {manageBeds || manageMaintenance ? 'can edit' : 'read only'}
                             </p>
                             <h1 className="text-xl sm:text-2xl font-black text-[#1F3A6E] tracking-tight">Beds, equipment &amp; staff</h1>
@@ -158,7 +158,7 @@ export default function FacilityResourcesPage() {
                     </div>
 
                     {!loaded ? (
-                        <p className="text-[12px] text-slate-500 p-6 text-center">Loading resources…</p>
+                        <p className="text-[12px] text-slate-600 p-6 text-center">Loading resources…</p>
                     ) : !res ? (
                         <GovPanel title="Not reported">
                             <p className="text-[12px] text-slate-700">
@@ -179,12 +179,12 @@ export default function FacilityResourcesPage() {
                                     ['Occupancy', pct === null ? '—' : `${pct}%`],
                                 ].map(([label, value]) => (
                                     <div key={String(label)} className="bg-white border border-[#B9C5D6] px-3 py-2">
-                                        <span className="block text-[10px] font-bold uppercase text-slate-500">{label}</span>
+                                        <span className="block text-[10px] font-bold uppercase text-slate-600">{label}</span>
                                         <strong className="block text-xl text-[#1F3A6E]">{value}</strong>
                                     </div>
                                 ))}
                             </div>
-                            <p className="text-[11px] text-slate-500">
+                            <p className="text-[11px] text-slate-600">
                                 Shift: {res.shift.toLowerCase()} · last updated {dateTime(res.updatedAt)} by {res.updatedBy}
                             </p>
 
@@ -339,7 +339,7 @@ export default function FacilityResourcesPage() {
                                                                 <td>{e.expectedRepairDate ?? '—'}</td>
                                                             </>
                                                         ) : (
-                                                            <td colSpan={6} className="text-slate-500">Not held at this facility</td>
+                                                            <td colSpan={6} className="text-slate-600">Not held at this facility</td>
                                                         )}
                                                         {manageMaintenance && (
                                                             <td className="text-right">
@@ -436,7 +436,7 @@ export default function FacilityResourcesPage() {
                                     </div>
                                 )}
                                 {myTickets.length === 0 ? (
-                                    <p className="px-3 py-3 text-[12px] text-slate-500">No issues logged.</p>
+                                    <p className="px-3 py-3 text-[12px] text-slate-600">No issues logged.</p>
                                 ) : (
                                     <ul className="divide-y divide-slate-200">
                                         {[...openTickets, ...myTickets.filter(t => t.status === 'RESOLVED')].map(t => (
@@ -461,7 +461,7 @@ export default function FacilityResourcesPage() {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <p className="text-[11px] text-slate-500">
+                                                <p className="text-[11px] text-slate-600">
                                                     Reported {dateTime(t.reportedAt)} by {t.reportedBy}
                                                     {t.assignedTo ? ` · assigned to ${t.assignedTo}` : ''}
                                                     {t.expectedRepairDate ? ` · repair expected ${t.expectedRepairDate}` : ''}

@@ -95,7 +95,7 @@ export default function NotificationBell({ session, onOpenReferral, align = 'rig
                         )}
                     </div>
                     <ul className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100">
-                        {mine.length === 0 && <li className="px-3 py-6 text-center text-xs text-slate-500">No notifications yet.</li>}
+                        {mine.length === 0 && <li className="px-3 py-6 text-center text-xs text-slate-600">No notifications yet.</li>}
                         {mine.slice(0, 30).map(n => (
                             <li key={n.id}>
                                 <button
@@ -108,7 +108,7 @@ export default function NotificationBell({ session, onOpenReferral, align = 'rig
                                             {NOTIFICATION_LABELS[n.type]}
                                             {n.priority === 'EMERGENCY' ? ' · EMERGENCY' : ''}
                                         </span>
-                                        <span className="text-[10px] text-slate-500 shrink-0">
+                                        <span className="text-[10px] text-slate-600 shrink-0">
                                             {!n.is_read && <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-600 mr-1 align-middle" aria-label="unread" />}
                                             {timeAgo(n.created_at, now)}
                                         </span>

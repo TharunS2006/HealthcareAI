@@ -368,7 +368,7 @@ export default function OPDPage() {
                     {/* Official Workstation Header Bar */}
                     <div className="bg-white border border-slate-300 rounded p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                         <div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-0.5">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
                                 <span>{L.deptTag}</span>
                                 <span className="text-slate-400">|</span>
@@ -411,7 +411,7 @@ export default function OPDPage() {
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
                                     <span>{L.sec1Title}</span>
-                                    <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-300 px-2 py-0.5 rounded">
+                                    <span className="text-[10px] font-bold text-slate-600 bg-white border border-slate-300 px-2 py-0.5 rounded">
                                         FHIR R4 Ready
                                     </span>
                                 </div>
@@ -547,7 +547,7 @@ export default function OPDPage() {
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
                                     <span>{L.sec2Title}</span>
-                                    <span className="text-[10px] text-slate-500 font-bold">
+                                    <span className="text-[10px] text-slate-600 font-bold">
                                         {L.manualSensor}
                                     </span>
                                 </div>
@@ -639,7 +639,7 @@ export default function OPDPage() {
                                     {/* Chief Complaint / Symptoms */}
                                     <div>
                                         <div className="flex justify-between items-center mb-1">
-                                            <label className="block font-bold text-slate-700">
+                                            <label htmlFor="opd-complaint" className="block font-bold text-slate-700">
                                                 {L.complaintLabel}
                                             </label>
                                             {isSupported && (
@@ -662,6 +662,7 @@ export default function OPDPage() {
                                             <p role="alert" className="text-[11px] text-red-700 mb-1">{voiceError}</p>
                                         )}
                                         <textarea
+                                            id="opd-complaint"
                                             rows={2}
                                             value={draft.complaint}
                                             onChange={(e) => setField('complaint', e.target.value)}
@@ -714,11 +715,11 @@ export default function OPDPage() {
                                     <div className="p-4 space-y-3 text-xs bg-[#FAFBFD]">
                                         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
                                             <div>
-                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">{L.tokenLabel}</span>
+                                                <span className="text-slate-600 block text-[10px] uppercase font-bold">{L.tokenLabel}</span>
                                                 <strong className="text-2xl font-mono font-black text-[#1F3A6E]">{generatedToken}</strong>
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-slate-500 block text-[10px] uppercase font-bold">{L.priorityLabel}</span>
+                                                <span className="text-slate-600 block text-[10px] uppercase font-bold">{L.priorityLabel}</span>
                                                 <span className={`px-2.5 py-1 rounded text-xs font-black uppercase ${
                                                     triageResult.status === 'RED'
                                                         ? 'bg-red-600 text-white'
@@ -733,19 +734,19 @@ export default function OPDPage() {
 
                                         <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded border border-slate-200">
                                             <div>
-                                                <span className="text-slate-500 block">{L.patNameLabel}</span>
+                                                <span className="text-slate-600 block">{L.patNameLabel}</span>
                                                 <strong className="text-slate-800">{createdPatient?.name} ({createdPatient?.age} {isEn ? 'Yrs' : 'वर्षे'} / {createdPatient?.gender})</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">{L.patVillageLabel}</span>
+                                                <span className="text-slate-600 block">{L.patVillageLabel}</span>
                                                 <strong className="text-slate-800">{createdPatient?.village}</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">{L.patAbhaLabel}</span>
+                                                <span className="text-slate-600 block">{L.patAbhaLabel}</span>
                                                 <strong className="text-slate-800 font-mono text-[10px]">{createdPatient?.abhaId || (isEn ? "not recorded" : "नोंद नाही")}</strong>
                                             </div>
                                             <div>
-                                                <span className="text-slate-500 block">{L.patRoomLabel}</span>
+                                                <span className="text-slate-600 block">{L.patRoomLabel}</span>
                                                 <strong className="text-[#1F3A6E]">{triageResult.status === 'RED' ? L.roomEmergency : facility?.type === 'SC' ? L.roomSC : L.roomMO}</strong>
                                             </div>
                                         </div>
@@ -757,15 +758,15 @@ export default function OPDPage() {
                                         {/* Clinical basis — states who actually decided, model or protocol */}
                                         <div className="p-2 bg-white border border-slate-200 rounded text-[11px] text-slate-700 leading-snug space-y-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <strong className="text-[10px] uppercase tracking-wide text-slate-500">
+                                                <strong className="text-[10px] uppercase tracking-wide text-slate-600">
                                                     {L.basisLabel}
                                                 </strong>
-                                                <span className="font-mono text-[10px] text-slate-500">
+                                                <span className="font-mono text-[10px] text-slate-600">
                                                     {L.confLabel} {Math.round(triageResult.confidence * 100)}% • {triageResult.processingTime} ms
                                                 </span>
                                             </div>
                                             <p className="text-slate-700">{triageResult.reasoning}</p>
-                                            <p className="text-[10px] text-slate-500">
+                                            <p className="text-[10px] text-slate-600">
                                                 {triageResult.decisionSource === 'CLINICAL_OVERRIDE'
                                                     ? L.srcOverride
                                                     : triageResult.decisionSource === 'RULE_ENGINE'
@@ -805,17 +806,17 @@ export default function OPDPage() {
                                     <strong className="text-slate-700 block text-xs">
                                         {L.analyzingTitle}
                                     </strong>
-                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                    <p className="text-[11px] text-slate-600 leading-relaxed">
                                         {L.analyzingDesc}
                                     </p>
                                 </div>
                             ) : (
-                                <div className="gov-card p-4 text-center text-xs text-slate-500 space-y-2">
+                                <div className="gov-card p-4 text-center text-xs text-slate-600 space-y-2">
                                     <Icon name="clipboard" className="w-7 h-7 mx-auto text-slate-300" />
                                     <strong className="text-slate-700 block text-xs">
                                         {L.waitingAnalysisTitle}
                                     </strong>
-                                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                                    <p className="text-[11px] text-slate-600 leading-relaxed">
                                         {L.waitingAnalysisDesc}
                                     </p>
                                 </div>
@@ -856,7 +857,7 @@ export default function OPDPage() {
                                                             {q.priority}
                                                         </span>
                                                     </td>
-                                                    <td className="text-slate-500">{q.estimatedWaitMinutes} {L.minUnit}</td>
+                                                    <td className="text-slate-600">{q.estimatedWaitMinutes} {L.minUnit}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -872,7 +873,7 @@ export default function OPDPage() {
                             <div className="bg-white rounded border border-slate-400 p-4 max-w-sm w-full space-y-3">
                                 <div className="flex items-center justify-between border-b pb-2">
                                     <strong className="text-xs font-bold text-[#1F3A6E]">{isEn ? 'Patient ID QR Wristband' : 'रुग्ण ओळख QR रिस्टबँड'}</strong>
-                                    <button onClick={() => setShowQR(false)} className="text-xs font-bold text-slate-500">✕ {isEn ? 'Close' : 'बंद करा'}</button>
+                                    <button onClick={() => setShowQR(false)} className="text-xs font-bold text-slate-600">✕ {isEn ? 'Close' : 'बंद करा'}</button>
                                 </div>
                                 <QRWristband patient={createdPatient} />
                                 <button
@@ -913,7 +914,7 @@ function VitalInput({ label, unit, value, onChange, min, max, step, required, se
                 <span className="font-bold text-slate-700 uppercase text-[11px]">
                     {label} {required && <span className="text-red-600">*</span>}
                 </span>
-                <span className="text-slate-500 text-[10px]">{value.trim() === '' ? notMeasured : unit}</span>
+                <span className="text-slate-600 text-[10px]">{value.trim() === '' ? notMeasured : unit}</span>
             </span>
             <input
                 type="number"

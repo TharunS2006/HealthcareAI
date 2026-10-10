@@ -90,13 +90,13 @@ export default function ReferralBoard({ session, selectedId, onOpen, compact = f
                             <PriorityBadge priority={r.priority} />
                             <StatusBadge status={r.status} />
                         </div>
-                        <span className="text-[10px] text-slate-500 shrink-0">
+                        <span className="text-[10px] text-slate-600 shrink-0">
                             {unread > 0 && <span className="inline-block min-w-[16px] text-center px-1 mr-1 rounded-full bg-blue-600 text-white text-[9px] font-bold">{unread}</span>}
                             {timeAgo(r.updatedAt, now)}
                         </span>
                     </div>
                     <strong className="block text-[13px] text-slate-900 mt-1 leading-tight">
-                        {r.patientName} <span className="font-normal text-[11px] text-slate-500">{r.patientAge} y / {r.patientGender}</span>
+                        {r.patientName} <span className="font-normal text-[11px] text-slate-600">{r.patientAge} y / {r.patientGender}</span>
                     </strong>
                     <span className="block text-[11px] text-slate-600">
                         {shortFacilityName(r.fromFacilityName)} → <strong className="text-[#1F3A6E]">{shortFacilityName(r.toFacilityName)}</strong>
@@ -145,9 +145,9 @@ export default function ReferralBoard({ session, selectedId, onOpen, compact = f
             </div>
 
             {!loaded ? (
-                <p className="text-[12px] text-slate-500 py-6 text-center">Loading referrals on this device…</p>
+                <p className="text-[12px] text-slate-600 py-6 text-center">Loading referrals on this device…</p>
             ) : visible.length === 0 ? (
-                <p className="text-[12px] text-slate-500 py-6 text-center border border-dashed border-slate-300">No referrals here.</p>
+                <p className="text-[12px] text-slate-600 py-6 text-center border border-dashed border-slate-300">No referrals here.</p>
             ) : compact ? (
                 <ul className="space-y-1.5">{visible.filter(r => showClosed || wf.phaseOf(r.status) !== 'CLOSED').map(card)}</ul>
             ) : (
@@ -161,7 +161,7 @@ export default function ReferralBoard({ session, selectedId, onOpen, compact = f
                                     <span className="text-[10px] font-black bg-white border border-slate-300 rounded-full px-1.5">{items.length}</span>
                                 </h3>
                                 <ul className="p-1.5 space-y-1.5 max-h-[70vh] overflow-y-auto">
-                                    {items.length === 0 ? <li className="text-[11px] text-slate-400 text-center py-4">None</li> : items.map(card)}
+                                    {items.length === 0 ? <li className="text-[11px] text-slate-600 text-center py-4">None</li> : items.map(card)}
                                 </ul>
                             </section>
                         );

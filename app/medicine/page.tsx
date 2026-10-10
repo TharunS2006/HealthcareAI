@@ -207,7 +207,7 @@ export default function MedicinePage() {
                             </div>
                             <button
                                 onClick={() => setShowRequisition(true)}
-                                className="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700 transition-all shrink-0 ml-4 cursor-pointer"
+                                className="px-3 py-1.5 bg-amber-700 text-white font-bold rounded-lg hover:bg-amber-800 transition-all shrink-0 ml-4 cursor-pointer"
                             >
                                 {txt.autoRestockBtn}
                             </button>
@@ -279,12 +279,14 @@ export default function MedicinePage() {
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="text"
+                                        aria-label={txt.filterPlaceholder}
                                         placeholder={txt.filterPlaceholder}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                         className="px-3 py-1 bg-gray-50 border rounded-lg text-xs outline-none w-32"
                                     />
                                     <select
+                                        aria-label={txt.allCategories}
                                         value={filterCategory}
                                         onChange={(e) => setFilterCategory(e.target.value)}
                                         className="p-1 bg-gray-50 border rounded-lg text-xs font-semibold"
@@ -318,7 +320,7 @@ export default function MedicinePage() {
                                                     <span className="text-[10px] text-txt-muted">{med.category} • {med.dosageForm}</span>
                                                 </td>
                                                 <td className="py-2.5 font-mono font-bold">
-                                                    <span className={med.currentStock === 0 ? 'text-status-red' : med.currentStock < med.minimumRequiredStock ? 'text-amber-600' : 'text-[#1F3A6E]'}>
+                                                    <span className={med.currentStock === 0 ? 'text-status-red' : med.currentStock < med.minimumRequiredStock ? 'text-amber-700' : 'text-[#1F3A6E]'}>
                                                         {med.currentStock} {med.unit}
                                                     </span>
                                                     <span className="text-[9px] text-txt-muted block">Min: {med.minimumRequiredStock}{med.expiryDate ? ` · Exp: ${med.expiryDate}` : ''}</span>

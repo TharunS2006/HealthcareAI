@@ -227,7 +227,7 @@ function LoginForm() {
                         {busy ? 'Checking PIN…' : 'Sign in →'}
                     </button>
 
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
                         Your PIN is checked by the referral network, which then admits only your role at your posting;
                         with no network it is checked on this device and your work syncs after you sign in online.
                         Five wrong PINs lock the account for five minutes.
@@ -254,7 +254,7 @@ function LoginForm() {
                     <button type="submit" disabled={busy !== null} className="gov-btn gov-btn-primary w-full text-sm font-bold py-2.5 disabled:opacity-50">
                         {busy === 'staff-id' ? 'Checking…' : 'Sign in with Staff ID →'}
                     </button>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
                         Your Staff ID and PIN come from the Super Admin. The first sign-in on a device needs the network;
                         after that this device knows you and you can sign in from the list, offline too.
                     </p>
@@ -314,7 +314,7 @@ function LoginForm() {
 
 export default function StaffLoginPage() {
     return (
-        <Suspense fallback={<div className="py-24 text-center text-xs text-slate-500">Loading sign-in…</div>}>
+        <Suspense fallback={<div className="py-24 text-center text-xs text-slate-600">Loading sign-in…</div>}>
             <LoginForm />
         </Suspense>
     );
