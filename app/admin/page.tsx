@@ -86,7 +86,11 @@ export default function AdminPage() {
         }
         if (!u.active && u.id === session.userId) return toast.error('You cannot deactivate your own account');
         if (pinDraft && !PIN_PATTERN.test(pinDraft)) return toast.error('A PIN is 4 to 6 digits');
-        if (!pinDraft && !u.pinHash) return toast.error('Set a PIN — without one this user cannot sign in');
+        // Only a new account needs one. An existing user's PIN hash is often not on
+        // this device — devices hold their own facility's hashes only — and the relay
+        // keeps the stored PIN when an edit sends none, so deactivating someone or
+        // moving their posting must not demand a new PIN.
+        if (isNew && !pinDraft) return toast.error('Set a PIN — without one this user cannot sign in');
         try {
             if (pinDraft) u.pinHash = await hashPin(pinDraft);
             await upsert(u, wire);
@@ -179,7 +183,7 @@ export default function AdminPage() {
                                         )}
                                     </label>
                                     <label>
-                                        <span className="block text-[11px] font-bold text-slate-600">{editing.pinHash ? 'New PIN (leave blank to keep)' : 'PIN (4–6 digits)'}</span>
+                                        <span className="block text-[11px] font-bold text-slate-600">{isNew ? 'PIN (4–6 digits)' : 'New PIN (leave blank to keep)'}</span>
                                         <input className={`${field} w-full font-mono`} type="password" inputMode="numeric" autoComplete="new-password" maxLength={6}
                                             value={pinDraft} onChange={e => setPinDraft(e.target.value.replace(/\D/g, ''))} />
                                     </label>
