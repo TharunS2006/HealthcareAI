@@ -25,7 +25,10 @@
  */
 
 import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { io as connect, type Socket } from 'socket.io-client';
 
 const wf = await import('../lib/referrals/workflow');
@@ -463,17 +466,26 @@ upstash.close();
 // ---------------------------------------------------------------------------
 console.log('\n10. PRODUCTION');
 // ---------------------------------------------------------------------------
-const { relayModeFromEnv } = await import('../server/relay/mode');
+const { relayModeFromEnv, durabilityProblem } = await import('../server/relay/mode');
+const { FileStore } = await import('../server/relay/store');
 const { hashPin } = await import('../lib/auth/pin');
 check('a production relay without a bootstrap PIN will not serve',
     relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production' }).problems.length === 1
     && relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production', NALAMMESH_BOOTSTRAP_ADMIN_PIN: '2468' }).problems.length === 1);
+check('…nor one that would keep its staff directory in memory',
+    durabilityProblem({ production: true }, 'memory') !== null
+    && durabilityProblem({ production: true }, 'file') === null && durabilityProblem({ production: true }, 'upstash') === null
+    && durabilityProblem({ production: false }, 'memory') === null);
 const hostedNoPin = await hostedStatus({ ...hostedEnv, NALAMMESH_DEPLOYMENT_MODE: 'production' });
 check('…the hosted entry answers 503 and names the setting', hostedNoPin.health === 503 && /BOOTSTRAP_ADMIN_PIN/.test(hostedNoPin.body), hostedNoPin.body);
 check('an unset mode is an evaluation relay', relayModeFromEnv({}).demoAccounts === true);
 
 const prodMode = relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production', NALAMMESH_BOOTSTRAP_ADMIN_PIN: '135790', NALAMMESH_BOOTSTRAP_ADMIN_NAME: 'Dr. First Admin' });
-const prodStore = storeFromEnv({} as NodeJS.ProcessEnv);
+// A production relay on a server keeps its state in a file, and a restart below is a real one:
+// a new store reading that file, not the same object kept in memory.
+const storeFile = join(mkdtempSync(join(tmpdir(), 'nalammesh-relay-')), 'state', 'relay-store.json');
+const prodStore = storeFromEnv({ NALAMMESH_RELAY_STORE_FILE: storeFile } as Record<string, string> as NodeJS.ProcessEnv);
+check('NALAMMESH_RELAY_STORE_FILE gives the relay a file store', prodStore.kind === 'file');
 const prodServer = createServer(createRelay({ store: prodStore, secret: SECRET, demoAccounts: prodMode.demoAccounts, bootstrapAdmin: prodMode.bootstrapAdmin }).app);
 await new Promise<void>(r => prodServer.listen(0, '127.0.0.1', () => r()));
 const P = `http://127.0.0.1:${(prodServer.address() as { port: number }).port}`;
@@ -497,15 +509,29 @@ check('a demonstration referral is refused by a production relay', seededPublish
 for (let i = 0; i < 5; i++) await staffLogin('NO-SUCH-ID', '111111');
 check('guessing Staff IDs is locked out like guessing PINs', (await staffLogin('NO-SUCH-ID', '111111')).status === 423);
 prodServer.close();
-// The relay restarts with a different bootstrap PIN: a Super Admin exists, so it is ignored.
-const restarted = createServer(createRelay({ store: prodStore, secret: SECRET, demoAccounts: false, bootstrapAdmin: { pin: '111111' } }).app);
+check('the store file is readable by its owner only (it holds PIN hashes)', (statSync(storeFile).mode & 0o777) === 0o600,
+    (statSync(storeFile).mode & 0o777).toString(8));
+check('…and holds the accounts as written', JSON.parse(readFileSync(storeFile, 'utf8')).users.some((u: { staffId?: string }) => u.staffId === 'ANM-KOT-2001'));
+// The relay restarts — a new process, a new store reading the file — with a different bootstrap PIN.
+const reloaded = new FileStore(storeFile);
+const restarted = createServer(createRelay({ store: reloaded, secret: SECRET, demoAccounts: false, bootstrapAdmin: { pin: '111111' } }).app);
 await new Promise<void>(r => restarted.listen(0, '127.0.0.1', () => r()));
 const R = `http://127.0.0.1:${(restarted.address() as { port: number }).port}`;
 const loginR = (staffId: string, pin: string) => fetch(`${R}/api/auth/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ staffId, pin }) });
 check('once a Super Admin exists, a new bootstrap PIN neither signs in nor replaces theirs',
     (await loginR('ADMIN-01', '111111')).status === 401 && (await loginR('ADMIN-01', '135790')).status === 200);
-check('…and no second admin account was made', (await prodStore.listUsers()).filter(u => u.role === 'SUPER_ADMIN').length === 1);
+check('…and no second admin account was made', (await reloaded.listUsers()).filter(u => u.role === 'SUPER_ADMIN').length === 1);
+check('an account created before the restart still signs in after it', (await loginR('ANM-KOT-2001', '482913')).status === 200);
 restarted.close();
+
+const concurrent = new FileStore(join(mkdtempSync(join(tmpdir(), 'nalammesh-relay-')), 'busy.json'));
+await Promise.all(Array.from({ length: 40 }, (_, i) => concurrent.putUser({ ...newAnm, role: 'ANM' as const, id: `u-busy-${i}`, staffId: `ANM-BUSY-${i}` })));
+check('forty changes at once are all on disk once they return', (await new FileStore(concurrent.path).listUsers()).length === 40);
+const corrupt = join(mkdtempSync(join(tmpdir(), 'nalammesh-relay-')), 'corrupt.json');
+writeFileSync(corrupt, '{"version":1,"users":[{"id"');
+let corruptError = '';
+try { new FileStore(corrupt); } catch (err) { corruptError = (err as Error).message; }
+check('a damaged store file stops the relay instead of starting it empty', /not valid JSON/.test(corruptError), corruptError);
 stop();
 console.log(failures === 0 ? '\nAll relay sign-in and access checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

@@ -1,8 +1,11 @@
 /**
  * Where the mesh relay keeps its courier's copy.
  *
- * On a laptop the relay is one long-lived process and memory is enough. Hosted
- * on Vercel it runs as short-lived functions — several at once, none guaranteed
+ * On a laptop the relay is one long-lived process and memory is enough. On a
+ * facility or State Data Centre server it is the same process, but a restart
+ * must not lose the staff directory or a referral still waiting for an offline
+ * facility, so its state is written through to a file (FileStore). Hosted on
+ * Vercel it runs as short-lived functions — several at once, none guaranteed
  * to live — so its state goes to Upstash Redis instead, or a referral sent
  * through one instance would never reach a device polling another.
  *
@@ -12,6 +15,9 @@
  * @module server/relay/store
  */
 
+import { mkdirSync, readFileSync } from 'node:fs';
+import { open, rename } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import { Redis } from '@upstash/redis';
 import type { ReferralRecord } from '../../types/patient';
 import type { NotificationRecord } from '../../types/referral';
@@ -30,7 +36,7 @@ export interface CachedPatient {
 }
 
 export interface RelayStore {
-    readonly kind: 'memory' | 'upstash';
+    readonly kind: 'memory' | 'file' | 'upstash';
     getReferral(id: string): Promise<CachedReferral | undefined>;
     putReferral(entry: CachedReferral): Promise<void>;
     listReferrals(): Promise<CachedReferral[]>;
@@ -64,12 +70,12 @@ function trim<T extends { ts: number }>(map: Map<string, T>, limit: number): voi
 }
 
 export class MemoryStore implements RelayStore {
-    readonly kind = 'memory' as const;
-    private referrals = new Map<string, CachedReferral>();
-    private patients = new Map<string, CachedPatient>();
-    private resources = new Map<string, FacilityResources>();
-    private tickets = new Map<string, MaintenanceTicket>();
-    private users = new Map<string, StaffUser>();
+    readonly kind: 'memory' | 'file' = 'memory';
+    protected referrals = new Map<string, CachedReferral>();
+    protected patients = new Map<string, CachedPatient>();
+    protected resources = new Map<string, FacilityResources>();
+    protected tickets = new Map<string, MaintenanceTicket>();
+    protected users = new Map<string, StaffUser>();
     private failures = new Map<string, { count: number; until: number }>();
     private locks = new Map<string, Promise<unknown>>();
 
@@ -113,6 +119,105 @@ export class MemoryStore implements RelayStore {
 
     async reset() {
         this.referrals.clear(); this.patients.clear(); this.resources.clear(); this.tickets.clear(); this.users.clear(); this.failures.clear();
+    }
+}
+
+interface Snapshot {
+    version: 1;
+    savedAt: string;
+    referrals: CachedReferral[];
+    patients: CachedPatient[];
+    resources: FacilityResources[];
+    tickets: MaintenanceTicket[];
+    users: StaffUser[];
+}
+
+/**
+ * Memory, written through to one JSON file — the relay on a facility or State
+ * Data Centre server, where a restart must lose neither the staff directory
+ * nor a referral still waiting for an offline facility.
+ *
+ * A change is on disk before the call that made it returns. Each write goes to
+ * a temporary file that is then renamed over the old one, so a crash mid-write
+ * leaves the previous copy, never half a file; changes made while a write runs
+ * share the next one. The file holds staff PIN hashes and courier copies of
+ * patient records, so it is created readable by its owner only, and belongs on
+ * an encrypted volume that is backed up. A file that cannot be read stops the
+ * relay rather than letting it start empty, which would quietly drop every
+ * account and re-create the bootstrap Super Admin.
+ *
+ * PIN-failure counts stay in memory, as in MemoryStore: a restart ends a
+ * lockout early, nothing more.
+ */
+export class FileStore extends MemoryStore {
+    override readonly kind = 'file' as const;
+    private saving: Promise<void> = Promise.resolve();
+    private queued: Promise<void> | null = null;
+
+    constructor(readonly path: string) {
+        super();
+        mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+        let text: string | null = null;
+        try {
+            text = readFileSync(path, 'utf8');
+        } catch (err) {
+            if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+        }
+        if (text === null) return;
+        let saved: Snapshot;
+        try {
+            saved = JSON.parse(text) as Snapshot;
+        } catch {
+            throw new Error(`relay store ${path} is not valid JSON — restore it from a backup, or move it aside to start empty`);
+        }
+        if (saved?.version !== 1) throw new Error(`relay store ${path} is in an unknown format (version ${String(saved?.version)})`);
+        for (const e of saved.referrals ?? []) this.referrals.set(e.referral.id, e);
+        for (const e of saved.patients ?? []) this.patients.set(e.patient.id, e);
+        for (const r of saved.resources ?? []) this.resources.set(r.facilityId, r);
+        for (const t of saved.tickets ?? []) this.tickets.set(t.id, t);
+        for (const u of saved.users ?? []) this.users.set(u.id, u);
+    }
+
+    override async putReferral(entry: CachedReferral) { await super.putReferral(entry); await this.save(); }
+    override async putPatient(entry: CachedPatient) { await super.putPatient(entry); await this.save(); }
+    override async putResources(r: FacilityResources) { await super.putResources(r); await this.save(); }
+    override async putTicket(t: MaintenanceTicket) { await super.putTicket(t); await this.save(); }
+    override async putUser(u: StaffUser) { await super.putUser(u); await this.save(); }
+    override async reset() { await super.reset(); await this.save(); }
+
+    /** Resolves once a write holding every change made so far is on disk. */
+    private save(): Promise<void> {
+        if (this.queued) return this.queued;
+        const queued = this.saving.catch(() => undefined).then(async () => {
+            // Changes from here on need the write after this one.
+            this.queued = null;
+            const snapshot: Snapshot = {
+                version: 1,
+                savedAt: new Date().toISOString(),
+                referrals: [...this.referrals.values()],
+                patients: [...this.patients.values()],
+                resources: [...this.resources.values()],
+                tickets: [...this.tickets.values()],
+                users: [...this.users.values()],
+            };
+            await this.write(JSON.stringify(snapshot));
+        });
+        this.queued = queued;
+        this.saving = queued;
+        return queued;
+    }
+
+    private async write(data: string): Promise<void> {
+        const temporary = `${this.path}.tmp-${process.pid}`;
+        const handle = await open(temporary, 'w', 0o600);
+        try {
+            await handle.chmod(0o600);
+            await handle.writeFile(data, 'utf8');
+            await handle.sync();
+        } finally {
+            await handle.close();
+        }
+        await rename(temporary, this.path);
     }
 }
 
@@ -208,10 +313,16 @@ export class UpstashStore implements RelayStore {
     }
 }
 
-/** Upstash when its REST credentials are present (either naming the Marketplace uses), memory otherwise. */
+/**
+ * Upstash when its REST credentials are present (either naming the Marketplace
+ * uses); a file when NALAMMESH_RELAY_STORE_FILE names one; memory otherwise —
+ * which a production relay refuses (durabilityProblem in ./mode).
+ */
 export function storeFromEnv(env: NodeJS.ProcessEnv = process.env): RelayStore {
     const url = env.UPSTASH_REDIS_REST_URL ?? env.KV_REST_API_URL;
     const token = env.UPSTASH_REDIS_REST_TOKEN ?? env.KV_REST_API_TOKEN;
     if (url && token) return new UpstashStore(new Redis({ url, token, automaticDeserialization: false }));
+    const file = env.NALAMMESH_RELAY_STORE_FILE?.trim();
+    if (file) return new FileStore(file);
     return new MemoryStore();
 }

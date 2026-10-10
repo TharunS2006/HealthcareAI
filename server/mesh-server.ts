@@ -14,7 +14,8 @@ import { resolveAuthSecret } from './relay/auth';
 import { storeFromEnv } from './relay/store';
 import { abdmConfigFromEnv, createAbdmClient } from './relay/abha';
 import { bhashiniConfigFromEnv, createBhashiniClient } from './relay/bhashini';
-import { relayModeFromEnv } from './relay/mode';
+import { durabilityProblem, relayModeFromEnv } from './relay/mode';
+import type { RelayStore } from './relay/store';
 
 function log(message: string, data?: object): void {
     console.log(JSON.stringify({ timestamp: new Date().toISOString(), message, ...data }));
@@ -31,7 +32,19 @@ if (mode.problems.length > 0) {
     process.exit(1);
 }
 
-const store = storeFromEnv();
+let store: RelayStore;
+try {
+    store = storeFromEnv();
+} catch (err) {
+    console.error(`\nMesh relay: cannot start — ${(err as Error).message}.\n`);
+    process.exit(1);
+}
+const durability = durabilityProblem(mode, store.kind);
+if (durability) {
+    console.error(`\nMesh relay (production): cannot start — set ${durability}.\n`);
+    process.exit(1);
+}
+
 const io = new SocketIO({ cors: { origin: '*', methods: ['GET', 'POST'] }, pingTimeout: 10000, pingInterval: 5000 });
 const abdmConfig = abdmConfigFromEnv();
 const bhashiniConfig = bhashiniConfigFromEnv();
@@ -68,5 +81,5 @@ httpServer.on('error', (err: NodeJS.ErrnoException) => {
 });
 
 httpServer.listen(PORT, () => {
-    log(`Mesh relay running on port ${PORT}`, { store: store.kind, signIn: secret ? 'enabled' : 'disabled', mode: mode.production ? 'production' : 'evaluation' });
+    log(`Mesh relay running on port ${PORT}`, { store: store.kind, ...(store.kind === 'file' ? { storeFile: process.env.NALAMMESH_RELAY_STORE_FILE?.trim() } : {}), signIn: secret ? 'enabled' : 'disabled', mode: mode.production ? 'production' : 'evaluation' });
 });
