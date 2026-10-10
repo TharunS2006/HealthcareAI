@@ -42,6 +42,16 @@ const today: Record<string, any[]> = {
     facilityResources: S.SEED_RESOURCES, maintenanceLog: S.SEED_MAINTENANCE,
 };
 const keyOf = (store: string, r: any) => (store === 'facilityResources' ? r.facilityId : r.id);
+// Fields this build no longer writes, which records already on devices still carry
+// and the app ignores. The generic build's seed has them; today's does not.
+const RETIRED: Record<string, string[]> = {
+    // A fixed "estimated wait" by triage colour that nothing measured (types/facility.ts).
+    queue: ['estimatedWaitMinutes'],
+};
+const withoutRetired = (store: string, r: any) => {
+    const retired = RETIRED[store] ?? [];
+    return retired.length ? Object.fromEntries(Object.entries(r).filter(([k]) => !retired.includes(k))) : r;
+};
 // Clock times in notification text follow the machine's time zone; the fixture's
 // were written in one zone and this may run in another.
 const comparable = (v: unknown) => String(JSON.stringify(v)).replace(/\d{1,2}:\d{2} [ap]m/gi, 'hh:mm');
@@ -63,7 +73,7 @@ for (const store of PLACE_NAME_STORES) {
     for (const old of fixture.stores[store]) {
         const now = today[store].find(r => keyOf(store, r) === keyOf(store, old));
         if (!now) { diffs.push(`${keyOf(store, old)} is not in today's seed`); continue; }
-        diffs.push(...differences(restorePlaceNames(store, old), now, keyOf(store, old)));
+        diffs.push(...differences(withoutRetired(store, restorePlaceNames(store, old)), now, keyOf(store, old)));
     }
     check(`${store}: ${fixture.stores[store].length} generic records restore to today's seed`, diffs.length === 0, diffs.slice(0, 4).join(' | '));
 }

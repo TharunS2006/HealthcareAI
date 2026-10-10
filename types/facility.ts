@@ -67,7 +67,12 @@ export interface QueueEntry {
     status: 'WAITING' | 'IN_CONSULTATION' | 'COMPLETED' | 'REFERRED' | 'NO_SHOW';
     consultingDoctor?: string;
     roomNo?: string;
-    estimatedWaitMinutes: number;
+    /**
+     * No longer set: a forecast nothing measured (it was a fixed 0, 8 or 25 minutes by
+     * triage colour). Screens show the real wait from registeredAt and calledAt
+     * (lib/queue/stats.ts). Kept optional because records already on devices carry it.
+     */
+    estimatedWaitMinutes?: number;
 }
 
 export interface MedicineStockItem {

@@ -15,6 +15,9 @@
  *                    initialisers holding.
  *   4. HONEST CONF.  `confidence` must describe the class actually returned, never the
  *                    bare argmax of a softmax that a rule then overruled.
+ *   5. FALLBACK      with the model unavailable — still training, timed out, or failed on
+ *                    a low-end phone — the IPHS rules alone give every case the same
+ *                    acuity, and the result says the rules decided.
  *
  * Uses tsx (already a devDependency) rather than a test framework, so it adds no deps.
  */
@@ -22,7 +25,7 @@ import type { TriageResult } from '../lib/triage/model';
 import type { Vitals } from '../types/patient';
 
 // Dynamic import: lib/ is CJS under this package.json, so named ESM bindings aren't static.
-const { classifyTriage } = await import('../lib/triage/model');
+const { classifyTriage, classifyByRules } = await import('../lib/triage/model');
 
 const healthy: Vitals = {
     spo2: 98, heartRate: 76, bloodPressure: { systolic: 118, diastolic: 76 },
@@ -81,6 +84,21 @@ for (const c of cases) {
         `${r.recommendedFacilityTier.padEnd(3)} ${r.flagsDetected.join(',') || '-'}`
     );
 }
+
+// The fallback: on some devices the only triage there is.
+let fallbackPass = 0;
+for (const c of cases) {
+    const r = classifyByRules(c.vitals);
+    const problems: string[] = [];
+    if (r.status !== c.expect) problems.push(`expected ${c.expect}, got ${r.status}`);
+    if (r.decisionSource !== 'RULE_ENGINE') problems.push(`decision source ${r.decisionSource}`);
+    if (r.status === 'RED' && r.priority !== 'EMERGENCY') problems.push(`RED but priority ${r.priority}`);
+    if (r.confidence !== r.probabilities[r.status]) problems.push(`confidence ${r.confidence} != P(${r.status})`);
+    sources.add(r.decisionSource);
+    if (problems.length === 0) fallbackPass++;
+    else failures.push(`rules only — ${c.name}: ${problems.join('; ')}`);
+}
+console.log(`\nRules alone (model unavailable): ${fallbackPass}/${cases.length} cases at the expected acuity`);
 
 console.log(`\n${pass}/${cases.length} passed · decision paths exercised: ${[...sources].sort().join(', ')}`);
 for (const f of failures) console.log(` FAIL ${f}`);

@@ -90,7 +90,6 @@ export const useAppointmentStore = create<AppointmentStore>((set, get) => ({
             priority: 'ROUTINE',
             chiefComplaint: `Confirmed appointment — ${appt.department}`,
             status: 'WAITING',
-            estimatedWaitMinutes: 15,
         };
 
         const previous = get().appointments;

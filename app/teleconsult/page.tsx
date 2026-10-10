@@ -97,9 +97,11 @@ function TeleconsultDemonstration() {
 
     const handleAddPrescription = () => {
         if (!newMed.trim()) return;
+        // Only what the specialist entered: the app never supplies a dose, frequency
+        // or duration of its own.
         setPrescriptions(prev => [
             ...prev,
-            { medicine: newMed, dosage: newDose || 'As directed', frequency: '1-0-1', duration: '5 days' }
+            { medicine: newMed.trim(), dosage: newDose.trim() || 'dose not specified', frequency: 'frequency not specified', duration: 'duration not specified' }
         ]);
         setNewMed('');
         setNewDose('');

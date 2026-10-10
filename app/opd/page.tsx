@@ -31,6 +31,12 @@ import { useVoiceInput } from '@/lib/hooks/useVoiceInput';
 import { downloadFHIRRecord } from '@/lib/fhir';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
+import { minutesWaiting } from '@/lib/queue/stats';
+
+/** Minutes from registration to being called, or to now for a token still waiting; null without a time. */
+function waitedMinutes(entry: Pick<QueueEntry, 'registeredAt' | 'calledAt'>): number | null {
+    return minutesWaiting(entry, entry.calledAt ? new Date(entry.calledAt) : new Date());
+}
 
 export default function OPDPage() {
     const { language } = useLanguageStore();
@@ -165,6 +171,13 @@ export default function OPDPage() {
         srcOverride: isEn ? 'IPHS danger-sign protocol (overrode model)' : isHi ? 'IPHS खतरे के लक्षण प्रोटोकॉल (मॉडल अधिभावी)' : 'IPHS धोकादायक लक्षण प्रोटोकॉल (मॉडेलवर प्राधान्य)',
         srcRules: isEn ? 'IPHS clinical rule engine' : isHi ? 'IPHS चिकित्सकीय नियम इंजन' : 'IPHS वैद्यकीय नियम इंजिन',
         confLabel: isEn ? 'Confidence' : isHi ? 'विश्वसनीयता' : 'विश्वासार्हता',
+        // Shown where the decision is made, not only in the Terms: triage ranks urgency,
+        // it does not diagnose, and the person treating the patient decides.
+        advisory: isEn
+            ? 'Decision support only — it ranks urgency and does not diagnose. The attending health worker or Medical Officer decides.'
+            : isHi
+            ? 'केवल निर्णय-सहायता — यह तात्कालिकता क्रम देता है, निदान नहीं करता। निर्णय उपचार करने वाले स्वास्थ्य कर्मी या चिकित्सा अधिकारी का है।'
+            : 'केवळ निर्णय-सहाय्य — हे तातडीचा क्रम ठरवते, निदान करत नाही. निर्णय उपचार करणाऱ्या आरोग्य कर्मचाऱ्याचा किंवा वैद्यकीय अधिकाऱ्याचा आहे.',
         wristbandBtn: isEn ? 'QR Wristband' : isHi ? 'QR रिस्टबैंड' : 'QR रिस्टबँड',
         downloadFHIR: isEn ? 'FHIR R4 JSON' : isHi ? 'FHIR R4 JSON' : 'FHIR R4 JSON',
         waitingAnalysisTitle: isEn ? 'Awaiting Triage Analysis' : isHi ? 'ट्राइएज विश्लेषण की प्रतीक्षा' : 'ट्राइएज विश्लेषण प्रतिक्षा',
@@ -184,7 +197,7 @@ export default function OPDPage() {
         colToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
         colPatient: isEn ? 'Patient' : isHi ? 'मरीज' : 'रुग्ण',
         colPriority: isEn ? 'Priority' : isHi ? 'प्राथमिकता' : 'प्राधान्य',
-        colWait: isEn ? 'Est. Wait' : isHi ? 'समय' : 'वेळ',
+        colWait: isEn ? 'Waited' : isHi ? 'प्रतीक्षा' : 'प्रतीक्षा',
         minUnit: isEn ? 'min' : isHi ? 'मि.' : 'मि.',
         voiceListening: isEn ? 'Listening... Speak symptoms' : isHi ? 'सुन रहा है... लक्षण बोलें' : 'ऐकत आहे... लक्षणे बोला',
         voicePrompt: isEn ? 'Voice Intake (EN/HI/MR)' : isHi ? 'आवाज इनपुट (हिन्दी/मराठी/Eng)' : 'आवाज इनपुट (मराठी/हिन्दी/Eng)',
@@ -315,7 +328,6 @@ export default function OPDPage() {
                 status: 'WAITING',
                 roomNo: result.status === 'RED' ? 'Emergency stabilisation' : facility.type === 'SC' ? 'Sub-Centre consultation (ANM / CHO)' : 'Medical Officer OPD',
                 consultingDoctor: facility.medicalOfficerInCharge ?? 'Medical Officer',
-                estimatedWaitMinutes: result.status === 'RED' ? 0 : result.status === 'YELLOW' ? 8 : 25,
             };
             addQueueEntry(queueItem);
 
@@ -773,6 +785,7 @@ export default function OPDPage() {
                                                     ? L.srcRules
                                                     : L.srcNeural}
                                             </p>
+                                            <p className="text-[10px] font-semibold text-slate-700 border-t border-slate-200 pt-1">{L.advisory}</p>
                                         </div>
 
                                         <div className="flex gap-2 pt-1">
@@ -857,7 +870,8 @@ export default function OPDPage() {
                                                             {q.priority}
                                                         </span>
                                                     </td>
-                                                    <td className="text-slate-600">{q.estimatedWaitMinutes} {L.minUnit}</td>
+                                                    {/* Measured: registration to call, or to now while still waiting. */}
+                                                    <td className="text-slate-600">{waitedMinutes(q) ?? '—'}{waitedMinutes(q) !== null && ` ${L.minUnit}`}</td>
                                                 </tr>
                                             ))}
                                         </tbody>

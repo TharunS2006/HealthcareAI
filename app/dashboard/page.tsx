@@ -97,9 +97,8 @@ export default function DashboardPage() {
         ? 0
         : Math.round((completedRefs / decided.length) * 100);
 
-    // Measured from the clock, not from the estimate shown to the patient at check-in:
-    // `estimatedWaitMinutes` is a forecast and is zeroed once a token is called, so
-    // averaging it over completed tokens reports 0 minutes for a queue that really waited.
+    // Measured from the clock — registration to call — over tokens that were seen.
+    // (Tokens once carried a fixed "estimated wait" by triage colour; nothing measured it.)
     const consultedQueue = queue.filter(q => q.status === 'COMPLETED' && q.registeredAt && q.calledAt);
     const waitSamples = consultedQueue
         .map(q => (new Date(q.calledAt!).getTime() - new Date(q.registeredAt).getTime()) / 60000)

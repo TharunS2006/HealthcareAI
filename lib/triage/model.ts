@@ -412,10 +412,11 @@ const PRIORITY_BY_STATUS: Record<TriageStatus, TriagePriority> = {
 export async function classifyTriage(vitals: Vitals): Promise<TriageResult> {
     const startTime = performance.now();
 
+    const assessment = assessClinically(vitals);
     const {
         criticalFlags, cautionFlags, flagsDetected, reasoning,
         isHighRiskMaternal, isHighRiskChild, features,
-    } = assessClinically(vitals);
+    } = assessment;
 
     try {
         const model = await withTimeout(loadTriageModel(), MODEL_LOAD_TIMEOUT_MS);
@@ -484,6 +485,21 @@ export async function classifyTriage(vitals: Vitals): Promise<TriageResult> {
     } catch (err) {
         console.warn('[Triage] Inference failed — using IPHS rule engine:', err);
     }
+
+    return ruleEngineVerdict(assessment, startTime);
+}
+
+/**
+ * The IPHS rule engine alone — what decides when the model cannot run: still
+ * training, timed out, or failed on a low-end phone. On some devices it is the
+ * only triage there is, so it is exported to be tested on its own.
+ */
+export function classifyByRules(vitals: Vitals): TriageResult {
+    return ruleEngineVerdict(assessClinically(vitals), performance.now());
+}
+
+function ruleEngineVerdict(assessment: ClinicalAssessment, startTime: number): TriageResult {
+    const { criticalFlags, cautionFlags, flagsDetected, reasoning, isHighRiskMaternal, isHighRiskChild } = assessment;
 
     // ---- IPHS clinical rule engine (model unavailable or inference failed) ----
     const status: TriageStatus =

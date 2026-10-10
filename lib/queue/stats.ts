@@ -10,7 +10,7 @@
  * and a figure with nothing to derive it from is null, shown as a dash.
  *
  * Also here: how a name is shown on the waiting-room TV, which anyone in the
- * room can read (maskedName). scripts/verify-queue-stats.mts checks both.
+ * room can read (maskedName). scripts/verify-session-lock.mts checks both.
  */
 
 import type { QueueEntry } from '@/types/facility';

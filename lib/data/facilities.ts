@@ -579,7 +579,6 @@ export const SEED_QUEUE: QueueEntry[] = [
         status: 'IN_CONSULTATION',
         consultingDoctor: 'Dr. Suresh Atram',
         roomNo: 'Room 2 (General OPD)',
-        estimatedWaitMinutes: 0,
     },
     {
         id: 'q-039',
@@ -595,7 +594,6 @@ export const SEED_QUEUE: QueueEntry[] = [
         priority: 'URGENT',
         chiefComplaint: 'Diabetic Foot Ulcer & Blood Sugar 284',
         status: 'WAITING',
-        estimatedWaitMinutes: 8,
     },
     {
         id: 'q-040',
@@ -611,7 +609,6 @@ export const SEED_QUEUE: QueueEntry[] = [
         priority: 'EMERGENCY',
         chiefComplaint: 'Pregnancy 32w with Severe BP 160/100',
         status: 'WAITING',
-        estimatedWaitMinutes: 2,
     },
     {
         id: 'q-041',
@@ -627,7 +624,6 @@ export const SEED_QUEUE: QueueEntry[] = [
         priority: 'ROUTINE',
         chiefComplaint: 'Viral Fever & Generalized Body Ache',
         status: 'WAITING',
-        estimatedWaitMinutes: 18,
     },
     {
         id: 'q-042',
@@ -643,7 +639,6 @@ export const SEED_QUEUE: QueueEntry[] = [
         priority: 'ROUTINE',
         chiefComplaint: 'Routine 1st Trimester ANC Registration',
         status: 'WAITING',
-        estimatedWaitMinutes: 26,
     }
 ];
 
