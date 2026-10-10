@@ -162,8 +162,12 @@ E.append(Paragraph(
 E.append(table([
     ["Problem Statement", "SIH 2026 · PS 26133 — rural healthcare access and continuity"],
     ["Repository", "github.com/TharunS2006/HealthcareAI — working branch <b>new</b>"],
-    ["Stack", "Next.js 14 (App Router, static export) · TypeScript · Zustand · IndexedDB"],
-    ["Scale", "38 routes · 46 built pages · 9 offline stores · 7 modelled facilities"],
+    ["Stack", "Next.js 15 (App Router, static export) · React 19 · TypeScript · Zustand · "
+              "IndexedDB · Socket.io relay · FastAPI district service"],
+    ["Scale", "45 routes · 13 on-device stores · 6 staff roles · 7 modelled facilities · "
+              "37 verify suites and 2 browser checks"],
+    ["Status", "Software ready for a supervised pilot; approvals still due before real "
+               "patients — see docs/PRODUCTION_READINESS.md"],
     ["Languages", "English, Hindi and Marathi — every citizen-facing screen is trilingual"],
 ], [40 * mm, W - 40 * mm], header=False))
 
@@ -224,9 +228,11 @@ E.append(PageBreak())
 # ================================================================== 2. ARCHITECTURE
 E.append(Paragraph("2. Architecture in one page", H1))
 E.append(Paragraph(
-    "The single most important architectural fact: <b>this application has no backend "
-    "database.</b> It is a statically exported Next.js site whose data layer is the "
-    "browser's own IndexedDB. Understand that and most of the design follows.", Lead))
+    "The single most important architectural fact: <b>the device is the source of "
+    "truth.</b> The app is a statically exported Next.js site whose data layer is the "
+    "browser's own IndexedDB. Two servers exist — the mesh relay and the district record "
+    "service — but they are couriers and oversight: care continues when either is down. "
+    "Understand that and most of the design follows.", Lead))
 
 E.append(Paragraph("Request and data flow", H2))
 E.append(Paragraph(
@@ -234,8 +240,11 @@ E.append(Paragraph(
     "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
     "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|<br/>"
     "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;optional mesh "
-    "relay (Socket.io, port 3001) -&gt; other facilities", Code))
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mesh relay "
+    "(:3001)&nbsp;&nbsp;-&gt; sign-in, staff, referrals<br/>"
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+    "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;outbox -&gt; district "
+    "service (:8000) -&gt; pre-arrival board", Code))
 
 E.append(Paragraph("Why each piece is there", H2))
 E.append(table([
@@ -245,19 +254,27 @@ E.append(table([
      "anywhere, cached by a service worker, or wrapped in the Android build."],
     ["IndexedDB via <font face='Courier' size='7.5'>idb</font>",
      "Structured, indexed, durable local storage. Survives refresh and restart. "
-     "Schema is versioned — currently <b>v4</b> — with guarded upgrade handlers."],
+     "Schema is versioned — currently <b>v6</b> — with guarded upgrade handlers, "
+     "checked by <font face='Courier' size='7.5'>verify:db-upgrade</font>."],
     ["Zustand stores",
      "Thin layer between UI and the database. Writes are optimistic and roll back if "
      "the persist fails, so a clinical action never silently disappears."],
     ["Service worker<br/><font face='Courier' size='7.5'>public/sw.js</font>",
-     "Hand-written, no PWA package. Pre-caches 29 routes so a cold start works with "
-     "no network at all. Currently <b>v3.3.0</b>."],
+     "Hand-written, no PWA package. Pre-caches 32 routes and every file the build "
+     "produced — the list is stamped into it after each build — so an installed app "
+     "opens with no network. Currently <b>v4.1.0</b> plus the build id."],
     ["TensorFlow.js",
      "Runs the triage model on the device. No inference request ever leaves the "
      "handset, so triage behaves identically offline."],
     ["Socket.io mesh relay",
-     "<b>Optional.</b> Relays records between facilities when any link exists. The app "
-     "is fully functional without it."],
+     "Checks PINs and signs session tokens, holds the staff directory, and relays "
+     "referrals between facilities when any link exists. In production it keeps its "
+     "state in a file and will not start without one. Work continues on the device "
+     "without it."],
+    ["District record service",
+     "FastAPI. Receives every patient record and referral from the device outbox so a "
+     "receiving facility sees who is coming; serves the Data Inspector and the access "
+     "log. Identified records: token-checked, access-logged, never cached."],
     ["Capacitor",
      "Wraps the static export as an Android app for field devices."],
 ], [40 * mm, W - 40 * mm]))
@@ -271,7 +288,7 @@ E.append(Paragraph("Spend ten minutes here before writing any code.", Lead))
 
 E.append(table([
     ["Path", "Contents"],
-    ["app/", "Next.js App Router pages — 38 routes. Citizen-facing at the root "
+    ["app/", "Next.js App Router pages — 45 routes. Citizen-facing at the root "
              "(<font face='Courier' size='7.5'>/opd</font>, "
              "<font face='Courier' size='7.5'>/queue</font>), staff screens under "
              "<font face='Courier' size='7.5'>/staff</font>."],
@@ -284,8 +301,8 @@ E.append(table([
     ["lib/analytics/facilityMetrics.ts",
      "Derived measures — facility scorecards, travel-time savings, mortality-prevention "
      "telemetry. All computed, none asserted."],
-    ["stores/", "Seven Zustand stores: patient, queue, referral, appointment, facility, "
-                "auth, language."],
+    ["stores/", "Nine Zustand stores: patient, queue, referral, appointment, facility, "
+                "resource, directory, auth, language."],
     ["components/gov/", "Shared government-portal chrome. "
                         "<font face='Courier' size='7.5'>PortalShell</font>, "
                         "<font face='Courier' size='7.5'>GovPanel</font>, "
@@ -295,8 +312,13 @@ E.append(table([
     ["public/sw.js", "The service worker. Bump "
                      "<font face='Courier' size='7.5'>CACHE_VERSION</font> whenever you "
                      "change the pre-cache list, or clients keep the stale shell."],
-    ["scripts/*.mts", "Three verification suites. Run them before every commit."],
-    ["server/mesh-server.ts", "The optional Socket.io relay."],
+    ["scripts/", "37 verify suites (<font face='Courier' size='7.5'>npm run verify</font>) "
+                 "and two browser checks (<font face='Courier' size='7.5'>check:a11y</font>, "
+                 "<font face='Courier' size='7.5'>check:offline</font>). CI runs them all."],
+    ["server/", "The mesh relay: <font face='Courier' size='7.5'>mesh-server.ts</font> on a "
+                "server, <font face='Courier' size='7.5'>relay/vercel.ts</font> hosted; rules "
+                "in <font face='Courier' size='7.5'>relay/app.ts</font>."],
+    ["backend/", "The district record service (FastAPI). See backend/README.md."],
 ], [46 * mm, W - 46 * mm]))
 
 E.append(Paragraph("Conventions you'll notice", H2))
@@ -322,7 +344,7 @@ E.append(PageBreak())
 # ================================================================== 4. DATA LAYER
 E.append(Paragraph("4. The data layer", H1))
 
-E.append(Paragraph("Nine object stores (schema v4)", H2))
+E.append(Paragraph("Thirteen object stores (schema v6)", H2))
 E.append(table([
     ["Store", "Holds"],
     ["patients", "Patient demographics, ABHA id, vitals, triage status, risk flags"],
@@ -332,8 +354,12 @@ E.append(table([
     ["diagnostics", "Test orders and results"],
     ["medicineStock", "Facility-level stock against the IPHS essential drug list"],
     ["facilities", "The seven facility records"],
+    ["facilityResources", "Beds, equipment and their status, per facility"],
+    ["maintenanceLog", "Equipment faults and repairs"],
+    ["notifications", "Referral and system notices for this device's users"],
+    ["users", "Staff accounts this device knows (its own facility's PIN hashes only)"],
     ["auditLog", "Every clinical change, with actor and timestamp"],
-    ["syncQueue", "Writes awaiting relay to other facilities"],
+    ["syncQueue", "The outbox: records waiting to upload to the district service"],
 ], [34 * mm, W - 34 * mm]))
 
 E.append(Paragraph("Two rules enforced in lib/db.ts", H2))
@@ -359,9 +385,9 @@ E.append(bullets([
     "the District Health Officer; it stores the token number and the record id, which "
     "already resolve to the patient for anyone entitled to see it. A PII leak here was "
     "found and fixed once already.",
-    "Viewing is restricted to <font face='Courier' size='8'>MO</font>, "
-    "<font face='Courier' size='8'>SPECIALIST</font> and "
-    "<font face='Courier' size='8'>DHO</font>.",
+    "Viewing is restricted to the <font face='Courier' size='8'>DHO</font> and the "
+    "<font face='Courier' size='8'>SUPER_ADMIN</font>. The same screen shows the district "
+    "service's access log: who read or uploaded which record, refused attempts included.",
 ]))
 
 E.append(PageBreak())
@@ -373,14 +399,16 @@ E.append(Paragraph(
     "This is the highest-risk code in the project. It decides how urgently a patient is "
     "seen.", Lead))
 
-E.append(Paragraph("Two decision paths", H2))
+E.append(Paragraph("Three decision paths", H2))
 E.append(table([
     ["Path", "What it is"],
     ["NEURAL_NETWORK", "A TensorFlow.js model scores the case from vitals and symptoms "
                        "and returns RED, YELLOW or GREEN with a confidence."],
-    ["CLINICAL_OVERRIDE", "27 hard rules sitting <i>above</i> the model — altered "
+    ["CLINICAL_OVERRIDE", "Deterministic danger-sign rules sitting <i>above</i> the model — altered "
                           "consciousness, shock-range blood pressure, critical "
                           "respiratory rate, severe hypoglycaemia and others."],
+    ["RULE_ENGINE", "The model could not run — still training, timed out, or failed on a "
+                    "low-end phone. The IPHS rules alone decide, and the slip says so."],
 ], [40 * mm, W - 40 * mm]))
 
 E.append(Spacer(1, 6))
@@ -395,8 +423,11 @@ E.append(callout(
 E.append(Paragraph("How it is guarded", H2))
 E.append(Paragraph(
     "<font face='Courier' size='8'>npm run verify:triage</font> runs 20 clinical cases "
-    "covering both decision paths. It must stay at 20/20. Add a case whenever you add a "
-    "rule.", Body))
+    "through all three decision paths, the rules alone included. It must stay at 20/20. Add a case whenever you add a "
+    "rule. These cases guard against regressions; they are not clinical validation. The "
+    "model is trained on a synthetic dataset, and before real use the rules need a "
+    "clinical review and the tool a validation study (docs/PRODUCTION_READINESS.md). The "
+    "result slip states that it is decision support and the health worker decides.", Body))
 E.append(Paragraph("Priority levels", H3))
 E.append(table([
     ["Level", "Meaning", "Routing"],
@@ -429,20 +460,28 @@ E.append(table([
      "Tier-to-tier transfer with live transit tracking"],
     ["Appointments", "/appointments",
      "Citizen booking; slot capacity derived from actual facility staffing"],
-    ["Medicine Stock", "/medicine", "IPHS drug list, low-stock and near-expiry alerts"],
+    ["Medicine Stock", "/medicine",
+     "Stock register: counted receipts and issues, low stock, near expiry, requisition"],
     ["Diagnostics", "/diagnostics", "Test orders and results against the patient record"],
     ["High-Risk Follow-up", "/followup",
      "Scheduled recall for ANC, SAM and chronic cases"],
     ["Teleconsult", "/teleconsult",
-     "Specialist link-up. <b>Labelled a simulated preview</b> — there is no WebRTC yet."],
+     "A structured record beside an eSanjeevani call. No audio or video of its own, by "
+     "design."],
+    ["Pre-Arrival Board", "/incoming",
+     "Patients en route to this facility, from the district service"],
     ["Facilities &amp; Services", "/facilities, /services-info",
      "Directory, entitlements, scheme eligibility (PMJAY gated to CHC and above)"],
-    ["Audit Trail", "/audit", "Restricted to MO, Specialist and DHO"],
+    ["Audit Trail", "/audit",
+     "Device trail and district access log; DHO and Super Admin only"],
+    ["Administration", "/admin", "Staff accounts and PINs; Super Admin only"],
 ], [38 * mm, 27 * mm, W - 65 * mm]))
 
 E.append(Paragraph(
-    "Seven staff roles scope what each user sees: ASHA, ANM/CHO, Medical Officer, "
-    "Specialist, Pharmacist, Lab Technician, District Health Officer.", Small))
+    "Six staff roles scope what each user sees and does: ANM, Medical Officer, Hospital "
+    "Admin, Specialist, District Health Officer, Super Admin "
+    "(<font face='Courier' size='7.5'>lib/auth/permissions.ts</font>, mirrored to the "
+    "district service).", Small))
 
 E.append(PageBreak())
 
@@ -487,7 +526,8 @@ E.append(callout(
     "<b>explicit grid tracks</b> — <font face='Courier'>16rem / minmax(0,1fr) / "
     "20rem</font> — not 12-column fractions. Changing the sidebar to "
     "<font face='Courier'>w-full</font> makes it swallow the whole row on every "
-    "unmigrated page. Two pages use PortalShell; thirteen still use the flex layout."))
+    "unmigrated page. One page (the command centre) uses PortalShell; the rest still use "
+    "the flex layout."))
 
 E.append(PageBreak())
 
@@ -559,21 +599,23 @@ E.append(Paragraph(
 
 E.append(Paragraph("Before every commit", H2))
 E.append(Paragraph(
-    "npx tsc --noEmit<br/>"
-    "npm run verify:triage     # 20/20 clinical cases — must not drop<br/>"
-    "npm run verify:metrics    # facility scorecard calculations<br/>"
-    "npm run verify:services   # entitlements and clinic schedules<br/>"
-    "npm run build             # must produce 46 pages", Code))
+    "npm run lint            # zero warnings<br/>"
+    "npm run typecheck<br/>"
+    "npm run verify          # all 37 suites, with a summary<br/>"
+    "npm run build           # static export, then stamps the service worker<br/>"
+    "npm run check:offline   # opens the ANM's screens with the server stopped<br/>"
+    "npm run check:a11y      # WCAG 2.1 A/AA on 28 pages", Code))
 
 E.append(Paragraph("Testing offline properly", H2))
 E.append(Paragraph(
     "Do not trust DevTools' \"Offline\" toggle — during this project it left "
     "<font face='Courier' size='8'>navigator.onLine</font> true and requests still "
-    "succeeded. <b>Kill the server instead.</b> Build, serve the "
-    "<font face='Courier' size='8'>out/</font> directory, load the app, stop the "
-    "server, then navigate. That is how the offline claims were verified: a route never "
-    "visited since install rendered from cache, and a clinical write persisted with "
-    "audit rows going from 1 to 3.", Body))
+    "succeeded. <b>Kill the server instead</b> — "
+    "<font face='Courier' size='8'>npm run check:offline</font> does exactly that. And "
+    "check that screens <i>start</i>, not just render: an earlier worker cached each "
+    "page's HTML but not its JavaScript, and screens looked right but did nothing. It "
+    "passed manual tests only because the browser's own HTTP cache happened to hold the "
+    "files.", Body))
 
 E.append(Paragraph("Gotchas that cost time", H2))
 E.append(table([
@@ -606,35 +648,43 @@ E.append(Paragraph("10. Where the project stands", H1))
 E.append(Paragraph("Verified working", H2))
 E.append(table([
     ["Check", "Status"],
-    ["Production build", "Passes — 46 static pages"],
-    ["TypeScript", "Clean, no errors"],
-    ["Triage clinical suite", "20 / 20, both decision paths exercised"],
-    ["Facility metrics suite", "Passing"],
-    ["Services &amp; entitlements suite", "Passing"],
-    ["Offline app shell", "29 routes pre-cached, verified with the server stopped"],
-    ["Console errors", "None across all 38 screens"],
+    ["Production build", "Passes"],
+    ["Lint and TypeScript", "Clean — zero warnings, no errors"],
+    ["Verify suites", "37 / 37, including the district service on PostgreSQL"],
+    ["Triage clinical suite", "20 / 20, through all three decision paths"],
+    ["Offline", "Every ANM screen starts with the server stopped (check:offline)"],
+    ["Accessibility", "No axe-core WCAG 2.1 A/AA violation on 28 pages (check:a11y)"],
+    ["Dependency audits", "npm audit and pip-audit: no known vulnerabilities"],
 ], [70 * mm, W - 70 * mm]))
 
 E.append(Paragraph("Known gaps — be honest about these", H2))
 E.append(bullets([
-    "<b>Teleconsult has no WebRTC.</b> It is a simulated preview and is labelled as "
-    "such in the UI. Do not describe it as working video consultation.",
-    "<b>The UI rework is partial.</b> Two pages use "
-    "<font face='Courier' size='8'>PortalShell</font>; thirteen still use the legacy "
+    "<b>Not yet cleared for real patients.</b> The licence, clinical validation, the "
+    "CDSCO view of triage, a CERT-In-empanelled audit, government hosting and ABDM "
+    "certification are all still due — docs/PRODUCTION_READINESS.md lists each, with "
+    "who owns it.",
+    "<b>No restore to a replacement device.</b> Records reach the district service, but "
+    "a new phone cannot download its facility's records back yet.",
+    "<b>Teleconsult has no audio or video</b>, by design: it is a structured record "
+    "beside an eSanjeevani call. Do not describe it as video consultation.",
+    "<b>The UI rework is partial.</b> One page uses "
+    "<font face='Courier' size='8'>PortalShell</font>; the rest still use the legacy "
     "flex layout. They have picked up the global token changes and lost their accent "
     "rails, but their card grids have not yet become tables.",
-    "<b>The seven statutory policy pages are English-only</b> while the rest of the "
-    "portal is trilingual. Defensible — most state portals do the same — but "
-    "inconsistent.",
-    "<b>No Vercel deployment is linked.</b> The repository is not connected to a "
-    "Vercel project, so pushes do not deploy.",
+    "<b>The seven statutory policy pages are English-only</b> while the other "
+    "citizen-facing pages are trilingual. Defensible — most state portals do the same — "
+    "but inconsistent.",
+    "<b>Several staff screens are English only</b> (referrals, pre-arrival board, ANM "
+    "dashboard, patient record, administration); translation needs the department's "
+    "language cell and a clinical review.",
 ]))
 
 E.append(Paragraph("Suggested first tasks for a new developer", H2))
 E.append(bullets([
     "Read <font face='Courier' size='8'>lib/db.ts</font> end to end, then "
     "<font face='Courier' size='8'>lib/triage/model.ts</font>.",
-    "Run all three verification suites and make sure you understand what each asserts.",
+    "Run <font face='Courier' size='8'>npm run verify</font> and read the suites for "
+    "the area you will touch — they state what must hold.",
     "Migrate one legacy page to "
     "<font face='Courier' size='8'>PortalShell</font> — "
     "<font face='Courier' size='8'>/queue</font> is a good first one — and convert its "
@@ -646,7 +696,7 @@ E.append(bullets([
 E.append(Spacer(1, 10))
 E.append(callout(
     "If you remember three things",
-    "<b>1.</b> The device is the source of truth — there is no backend. &nbsp;"
+    "<b>1.</b> The device is the source of truth — the servers are couriers and oversight. &nbsp;"
     "<b>2.</b> Triage overrides escalate only. &nbsp;"
     "<b>3.</b> Never put a number on screen that you cannot trace to a record.", NAVY))
 
