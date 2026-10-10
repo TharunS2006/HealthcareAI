@@ -11,6 +11,8 @@ exported from lib/auth/permissions.ts:
                likewise; uploads need a signed-in staff role
   3. scope     a facility reads only its own pre-arrival board; district roles
                read any
+  3b. restore  a facility's staff can fetch their own facility's records (to
+               restore a replacement device), ids first; never another's
   4. sync      the exported permissions.json matches what the service loaded
 """
 
@@ -63,6 +65,7 @@ with TestClient(app) as client:
     for method, path in [
         ("get", "/api/v1/store"),
         ("get", "/api/v1/records/incoming?facility_id=dh-district"),
+        ("get", "/api/v1/records/patients?facility_id=sc-kothi"),
         ("get", "/api/v1/district/summary"),
         ("get", "/api/v1/facilities"),
     ]:
@@ -111,6 +114,24 @@ with TestClient(app) as client:
           client.get("/api/v1/records/incoming?facility_id=phc-bhamragad", headers=DHO).status_code == 200)
     check("an ANM has no pre-arrival board (403)",
           client.get("/api/v1/records/incoming?facility_id=sc-kothi", headers=ANM).status_code == 403)
+
+    print("\n3b. RESTORE")
+    other = {**PATIENT, "id": "p-access-2", "facility_id": "sc-govindpur", "payload": {"id": "p-access-2"}}
+    client.post("/api/v1/records/patients", json=other, headers=DHO)
+    r = client.get("/api/v1/records/patients?facility_id=sc-kothi", headers=ANM)
+    body = r.json() if r.status_code == 200 else {}
+    check("an ANM fetches their own facility's records, whole, to restore a replacement phone (200)",
+          r.status_code == 200 and "p-access-1" in body.get("ids", []) and {"id": "p-access-1"} in body.get("patients", []), r.text[:200])
+    check("…and only that facility's", "p-access-2" not in body.get("ids", []) and body.get("total") == len(body.get("ids", [])), str(body.get("ids")))
+    r = client.get("/api/v1/records/patients?facility_id=sc-kothi&ids_only=true", headers=ANM)
+    check("ids_only answers with the ids and no records (what a device lacks, before it downloads)",
+          r.status_code == 200 and "p-access-1" in r.json()["ids"] and r.json()["patients"] == [], r.text[:200])
+    check("another facility's records are refused (403)",
+          client.get("/api/v1/records/patients?facility_id=sc-govindpur", headers=ANM).status_code == 403)
+    check("the DHO may fetch any facility's (200)",
+          client.get("/api/v1/records/patients?facility_id=sc-govindpur", headers=DHO).status_code == 200)
+    r = client.get("/api/v1/records/patients?facility_id=sc-kothi&limit=1&offset=5", headers=ANM)
+    check("pages past the end are empty, not an error", r.status_code == 200 and r.json()["count"] == 0 and r.json()["total"] >= 1, r.text[:200])
 
 print("\n4. SYNC WITH lib/auth/permissions.ts")
 exported = json.loads(open(os.path.join(os.path.dirname(__file__), "..", "app", "permissions.json")).read())

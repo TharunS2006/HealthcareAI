@@ -19,6 +19,8 @@
  * touches neither district.db nor whatever is running on :8000.
  */
 
+// The restore checks (section 9) save into the device's database.
+import 'fake-indexeddb/auto';
 import { spawn } from 'node:child_process';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -388,6 +390,44 @@ check('an HTTP page (local demo, APK over LAN) may call HTTP addresses', !blocke
 if (hadWindow) g.window = undefined; else delete g.window;
 globalThis.fetch = realFetch;
 process.env.NEXT_PUBLIC_REPORTING_URL = `http://127.0.0.1:${PORT}`;
+
+// ── 9. A replacement phone restores its facility's records ───────────────────
+console.log('\nA replacement phone restores its facility\'s records, and only what it lacks:');
+{
+    const { fetchFacilityPatients } = await import('../lib/sync/cloudRecords');
+    const { countMissing, restoreFacilityPatients, missingIds } = await import('../lib/sync/restore');
+    const { savePatient, getAllPatients, getPatient } = await import('../lib/db');
+    const phcPatient = (id: string, name: string): Patient => ({
+        ...patient, id, name, registeredAtFacilityId: 'phc-bhamragad', timestamp: NOW, visits: undefined, activeReferral: undefined,
+    } as Patient);
+    setIdentityProvider(() => DHO);
+    for (const [id, name] of [['pat-phc-1', 'Rekha Usendi'], ['pat-phc-2', 'Manda Kodape'], ['pat-phc-3', 'Sita Pungati']]) {
+        await uploadPatientRecord(phcPatient(id, name), NOW);
+    }
+    setIdentityProvider(() => bearerFor('u-mo-bhamragad', 'MO', 'phc-bhamragad'));
+    const ids = await fetchFacilityPatients('phc-bhamragad', { idsOnly: true });
+    check('a newly registered patient is filed under the facility that registered them',
+        ids.ok && ['pat-phc-1', 'pat-phc-2', 'pat-phc-3'].every(id => ids.ids.includes(id)), JSON.stringify(ids));
+    check('…and asking for ids sends ids, not records', ids.ok && ids.patients.length === 0);
+
+    // The new phone already holds one of them, edited since it was uploaded.
+    await savePatient({ ...phcPatient('pat-phc-2', 'Manda Kodape (edited on this phone)') });
+    const before = await countMissing('phc-bhamragad');
+    check('the phone finds which records it lacks', before.ok && before.missing === 2 && before.total === 3, JSON.stringify(before));
+    const restored = await restoreFacilityPatients('phc-bhamragad');
+    check('restoring downloads exactly those', restored.ok && restored.restored === 2, JSON.stringify(restored));
+    check('…whole, as uploaded', (await getPatient('pat-phc-1'))?.name === 'Rekha Usendi' && (await getPatient('pat-phc-3'))?.vitals?.spo2 === 91);
+    check('…and never overwrites what the phone already held', (await getPatient('pat-phc-2'))?.name === 'Manda Kodape (edited on this phone)');
+    const after = await countMissing('phc-bhamragad');
+    check('afterwards nothing is missing, so the offer goes away', after.ok && after.missing === 0, JSON.stringify(after));
+    const again = await restoreFacilityPatients('phc-bhamragad');
+    check('a second restore changes nothing', again.ok && again.restored === 0
+        && (await getAllPatients()).filter(p => p.id.startsWith('pat-phc-')).length === 3, JSON.stringify(again));
+    const elsewhere = await fetchFacilityPatients('sc-kothi', { idsOnly: true });
+    check('another facility\'s records are refused', elsewhere.ok === false && elsewhere.reason === 'forbidden', JSON.stringify(elsewhere));
+    check('missingIds keeps the service\'s order and drops what is held', JSON.stringify(missingIds(['b'], ['a', 'b', 'c'])) === '["a","c"]');
+    setIdentityProvider(() => DHO);
+}
 
 function check(label: string, condition: boolean | undefined, detail = '') {
     if (condition) pass(label);

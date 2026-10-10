@@ -21,7 +21,8 @@ unless marked otherwise.
 
 | Area | What holds | Checked by |
 |---|---|---|
-| The whole system | A production build, the relay on its store file and the district service, driven in a browser: the Super Admin creates staff; an ANM on a new device registers a RED patient and the referral goes up a tier; the receiving MO sees the patient on the Pre-Arrival Board; the DHO sees the access log; a deactivated MO is refused by both servers; a restarted relay keeps every account | `check:production` (browser) |
+| The whole system | A production build, the relay on its store file and the district service, driven in a browser: the Super Admin creates staff; an ANM on a new device registers a RED patient and the referral goes up a tier; the receiving MO sees the patient on the Pre-Arrival Board; the DHO sees the access log; a deactivated MO is refused by both servers; a restarted relay keeps every account; a replacement phone restores a record only the district service held | `check:production` (browser) |
+| Replacement phones | A phone that replaces a lost one restores its facility's records from the district service — only what it lacks, never overwriting — and the offer appears on the ANM dashboard and OPD screen | `verify:cloud-records`, `verify:access-api`, `check:production` |
 | Sign-in | PIN checked by the relay; five wrong tries lock the account for five minutes (unknown Staff IDs too); signed 12-hour session tokens; a device holds PIN hashes of its own facility's staff only | `verify:relay`, `verify:permissions` |
 | Roles and scope | Six roles; every screen, action and server route checks the role and the posting — a PHC reads its own pre-arrival board, not the District Hospital's. A patient's record reaches only the devices of the registering facility, of facilities on the patient's referrals, and of district officers, and only they may change it | `verify:permissions`, `verify:access-api`, `verify:referral-flow`, `verify:relay` |
 | Production mode | No demo patients, accounts or pages; the first Super Admin from a bootstrap PIN, ignored once one exists; demonstration referrals refused | `verify:production-mode`, `verify:relay` |
@@ -112,10 +113,11 @@ Numbered in the order they block. None of these can be closed by changing code.
 
 ## 4. Known limitations of the software
 
-- **No restore to a replacement device.** Every patient record a device
-  registers or updates is uploaded to the district service, but a new phone
-  cannot yet download its facility's records back. Records still waiting in a
-  lost phone's outbox are lost with it.
+- **A lost phone's unsent records are lost with it.** A replacement phone
+  restores everything its facility's devices uploaded, but records still
+  waiting in the lost phone's outbox never reached the district service.
+  Queue tokens, stock movements and appointments live on the device only and
+  are not restored.
 - **District aggregates are computed on the DHO's device**, from what the relay
   delivers. The district service's de-identified reporting endpoints exist, but
   the app does not send to them yet.

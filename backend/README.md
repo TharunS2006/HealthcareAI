@@ -43,6 +43,7 @@ export:permissions`), so the two cannot drift.
 | POST | `/api/v1/records/patients` | any signed-in staff | Upload a patient record (identified). An older copy never overwrites a newer one |
 | POST | `/api/v1/records/referrals` | any signed-in staff | Upload a referral with its clinical payload |
 | GET | `/api/v1/records/incoming?facility_id=` | MO, Hospital Admin — own facility; DHO, Super Admin — any | Patients en route to a facility, most urgent first |
+| GET | `/api/v1/records/patients?facility_id=` | a facility's own staff; DHO, Super Admin — any | The records filed under a facility, paged, ids first (`ids_only`) — how a replacement phone restores its facility's history |
 | GET | `/api/v1/store` | DHO, Super Admin | Everything the record store holds, newest first (Data Inspector) |
 | GET | `/api/v1/access-log` | DHO, Super Admin | Who read or uploaded identified records, refused attempts included |
 | POST | `/api/v1/chat` | anyone, rate-limited (or signed-in staff only, with `CHAT_REQUIRE_SIGN_IN`) | Assistant Layer 2 |

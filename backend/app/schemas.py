@@ -300,3 +300,15 @@ class AccessLogEntry(BaseModel):
 class AccessLogPage(BaseModel):
     count: int
     entries: List[AccessLogEntry]
+
+
+class FacilityPatients(BaseModel):
+    """One page of a facility's patient records, to restore a replacement device."""
+
+    facility_id: str
+    total: int
+    offset: int
+    count: int
+    ids: List[str]
+    # Empty when ids_only was asked for.
+    patients: List[dict]

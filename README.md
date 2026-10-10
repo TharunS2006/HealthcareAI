@@ -299,6 +299,12 @@ build`), so a deploy installs afresh and caches its own files; unchanged files a
 copied from the previous cache, so an update costs a facility only what changed.
 `npm run check:offline` proves it in a browser with the server stopped.
 
+A phone that replaces a lost or broken one gets its facility's recent records
+from the relay at first sign-in, and the rest from the district service, which
+keeps every record the facility's devices uploaded: the ANM dashboard and the OPD
+screen offer to restore what the phone lacks. Only missing records are
+downloaded; nothing already on the phone is changed.
+
 ### Checks
 
 ```bash

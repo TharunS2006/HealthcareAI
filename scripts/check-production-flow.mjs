@@ -22,8 +22,11 @@
  *                     is refused by the district service
  *   6. RESTART        a restarted relay still knows every account (store
  *                     file) and ignores a new bootstrap PIN
+ *   7. REPLACEMENT    a patient registered while the relay was down reaches
+ *                     the district service only; a new phone for that facility
+ *                     offers to restore it, and then holds it
  *
- * The two screens with real data on them are also checked with axe-core.
+ * The screens with real data on them are also checked with axe-core.
  * Needs the district service's Python packages and a Chromium Playwright can
  * launch, as check:a11y does.
  */
@@ -310,6 +313,45 @@ try {
     check('the ANM still signs in: the store file kept the account', (await signIn((await device('anm-again')).page, 'ANM-KOT-0001', '482913')) === '/my-dashboard');
     check('…and the new bootstrap PIN is ignored, since a Super Admin exists', (await signIn((await device('admin-new-pin')).page, 'ADMIN-01', '999999')) === '/staff/login');
 
+    console.log('\n7. REPLACEMENT PHONE');
+    const patientsOn = page => page.evaluate(async () => {
+        const db = await new Promise((resolve, reject) => { const r = indexedDB.open('nalammesh-rural-db'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
+        const all = store => new Promise(resolve => { const r = db.transaction(store).objectStore(store).getAll(); r.onsuccess = () => resolve(r.result); });
+        return { names: (await all('patients')).map(x => x.name), waiting: (await all('syncQueue')).length };
+    });
+    await stop(relay, relayPort);
+    await anm.page.goto(`${APP}/opd`);
+    await anm.page.locator('#opd-name').fill('Second Patient Kothi');
+    await anm.page.locator('#opd-age').fill('41');
+    await anm.page.getByRole('radiogroup', { name: /Gender/ }).getByRole('radio').first().click();
+    await anm.page.locator('#opd-village').fill('Kothi');
+    await anm.page.getByLabel(/SpO2/).fill('98');
+    await anm.page.getByLabel(/Pulse Rate/).fill('78');
+    await anm.page.getByLabel('Systolic').fill('118');
+    await anm.page.getByLabel('Diastolic').fill('76');
+    await anm.page.getByLabel(/Respiratory Rate/).fill('16');
+    await anm.page.getByRole('radiogroup', { name: /Consciousness/ }).getByRole('radio', { name: 'Alert' }).click();
+    await anm.page.getByRole('button', { name: /Run AI Triage/ }).click();
+    await anm.page.getByText(/GEN-\d+/).first().waitFor({ timeout: 60000 }).catch(() => {});
+    await until(async () => (await patientsOn(anm.page)).waiting === 0, 'the upload to the district service', 30000).catch(() => {});
+    check('with the relay down, the new patient still reaches the district service', (await patientsOn(anm.page)).waiting === 0);
+    relay = startRelay('999999');
+    await until(() => healthy(`${RELAY}/health`), 'the relay, back');
+    const replacement = await device('replacement');
+    check('the ANM signs in on a replacement phone', (await signIn(replacement.page, 'ANM-KOT-0001', '482913')) === '/my-dashboard');
+    const offer = replacement.page.getByRole('button', { name: /^Restore \d+ records?$/ });
+    await offer.waitFor({ timeout: 20000 }).catch(() => {});
+    check('the phone offers to restore what the district service holds and it lacks', (await offer.count()) === 1);
+    if (await offer.count()) {
+        await noViolations(replacement.page, 'My Dashboard with the restore offer');
+        await offer.click();
+        await until(async () => toasts.some(t => /^replacement: \d+ patient records? restored from the district service$/.test(t)), 'the restore', 30000).catch(() => {});
+    }
+    const held = (await patientsOn(replacement.page)).names;
+    check('…and then holds the patient only the district service had', held.includes('Second Patient Kothi'), JSON.stringify(held));
+    check('…as well as the earlier one', held.includes('Test Patient Kothi'), JSON.stringify(held));
+    check('the offer goes away once nothing is missing', (await replacement.page.getByRole('button', { name: /^Restore \d+ records?$/ }).count()) === 0);
+
     check('no page threw an error', pageErrors.length === 0, pageErrors.join(' | '));
 } catch (err) {
     failures.push(`stopped: ${err.message}`);
@@ -327,6 +369,6 @@ if (failures.length) {
     }
 }
 console.log(failures.length === 0
-    ? '\nThe production flow works end to end: accounts, registration, referral, pre-arrival board, access log, revocation and restart.\n'
+    ? '\nThe production flow works end to end: accounts, registration, referral, pre-arrival board, access log, revocation, restart and a replacement phone.\n'
     : `\n${failures.length} problem(s) in the production flow.\n`);
 process.exit(failures.length === 0 ? 0 : 1);

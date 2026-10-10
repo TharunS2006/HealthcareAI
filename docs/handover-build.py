@@ -658,8 +658,9 @@ E.append(table([
     ["Triage clinical suite", "20 / 20, through all three decision paths"],
     ["Offline", "Every ANM screen starts with the server stopped (check:offline)"],
     ["Accessibility", "No axe-core WCAG 2.1 A/AA violation on 28 pages (check:a11y)"],
-    ["Production flow", "Accounts, a RED referral, the pre-arrival board, the access log, revocation "
-                        "and a relay restart, in a browser against real servers (check:production)"],
+    ["Production flow", "Accounts, a RED referral, the pre-arrival board, the access log, revocation, "
+                        "a relay restart and a replacement phone, in a browser against real servers "
+                        "(check:production)"],
     ["Dependency audits", "npm audit and pip-audit: no known vulnerabilities"],
 ], [70 * mm, W - 70 * mm]))
 
@@ -669,8 +670,9 @@ E.append(bullets([
     "CDSCO view of triage, a CERT-In-empanelled audit, government hosting and ABDM "
     "certification are all still due — docs/PRODUCTION_READINESS.md lists each, with "
     "who owns it.",
-    "<b>No restore to a replacement device.</b> Records reach the district service, but "
-    "a new phone cannot download its facility's records back yet.",
+    "<b>A lost phone's unsent records are lost with it.</b> A replacement phone restores "
+    "what its facility's devices uploaded to the district service, but not what was "
+    "still in the lost phone's outbox, nor queue, stock or appointment entries.",
     "<b>Teleconsult has no audio or video</b>, by design: it is a structured record "
     "beside an eSanjeevani call. Do not describe it as video consultation.",
     "<b>The UI rework is partial.</b> One page uses "

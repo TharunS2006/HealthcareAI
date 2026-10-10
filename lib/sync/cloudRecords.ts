@@ -145,16 +145,16 @@ async function post(path: string, body: unknown): Promise<UploadOutcome> {
 }
 
 /**
- * Which facility this record belongs to, for the service's column projection.
- *
- * A patient has no facility of their own — they are attached to one by the visit
- * that recorded them or by the referral moving them. The active referral wins
- * because it is the more recent of the two; the latest visit is the fallback for
- * a patient uploaded before anyone referred them. Null is a legitimate answer
- * (a record captured in the field, not yet at any facility) and only costs the
- * ability to filter by it — the board joins on the referral, not on this.
+ * The facility a record is filed under at the district service: where the
+ * patient was registered. A replacement device restores its facility's records
+ * by this, so a newly registered patient — who has no visit or referral yet —
+ * must not arrive with none. A record from before registration facilities were
+ * kept falls back to its active referral's origin, then its latest visit. Null
+ * remains a legitimate answer (a record captured in the field, at no facility):
+ * it only costs filtering by it, since the board joins on the referral.
  */
 function originFacility(patient: Patient): string | null {
+    if (patient.registeredAtFacilityId) return patient.registeredAtFacilityId;
     if (patient.activeReferral?.fromFacilityId) return patient.activeReferral.fromFacilityId;
     const visits = patient.visits;
     if (!visits || visits.length === 0) return null;
@@ -387,6 +387,54 @@ export async function fetchAccessLog(limit = 200): Promise<AccessLogResult> {
         const data = (await response.json()) as { entries?: AccessLogEntry[] };
         if (!Array.isArray(data.entries)) return { ok: false, reason: 'error' };
         return { ok: true, entries: data.entries };
+    } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            return { ok: false, reason: 'timeout' };
+        }
+        return { ok: false, reason: 'unreachable' };
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+// ── a facility's records, to restore a replacement device ───────────────────
+
+export type FacilityPatientsResult =
+    | { ok: true; total: number; ids: string[]; patients: Patient[] }
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' };
+
+/**
+ * One page of the records the district service holds for a facility — only
+ * their ids with `idsOnly`, which is how a device finds what it lacks before it
+ * downloads anything. Open to that facility's own staff and the district-wide
+ * roles; a failure returns a reason, never an empty facility.
+ */
+export async function fetchFacilityPatients(
+    facilityId: string,
+    { idsOnly = false, offset = 0, limit = 500 }: { idsOnly?: boolean; offset?: number; limit?: number } = {},
+): Promise<FacilityPatientsResult> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return { ok: false, reason: 'offline' };
+    }
+    if (!hasCloudIdentity()) return { ok: false, reason: 'no-session' };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+        const query = new URLSearchParams({ facility_id: facilityId, ids_only: String(idsOnly), offset: String(offset), limit: String(limit) });
+        const response = await fetch(reachable(`${reportingBaseUrl()}/api/v1/records/patients?${query}`), {
+            signal: controller.signal,
+            headers: identityProvider(),
+        });
+        if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
+        if (!response.ok) return { ok: false, reason: 'error' };
+
+        const data = (await response.json()) as { total?: unknown; ids?: unknown; patients?: unknown };
+        if (typeof data.total !== 'number' || !Array.isArray(data.ids) || !Array.isArray(data.patients)) {
+            return { ok: false, reason: 'error' };
+        }
+        return { ok: true, total: data.total, ids: data.ids as string[], patients: data.patients as Patient[] };
     } catch (err) {
         if (err instanceof DOMException && err.name === 'AbortError') {
             return { ok: false, reason: 'timeout' };

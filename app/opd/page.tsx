@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/shared/Sidebar';
+import RestoreRecords from '@/components/shared/RestoreRecords';
 import MobileMenu from '@/components/shared/MobileMenu';
 import QRWristband from '@/components/shared/QRWristband';
 import Icon from '@/components/gov/Icon';
@@ -377,6 +378,7 @@ export default function OPDPage() {
                 <MobileMenu />
 
                 <div className="max-w-6xl mx-auto space-y-4">
+                    <RestoreRecords />
                     {/* Official Workstation Header Bar */}
                     <div className="bg-white border border-slate-300 rounded p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                         <div>

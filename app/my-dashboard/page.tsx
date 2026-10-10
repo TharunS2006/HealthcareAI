@@ -11,6 +11,7 @@
 import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/shared/Sidebar';
+import RestoreRecords from '@/components/shared/RestoreRecords';
 import MobileMenu from '@/components/shared/MobileMenu';
 import GovPanel from '@/components/gov/GovPanel';
 import { useSession } from '@/lib/auth/session';
@@ -105,6 +106,8 @@ export default function MyDashboardPage() {
                             {can(session.role, 'patient:register') && <Link href="/opd" className="gov-btn gov-btn-secondary text-[12px]">Register patient</Link>}
                         </div>
                     </div>
+
+                    <RestoreRecords />
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                         {tiles.map(([label, value, bar]) => (

@@ -48,7 +48,7 @@ from .models import (AccessLog, CareReferral, Encounter, Facility, FacilityTier,
                      PatientRecord, Referral, ReferralStatus, TriagePriority)
 from .schemas import (AccessLogEntry, AccessLogPage, CareReferralIn, ChatIn,
                       ChatOut, DistrictSummary, EncounterIn, FacilityIn,
-                      FacilityScorecard, IncomingCase, IncomingList,
+                      FacilityPatients, FacilityScorecard, IncomingCase, IncomingList,
                       IngestReceipt, PatientRecordIn, ReferralIn, StoreDump,
                       StoredPatient, StoredReferral, TierBreakdown,
                       TriageBreakdown)
@@ -453,6 +453,45 @@ def incoming_cases(
         )
     _note(request, f"{len(cases)} incoming case(s): " + ", ".join(c.referral.get("patientId", "?") for c in cases)[:500])
     return IncomingList(facility_id=facility_id, count=len(cases), cases=cases)
+
+
+@app.get(
+    "/api/v1/records/patients",
+    dependencies=[Depends(require("patient:view", facility_query="facility_id"))],
+    response_model=FacilityPatients,
+    tags=["records"],
+    summary="A facility's patient records, to restore a replacement device",
+)
+def facility_patients(
+    facility_id: str = Query(..., description="The facility whose patients to return"),
+    ids_only: bool = Query(False, description="Only the ids: what a device is missing, before it downloads"),
+    limit: int = Query(500, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+    session: Session = Depends(get_session),
+    request: Request = None,  # type: ignore[assignment]  # injected by FastAPI
+):
+    """
+    The patient records filed under one facility, as its devices uploaded them.
+
+    A phone that replaces a lost or broken one starts empty. Its predecessor
+    uploaded every patient it registered or changed, so the facility's history
+    is here; the app fetches the ids first, then only the records it lacks.
+    Ordered by id, so pages hold still while a device walks them. Scoped like
+    the pre-arrival board — the facility's own staff, or the district-wide
+    roles — and every call is in the access log.
+    """
+    base = select(PatientRecord).where(PatientRecord.facility_id == facility_id)
+    total = session.exec(select(func.count()).select_from(base.subquery())).one()
+    rows = session.exec(base.order_by(PatientRecord.id).offset(offset).limit(limit)).all()
+    _note(request, f"{len(rows)} patient record(s) of {facility_id}{' (ids only)' if ids_only else ''}")
+    return FacilityPatients(
+        facility_id=facility_id,
+        total=total,
+        offset=offset,
+        count=len(rows),
+        ids=[r.id for r in rows],
+        patients=[] if ids_only else [json.loads(r.payload) for r in rows],
+    )
 
 
 @app.get(
