@@ -9,13 +9,29 @@
  *   • Navigation miss → cached shell for that route, else '/' , else offline response
  *
  * Pre-caching is intentionally NON-ATOMIC: each asset is added individually so a single
- * 404 cannot abort the whole install (cache.addAll() rejects the install on any failure). */
+ * 404 cannot abort the whole install (cache.addAll() rejects the install on any failure).
+ *
+ * A route's HTML alone does not work offline: it names the JavaScript and CSS that make
+ * the screen run, and the page that installs this worker loads them before the worker
+ * controls it. So install also caches the build's own files — every /_next/static file
+ * the build produced (BUILD_ASSETS), plus any the pre-cached pages and their stylesheets
+ * name. Without that, a phone that installed the app and then lost signal opened screens
+ * that rendered but never became usable. */
 
 // Bump on every change to PRECACHE_URLS — the activate handler deletes caches whose
 // key doesn't match, so a stale client would otherwise keep serving the old app shell
 // and never pick up newly added routes.
-const CACHE_VERSION = 'v4.0.0';
-const CACHE_NAME = `nalammesh-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v4.1.0';
+
+// Filled in after `next build` by scripts/stamp-service-worker.mjs (npm run build runs
+// it): this build's id, so every deploy installs afresh and caches its own files, and
+// every /_next/static file it produced — including chunks a screen loads on demand,
+// which no page names. Left unstamped (a bare `next build`), the worker still caches
+// what the pre-cached pages name.
+const BUILD_ID = '__NALAMMESH_BUILD_ID__';
+const BUILD_ASSETS = [/*__NALAMMESH_BUILD_ASSETS__*/];
+const STAMPED = !BUILD_ID.includes('NALAMMESH_BUILD_ID');
+const CACHE_NAME = `nalammesh-${CACHE_VERSION}${STAMPED ? `-${BUILD_ID}` : ''}`;
 
 /**
  * App-shell routes. Every entry below MUST exist in the static export (`out/`).
@@ -40,6 +56,15 @@ const PRECACHE_ROUTES = [
     '/staff',
     '/staff/login',
     '/404',
+    '/403',
+    // Each role's home after sign-in (ROLE_HOME in lib/auth/permissions.ts) — the
+    // ANM's above all, who is the one most often without signal — and the screens
+    // that say plainly what needs the network rather than falling back to '/'.
+    '/my-dashboard',
+    '/facility-resources',
+    '/admin',
+    '/incoming',
+    '/data',
     // Statutory pages (GIGW): small, and a citizen offline should still be able to
     // read the privacy and grievance information the footer promises.
     '/privacy',
@@ -104,11 +129,66 @@ self.addEventListener('install', (event) => {
                 console.warn('[SW] Pre-cache skipped (not fatal):', failed);
             }
             console.log(`[SW] App shell cached: ${PRECACHE_URLS.length - failed.length}/${PRECACHE_URLS.length}`);
+
+            // The build output: everything the build listed, and whatever the pages
+            // name; then anything their stylesheets name that is not already there.
+            const pages = results.filter((r) => r.status === 'fulfilled').map((r) => r.value);
+            const assets = new Set(BUILD_ASSETS);
+            for (const url of pages) {
+                const cached = await cache.match(url);
+                if (cached) staticAssetsIn(await cached.text()).forEach((a) => assets.add(a));
+            }
+            const media = new Set();
+            const first = await cacheAll(cache, [...assets], async (url, response) => {
+                if (url.endsWith('.css')) staticAssetsIn(await response.clone().text()).forEach((a) => media.add(a));
+            });
+            const second = await cacheAll(cache, [...media].filter((a) => !assets.has(a)));
+            const missed = first.missed + second.missed;
+            console.log(`[SW] Build assets cached: ${first.cached + second.cached}${missed ? `, ${missed} skipped` : ''}`);
         })()
     );
 
     self.skipWaiting();
 });
+
+/**
+ * The /_next/static files a page or stylesheet names. Script and stylesheet tags carry
+ * the full path; the inline React Server Components payload names its chunks without
+ * the /_next/ prefix ("static/chunks/…"), and CSS names fonts as url(/_next/static/media/…).
+ * Only whole names count, ending in a file extension: the inline payload is split across
+ * script tags, and a name cut in two there must not become a request for half of it.
+ * Content-hashed, so a name is a version: caching one is never stale. */
+const STATIC_NAME = /(?:\/_next\/)?static\/(?:chunks|css|media)\/[A-Za-z0-9_\-.~/[\]%@]+?\.(?:js|css|woff2?|ttf|otf|png|jpe?g|gif|svg|webp|avif|ico)(?![A-Za-z0-9_\-.~/[\]%@])/g;
+
+function staticAssetsIn(text) {
+    const found = new Set();
+    for (const match of text.matchAll(STATIC_NAME)) {
+        found.add(`/_next/${match[0].replace(/^\/_next\//, '')}`);
+    }
+    return found;
+}
+
+/**
+ * Cache each build file, tolerating failures; `onCached` sees each response cached.
+ * A file the previous version already holds is copied from there rather than downloaded
+ * again — names are content hashes, so the same name is the same bytes, and an update
+ * then costs a facility on metered data only what actually changed. */
+async function cacheAll(cache, urls, onCached) {
+    let cached = 0;
+    let missed = 0;
+    await Promise.all(urls.map(async (url) => {
+        try {
+            const response = (await caches.match(url)) || (await fetch(url));
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (onCached) await onCached(url, response);
+            await cache.put(url, response);
+            cached += 1;
+        } catch {
+            missed += 1;
+        }
+    }));
+    return { cached, missed };
+}
 
 // ---------------------------------------------------------------------------
 // Activate — drop superseded caches, take over open clients

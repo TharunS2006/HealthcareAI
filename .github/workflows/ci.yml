@@ -76,6 +76,11 @@ jobs:
           npx playwright install --with-deps chromium
           npm run check:a11y
 
+      # The first promise: a sub-centre with no signal keeps working. Install the
+      # service worker, stop the server, and open the ANM's screens from cache.
+      - name: Offline (service worker, server stopped)
+        run: npm run check:offline
+
       # express and socket.io are runtime dependencies (the relay runs on them),
       # so this audit covers the relay as well as the app.
       - name: Production dependency audit
