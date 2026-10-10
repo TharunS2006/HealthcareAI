@@ -19,7 +19,9 @@ import { usePatientStore } from '@/stores/patientStore';
 import Sidebar from '@/components/shared/Sidebar';
 import QRWristband from '@/components/shared/QRWristband';
 import FHIRModal from '@/components/shared/FHIRModal';
-import { getRecommendedHospital, getResourceChecklist } from '@/lib/data/hospitals';
+import { patientTimeline } from '@/lib/analytics/patientTimeline';
+import { STATUS_LABELS } from '@/lib/referrals/workflow';
+import { useFacilityStore } from '@/stores/facilityStore';
 import toast from 'react-hot-toast';
 import { useSession } from '@/lib/auth/session';
 import { isDistrictWide, ROLE_HOME } from '@/lib/auth/permissions';
@@ -36,6 +38,8 @@ export default function PatientDetailClient() {
     const [showFHIRModal, setShowFHIRModal] = useState(false);
     const session = useSession();
     const referrals = useReferralStore(s => s.referrals);
+    const diagnostics = useFacilityStore(s => s.diagnostics);
+    const loadFacilityData = useFacilityStore(s => s.loadAll);
     const home = session ? ROLE_HOME[session.role] : '/';
 
     // /dashboard/[id] takes precedence; /record?id=… is the runtime-safe route.
@@ -45,6 +49,9 @@ export default function PatientDetailClient() {
     useEffect(() => {
         if (patients.length === 0) loadPatients();
     }, [patients.length, loadPatients]);
+    useEffect(() => {
+        void loadFacilityData();
+    }, [loadFacilityData]);
 
     useEffect(() => {
         let cancelled = false;
@@ -174,9 +181,6 @@ export default function PatientDetailClient() {
         );
     }
 
-    const hospital = getRecommendedHospital(patient.triageStatus);
-    const checklist = getResourceChecklist(patient.vitals.injuryType);
-
     const statusColors = {
         RED: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', badge: 'bg-red-100 text-red-800' },
         YELLOW: { bg: 'bg-yellow-50', border: 'border-yellow-500', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-800' },
@@ -184,25 +188,16 @@ export default function PatientDetailClient() {
     };
     const colors = statusColors[patient.triageStatus];
 
-    // Patient journey timeline
-    const triageTime = new Date(patient.timestamp);
-    const isTransportComplete = patient.transportStatus === 'COMPLETED';
-
-    const timelineIcons = [
-        <svg key="triage" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>,
-        <svg key="ai" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>,
-        <svg key="sync" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.858 15.355-5.858 21.213 0" /></svg>,
-        <svg key="transport" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h6l2-2zm0 0l2 2h2a1 1 0 001-1v-5a1 1 0 00-.29-.71l-3-3A1 1 0 0014 9h-1m-6 8h.01M17 16h.01" /></svg>,
-        <svg key="hospital" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
-    ];
-
-    const timeline = [
-        { time: triageTime, action: 'Patient triaged at field station', actor: 'Triage Medic', icon: timelineIcons[0], status: 'complete' },
-        { time: new Date(triageTime.getTime() + 60_000), action: 'On-device analysis completed — Priority assigned', actor: 'NalamMesh Engine', icon: timelineIcons[1], status: 'complete' },
-        { time: new Date(triageTime.getTime() + 120_000), action: 'Record synced via mesh network', actor: 'Mesh Network', icon: timelineIcons[2], status: patient.isSynced ? 'complete' : 'pending' },
-        { time: new Date(triageTime.getTime() + 180_000), action: `Transport assigned → ${hospital.name}`, actor: 'Command Center', icon: timelineIcons[3], status: isTransportComplete ? 'complete' : (patient.triageStatus === 'GREEN' ? 'pending' : 'active') },
-        { time: new Date(triageTime.getTime() + 900_000), action: isTransportComplete ? `Handover complete → Admitted to ${hospital.name}` : 'Hospital handover & ER admission', actor: hospital.name, icon: timelineIcons[4], status: isTransportComplete ? 'complete' : 'pending' },
-    ];
+    // The journey as recorded — registration, visits, referral events, lab
+    // orders and results (lib/analytics/patientTimeline.ts). It used to be five
+    // invented steps at fixed offsets from registration.
+    const timeline = patientTimeline(patient, referrals, diagnostics);
+    const patientReferrals = referrals
+        .filter(r => r.patientId === patient.id)
+        .sort((a, b) => new Date(b.referredAt).getTime() - new Date(a.referredAt).getTime());
+    const kindLabel: Record<string, string> = {
+        REGISTERED: 'Registration', VISIT: 'Visit', REFERRAL: 'Referral', LAB_ORDER: 'Lab', LAB_RESULT: 'Lab result',
+    };
 
     return (
         <div className="flex bg-bg-page min-h-screen font-sans text-txt-primary">
@@ -215,7 +210,8 @@ export default function PatientDetailClient() {
                     {/* Back Button & Header */}
                     <div className="flex items-center gap-4 mb-6">
                         <button
-                            onClick={() => router.push('/dashboard')}
+                            onClick={() => router.push(home)}
+                            aria-label="Back to my workspace"
                             className="p-2 bg-white border border-border-subtle rounded-xl hover:bg-gray-50 transition-colors"
                         >
                             <svg className="w-5 h-5 text-txt-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -299,57 +295,28 @@ export default function PatientDetailClient() {
                                 transition={{ delay: 0.1 }}
                                 className="surface-card p-6"
                             >
-                                <h2 className="text-lg font-bold text-emerald-deep mb-6">Patient Journey Timeline</h2>
-                                <div className="relative">
-                                    {/* Vertical line */}
-                                    <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-gray-200" />
-
-                                    <div className="space-y-6">
+                                <h2 className="text-lg font-bold text-emerald-deep mb-1">Patient Journey</h2>
+                                <p className="text-xs text-txt-muted mb-5">
+                                    As recorded on this device{patient.isSynced ? '' : ' — not yet uploaded to the district service'}.
+                                </p>
+                                {timeline.length === 0 ? (
+                                    <p className="text-sm text-txt-muted">Nothing has been recorded for this patient yet.</p>
+                                ) : (
+                                    <ol className="relative border-l-2 border-gray-200 ml-2 space-y-5">
                                         {timeline.map((event, i) => (
-                                            <motion.div
-                                                key={i}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: 0.2 + i * 0.1 }}
-                                                className="flex items-start gap-4 relative"
-                                            >
-                                                {/* Node */}
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 shrink-0 ${
-                                                    event.status === 'complete' ? 'bg-teal-accent/20 text-teal-700 ring-2 ring-teal-accent' :
-                                                    event.status === 'active' ? 'bg-yellow-100 text-yellow-700 ring-2 ring-yellow-400 animate-pulse' :
-                                                    'bg-gray-100 text-gray-400 ring-2 ring-gray-300'
-                                                }`}>
-                                                    {event.icon}
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="flex-1 pb-2">
-                                                    <p className={`font-semibold text-sm ${
-                                                        event.status === 'complete' ? 'text-emerald-deep' :
-                                                        event.status === 'active' ? 'text-yellow-700' :
-                                                        'text-txt-muted'
-                                                    }`}>
-                                                        {event.action}
-                                                    </p>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <span className="text-xs text-txt-muted">{event.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                        <span className="text-xs text-txt-muted">•</span>
-                                                        <span className="text-xs text-txt-secondary">{event.actor}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Status */}
-                                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full shrink-0 ${
-                                                    event.status === 'complete' ? 'bg-green-100 text-green-700' :
-                                                    event.status === 'active' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-gray-100 text-gray-500'
-                                                }`}>
-                                                    {event.status}
-                                                </span>
-                                            </motion.div>
+                                            <li key={`${event.kind}-${i}`} className="ml-5">
+                                                <span className="absolute -left-[7px] mt-1.5 h-3 w-3 rounded-full border-2 border-white bg-teal-600" aria-hidden="true" />
+                                                <p className="text-sm font-semibold text-emerald-deep">{event.title}</p>
+                                                {event.detail && <p className="text-xs text-txt-secondary mt-0.5">{event.detail}</p>}
+                                                <p className="text-[11px] text-txt-muted mt-0.5">
+                                                    <span className="font-semibold uppercase tracking-wide">{kindLabel[event.kind]}</span>
+                                                    {' · '}{event.at.toLocaleString()}
+                                                    {event.actor ? ` · ${event.actor}` : ''}
+                                                </p>
+                                            </li>
                                         ))}
-                                    </div>
-                                </div>
+                                    </ol>
+                                )}
                             </motion.div>
                         </div>
 
@@ -370,48 +337,28 @@ export default function PatientDetailClient() {
                                 </div>
                             </motion.div>
 
-                            {/* Recommended Hospital */}
+                            {/* Referrals — this patient's, from the referral records */}
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.3 }}
                                 className="surface-card p-6"
                             >
-                                <h3 className="text-sm font-bold text-emerald-deep mb-3 uppercase tracking-wide">Recommended Hospital</h3>
-                                <div className="space-y-2">
-                                    <p className="font-bold text-emerald-deep">{hospital.name}</p>
-                                    <p className="text-xs text-txt-muted">{hospital.location.address}</p>
-                                    <div className="flex gap-3 mt-2">
-                                        <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">
-                                                {hospital.beds.icu ? hospital.beds.icu.total - hospital.beds.icu.occupied : hospital.beds.total - hospital.beds.occupied}
-                                            </span>
-                                            <span className="text-[10px] uppercase font-bold">Avail Beds</span>
-                                        </div>
-                                        <div className="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-center flex-1">
-                                            <span className="block text-lg font-bold">{hospital.ambulanceAvailable}</span>
-                                            <span className="text-[10px] uppercase font-bold">Ambulance</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-
-                            {/* Resource Checklist */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.4 }}
-                                className="surface-card p-6"
-                            >
-                                <h3 className="text-sm font-bold text-emerald-deep mb-3 uppercase tracking-wide">Required Resources</h3>
-                                <ul className="space-y-2">
-                                    {checklist.map((item, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm">
-                                            <span className="text-teal-accent mt-0.5">✓</span>
-                                            <span className="text-txt-primary">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <h3 className="text-sm font-bold text-emerald-deep mb-3 uppercase tracking-wide">Referrals</h3>
+                                {patientReferrals.length === 0 ? (
+                                    <p className="text-xs text-txt-muted">No referral has been raised for this patient.</p>
+                                ) : (
+                                    <ul className="space-y-2">
+                                        {patientReferrals.map(r => (
+                                            <li key={r.id} className="text-xs border border-slate-200 rounded p-2.5">
+                                                <p className="font-bold text-emerald-deep">{r.fromFacilityName} → {r.toFacilityName}</p>
+                                                <p className="text-txt-secondary mt-0.5">{STATUS_LABELS[r.status]} · {r.priority} · {new Date(r.referredAt).toLocaleString()}</p>
+                                                {r.reason && <p className="text-txt-muted mt-0.5 line-clamp-2">{r.reason}</p>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <Link href="/referrals" className="mt-3 inline-block text-xs font-bold text-[#1F3A6E] hover:underline">Open the referral board →</Link>
                             </motion.div>
 
                             {/* Action Buttons */}

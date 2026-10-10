@@ -3,8 +3,12 @@
  *
  * GIGW 3.0 requires a government portal to publish these pages, and the footer has
  * always linked to them; until now those seven links 404'd. Content is written to
- * describe what this application actually does — notably that health data stays on the
- * device — rather than boilerplate copied from another department's site. */
+ * describe what this application actually does rather than boilerplate copied from
+ * another department's site — so when a data flow is added (the pre-arrival record
+ * upload, ABHA, Bhashini, the cloud assistant), the privacy policy must say so. An
+ * earlier version still said records never left the device after they did. */
+
+import { DEPLOYMENT } from '@/lib/config/deployment';
 
 export interface PolicySection {
     heading: string;
@@ -18,41 +22,51 @@ export interface PolicyDoc {
     sections: PolicySection[];
 }
 
-const NODAL = 'Chief Medical Officer, District Health Office, Gadchiroli — Nodal Officer for this portal.';
+const NODAL = `${DEPLOYMENT.nodalOfficer.en} — Nodal Officer for this portal.`;
+const DHO = DEPLOYMENT.district.en ? `District Health Office, ${DEPLOYMENT.district.en}` : 'District Health Office';
 
 export const POLICIES: Record<string, PolicyDoc> = {
     privacy: {
         slug: 'privacy',
         title: 'Privacy Policy',
         intro:
-            'This portal is operated by the Department of Public Health, Government of Maharashtra under the National Health Mission. This policy explains what data NalamMesh handles and where it is stored.',
+            `This portal is operated by the ${DEPLOYMENT.authority.en}, ${DEPLOYMENT.government.en} under the ${DEPLOYMENT.programme.en}. This policy explains what personal data NalamMesh handles, where it is stored, and when it leaves the device it was recorded on.`,
         sections: [
             {
-                heading: 'Health data stays on the device',
+                heading: 'Where health data is stored',
                 body: [
-                    'NalamMesh is an offline-first application. Patient records, triage results, referrals, appointments and medicine stock are stored locally on the device in the browser database (IndexedDB). They are not uploaded to any cloud service and are not transmitted to any third party.',
-                    'Where a facility runs the optional mesh relay, records are exchanged only between facilities of the Maharashtra public health network for continuity of care, and only while that relay is running.',
+                    'NalamMesh is an offline-first application. Patient records, triage results, referrals, the OPD queue, appointments and medicine stock are stored on the device of the facility that records them, in the browser database (IndexedDB), so care continues without a network.',
+                    'A signed-in session locks after a period of inactivity and asks for the staff member\'s PIN again. On the Android app, this data is excluded from phone backups and device transfers, and patient screens are kept out of screenshots.',
+                ],
+            },
+            {
+                heading: 'When data leaves the device',
+                body: [
+                    'Referrals. When a patient is referred, the referral is sent through the department\'s referral relay to the receiving facility, and the patient\'s record is uploaded to the district reporting service so the receiving team can prepare before the patient arrives. That record identifies the patient. It is available only to signed-in staff whose role and posting allow it.',
+                    'ABHA verification. When a citizen verifies an ABHA number, the number and the one-time password are sent, through the department\'s relay, to the Ayushman Bharat Digital Mission, which checks them. This portal does not keep a citizen account.',
+                    'Voice input and translation. When staff use voice input or translate a referral note, the audio or text is sent, through the department\'s relay, to Bhashini (Ministry of Electronics and Information Technology) for processing.',
+                    'The assistant. Questions the assistant cannot answer on the device may be sent to a cloud language model chosen by the department, which may be run by a third party. Phone, Aadhaar and ABHA numbers and email addresses are removed from a question before it is sent; names cannot be, so do not type them.',
                 ],
             },
             {
                 heading: 'Information we do not collect',
                 body: [
-                    'The portal does not use advertising trackers or third-party analytics. It does not collect personal information from a visitor browsing the public pages, beyond what your browser normally sends to any website.',
+                    'The portal does not use advertising trackers or third-party analytics. Fonts and map assets are part of the application, so no third-party server is contacted to display a page. It does not collect personal information from a visitor browsing the public pages, beyond what your browser normally sends to any website.',
                     'No payment information is collected anywhere in this application.',
                 ],
             },
             {
                 heading: 'Access and accountability',
                 body: [
-                    'Access to clinical modules is restricted by staff role (ASHA, ANM/CHO, Medical Officer, Specialist, Pharmacist, Lab Technician, District Health Officer). Changes to referrals, queue entries, appointments and medicine stock are recorded in an audit trail with the acting staff identifier and a timestamp.',
-                    'The audit trail records the identifier of the record changed, not a duplicate copy of patient identity.',
+                    'Clinical modules are restricted by staff role (ANM / Nurse, Medical Officer, Specialist Doctor, Hospital Admin / Bed Manager, District Health Officer, Super Admin) and by the facility the staff member is posted to. Staff sign in with a personal PIN; five wrong PINs lock the account for five minutes.',
+                    'Changes to referrals, queue entries, appointments, medicine stock and sign-ins are recorded in an audit trail with the acting staff identifier and a timestamp. The audit trail records the identifier of the record changed, not a duplicate copy of patient identity.',
                 ],
             },
             {
                 heading: 'Digital Personal Data Protection Act, 2023',
                 body: [
-                    'Personal health data is processed for the purpose of delivering public healthcare services. Data minimisation is enforced by design: the application stores only the clinical fields required for care, and retains them on the device of the facility that created them.',
-                    'For any request concerning your personal data, contact the Nodal Officer listed below.',
+                    'Personal health data is processed to deliver public healthcare services. The application stores the clinical fields needed for care and shares a patient\'s record only for that patient\'s care, as described above.',
+                    'You may ask to see the records held about you, ask for them to be corrected, or raise a grievance about how they were handled, by contacting the Nodal Officer listed below. Records are kept for the period the department\'s record-retention rules require.',
                 ],
             },
             { heading: 'Contact', body: [NODAL] },
@@ -178,7 +192,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
             {
                 heading: 'How to file a request',
                 body: [
-                    'An application under Section 6(1) of the Act may be submitted in writing to the Public Information Officer of the District Health Office, Gadchiroli, or filed online through the Government of Maharashtra RTI portal.',
+                    `An application under Section 6(1) of the Act may be submitted in writing to the Public Information Officer of the ${DHO}, or filed online through the ${DEPLOYMENT.government.en} RTI portal.`,
                     'The application should specify the information sought as precisely as possible, and be accompanied by the prescribed fee. Applicants below the poverty line are exempt from the fee on production of proof.',
                 ],
             },
@@ -209,7 +223,7 @@ export const POLICIES: Record<string, PolicyDoc> = {
                 heading: 'Health service grievances',
                 body: [
                     'Grievances relating to treatment, availability of medicines, behaviour of staff, or denial of an entitlement should be raised first with the Medical Officer in charge of the facility concerned.',
-                    'If the matter is not resolved, it may be escalated to the District Health Officer, Gadchiroli, and thereafter through the National Health Mission grievance channel.',
+                    `If the matter is not resolved, it may be escalated to the District Health Officer${DEPLOYMENT.district.en ? `, ${DEPLOYMENT.district.en}` : ''}, and thereafter through the National Health Mission grievance channel.`,
                 ],
             },
             {

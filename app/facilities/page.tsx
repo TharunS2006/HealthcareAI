@@ -1,12 +1,14 @@
 /**
  * Facility Hierarchy & Service Discovery Directory — NalamMesh
  * Exact 4-Tier Maharashtra Model: Sub-Centre -> PHC -> CHC/SDH -> District Hospital
- * Service locator ("What is available where") with live beds, specialized staff, and equipment.
+ * Service locator ("What is available where") with beds, staff and equipment as each
+ * facility's record states them — the device's facility list, which the Super Admin
+ * maintains, not the demonstration seed the page used to read directly.
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -14,8 +16,11 @@ import Icon from '@/components/gov/Icon';
 import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import { FacilityType } from '@/types/facility';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useFacilityStore } from '@/stores/facilityStore';
+import { useSession } from '@/lib/auth/session';
+import { canAccessRoute } from '@/lib/auth/permissions';
+import { districtSuffix } from '@/lib/config/deployment';
 import Link from 'next/link';
-import toast from 'react-hot-toast';
 
 export default function FacilitiesPage() {
     const { language } = useLanguageStore();
@@ -25,7 +30,16 @@ export default function FacilitiesPage() {
     const [selectedTier, setSelectedTier] = useState<FacilityType | 'ALL'>('ALL');
     const [serviceFilter, setServiceFilter] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFacility, setSelectedFacility] = useState(FACILITY_NETWORK[0]);
+    const { facilities: stored, loadAll } = useFacilityStore();
+    useEffect(() => {
+        void loadAll();
+    }, [loadAll]);
+    // The seed list only until the device's own facility records have loaded.
+    const network = stored.length > 0 ? stored : FACILITY_NETWORK;
+    const [selectedId, setSelectedId] = useState(FACILITY_NETWORK[0]?.id ?? '');
+    const selectedFacility = network.find(f => f.id === selectedId) ?? network[0];
+    const session = useSession();
+    const mayRefer = canAccessRoute(session?.role ?? null, '/referrals');
 
     const serviceTags = [
         'Emergency Obstetric Care (CEmONC)',
@@ -37,7 +51,7 @@ export default function FacilitiesPage() {
         'NCD Screening (BP/Sugar)',
     ];
 
-    const filteredFacilities = FACILITY_NETWORK.filter(f => {
+    const filteredFacilities = network.filter(f => {
         const matchesTier = selectedTier === 'ALL' || f.type === selectedTier;
         const matchesService = serviceFilter === 'ALL' || f.services.some(s => s.toLowerCase().includes(serviceFilter.toLowerCase()));
         const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,7 +117,7 @@ export default function FacilitiesPage() {
             : isHi
             ? 'उप-केंद्र (SC) → प्राथमिक स्वास्थ्य केंद्र (PHC) → CHC/SDH → जिला अस्पताल (DH)'
             : 'उपकेंद्र (SC) → प्राथमिक आरोग्य केंद्र (PHC) → CHC/SDH → जिल्हा रुग्णालय (DH)',
-        districtBadge: isEn ? 'District: Gadchiroli (Tribal Division)' : isHi ? 'जिला: गढ़चिरौली (आदिवासी क्षेत्र)' : 'जिल्हा: गडचिरोली (आदिवासी विभाग)',
+        districtBadge: isEn ? `District${districtSuffix(language).replace(' — ', ': ') || ': all'}` : isHi ? `जिला${districtSuffix(language).replace(' — ', ': ') || ': सभी'}` : `जिल्हा${districtSuffix(language).replace(' — ', ': ') || ': सर्व'}`,
         searchPlaceholder: isEn ? 'Search facility, tehsil, equipment, doctor...' : isHi ? 'अस्पताल, तहसील, उपकरण, डॉक्टर खोजें...' : 'आरोग्य केंद्र, तालुका, उपकरण, डॉक्टर शोधा...',
         allTiers: isEn ? 'All Tiers' : isHi ? 'सभी स्तर' : 'सर्व स्तर',
         servicesTitle: isEn ? 'Available Specialized Clinical Services' : isHi ? 'उपलब्ध विशिष्ट चिकित्सीय सेवाएं' : 'उपलब्ध विशेष वैद्यकीय सेवा',
@@ -201,7 +215,7 @@ export default function FacilitiesPage() {
                                 return (
                                     <div
                                         key={fac.id}
-                                        onClick={() => setSelectedFacility(fac)}
+                                        onClick={() => setSelectedId(fac.id)}
                                         className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                                             isSelected
                                                 ? 'border-emerald-600 bg-emerald-50/40 shadow-md ring-2 ring-emerald-500/30'
@@ -228,8 +242,9 @@ export default function FacilitiesPage() {
                                                 <span className="text-sm font-black font-mono text-[#1F3A6E] block">
                                                     {fac.beds.total} {isEn ? 'Beds' : isHi ? 'बिस्तर' : 'खाटा'}
                                                 </span>
-                                                <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
-                                                    ● {(fac.isOnline ? (isEn ? 'Active' : isHi ? 'सक्रिय' : 'सक्रिय') : (isEn ? 'Offline' : isHi ? 'ऑफलाइन' : 'ऑफलाइन'))}
+                                                {/* As the Super Admin recorded it (/admin), not a live probe. */}
+                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${fac.isOnline ? 'text-emerald-700 bg-emerald-100' : 'text-slate-700 bg-slate-200'}`}>
+                                                    ● {(fac.isOnline ? (isEn ? 'On the network' : isHi ? 'नेटवर्क पर' : 'नेटवर्कवर') : (isEn ? 'Not on the network' : isHi ? 'नेटवर्क पर नहीं' : 'नेटवर्कवर नाही'))}
                                                 </span>
                                             </div>
                                         </div>
@@ -316,6 +331,8 @@ export default function FacilitiesPage() {
                                     </div>
                                 </div>
 
+                                {/* Staff only: /referrals answers 403 to a visitor. */}
+                                {mayRefer && (
                                 <div className="pt-3 border-t border-gray-100">
                                     <Link
                                         href="/referrals"
@@ -324,6 +341,7 @@ export default function FacilitiesPage() {
                                         {txt.referralBtn}
                                     </Link>
                                 </div>
+                                )}
                             </div>
                         </div>
 

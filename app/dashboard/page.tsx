@@ -1,8 +1,13 @@
 /**
  * District & Facility Health Dashboard — NalamMesh
  * Administrative View for District Health Officer (DHO) & Medical Superintendents
- * Gadchiroli District, Maharashtra
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी)
+ *
+ * Every figure is computed from the records on this device. The facility tree
+ * and the high-risk list were partly drawn by hand — fixed bed counts, and a
+ * clinical description chosen by the patient's first name — and are now built
+ * from the facility and patient records (components/dashboard/FacilityTree.tsx,
+ * lib/analytics/patientSummary.ts). A rate with nothing to measure shows a dash.
  */
 
 'use client';
@@ -26,6 +31,9 @@ import {
 } from '@/lib/analytics/facilityMetrics';
 import Link from 'next/link';
 import ReferralCommand from '@/components/dashboard/ReferralCommand';
+import FacilityTree from '@/components/dashboard/FacilityTree';
+import { clinicalSummary } from '@/lib/analytics/patientSummary';
+import { districtSuffix } from '@/lib/config/deployment';
 import OfficialHealthContext from '@/components/dashboard/OfficialHealthContext';
 import { isOpenReferral } from '@/lib/referrals/workflow';
 import { useSession } from '@/lib/auth/session';
@@ -121,19 +129,19 @@ export default function DashboardPage() {
     // Localization Dictionary for Dashboard
     const txt = {
         deptTag: isEn ? 'Government of Maharashtra • Public Health Dept' : isHi ? 'महाराष्ट्र सरकार • लोक स्वास्थ्य विभाग' : 'महाराष्ट्र शासन • सार्वजनिक आरोग्य विभाग',
-        title: isEn ? 'District Health Command — Gadchiroli' : isHi ? 'जिला स्वास्थ्य कमांड केंद्र — गढ़चिरौली' : 'जिल्हा आरोग्य कमांड केंद्र — गडचिरोली',
+        title: isEn ? `District Health Command${districtSuffix(language)}` : isHi ? `जिला स्वास्थ्य कमांड केंद्र${districtSuffix(language)}` : `जिल्हा आरोग्य कमांड केंद्र${districtSuffix(language)}`,
         subTitle: isEn
-            ? 'Real-time monitoring across Sub-Centres, PHCs, CHCs, and District Hospital'
+            ? 'Sub-Centres, PHCs, CHCs and the District Hospital — from the records on this device and the referral network'
             : isHi
-            ? 'उप-केंद्र, प्राथमिक स्वास्थ्य केंद्र (PHC), सामुदायिक स्वास्थ्य केंद्र (CHC) और जिला अस्पताल की वास्तविक समय निगरानी'
-            : 'उप-केंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) आणि जिल्हा रुग्णालयाचे थेट निरीक्षण',
+            ? 'उप-केंद्र, प्राथमिक स्वास्थ्य केंद्र (PHC), सामुदायिक स्वास्थ्य केंद्र (CHC) और जिला अस्पताल — इस डिवाइस के अभिलेखों व रेफरल नेटवर्क से'
+            : 'उप-केंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) आणि जिल्हा रुग्णालय — या उपकरणावरील नोंदी व संदर्भ नेटवर्कमधून',
         meshOnline: isEn ? 'Mesh Relay Online' : isHi ? 'मेश रिले ऑनलाइन' : 'मेश रिले ऑनलाइन',
         meshStandalone: isEn ? 'Mesh Relay Standalone' : isHi ? 'मेश रिले स्वतंत्र' : 'मेश रिले स्वतंत्र',
         meshConnecting: isEn ? 'Mesh Relay Connecting' : isHi ? 'मेश रिले जुड़ रहा है' : 'मेश रिले जोडत आहे',
 
         // Metrics
         patientsToday: isEn ? 'Patients in System' : isHi ? 'सिस्टम में कुल मरीज' : 'प्रणालीतील एकूण रुग्ण',
-        registeredInSystem: isEn ? 'live registered count' : isHi ? 'लाइव पंजीकृत संख्या' : 'थेट नोंदणीकृत संख्या',
+        registeredInSystem: isEn ? 'counted from the records on this device' : isHi ? 'इस डिवाइस के अभिलेखों से गिना गया' : 'या उपकरणावरील नोंदींवरून मोजले',
         pendingReferrals: isEn ? 'Pending Referrals' : isHi ? 'प्रलंबित रेफरल' : 'प्रलंबित संदर्भ सेवा (रेफरल)',
         inTransit: isEn ? `${inTransitCount} In-Transit (102/108)` : isHi ? `${inTransitCount} मार्ग में (१०२/१०८)` : `${inTransitCount} मार्गावर (१०२/१०८)`,
         viewLink: isEn ? 'View →' : isHi ? 'देखें →' : 'पहा →',
@@ -149,33 +157,10 @@ export default function DashboardPage() {
             : `${redCount} अतिगंभीर • प्रलंबित तपासणी`,
 
         // Continuum Tree
-        treeTitle: isEn ? 'Maharashtra Health Continuum Tree' : isHi ? 'महाराष्ट्र स्वास्थ्य निरंतरता नेटवर्क' : 'महाराष्ट्र आरोग्य सातत्य वृक्ष (Continuum)',
-        treeSub: isEn ? 'District Hospital → Sub-District → CHC → PHC → Sub-Centres' : isHi ? 'जिला अस्पताल → उप-जिला अस्पताल → CHC → PHC → उप-केंद्र' : 'जिल्हा रुग्णालय → उपजिल्हा रुग्णालय → CHC → PHC → उप-केंद्रे',
-        nodesConnected: isEn ? '7 Nodes Connected' : isHi ? '७ स्वास्थ्य केंद्र सक्रिय' : '७ आरोग्य केंद्रे जोडलेली',
+        treeTitle: isEn ? 'Referral Network' : isHi ? 'रेफरल नेटवर्क' : 'संदर्भ सेवा नेटवर्क',
+        treeSub: isEn ? 'District Hospital → Sub-District → CHC → PHC → Sub-Centres, as the facility records report them' : isHi ? 'जिला अस्पताल → उप-जिला अस्पताल → CHC → PHC → उप-केंद्र, केंद्र अभिलेखों के अनुसार' : 'जिल्हा रुग्णालय → उपजिल्हा रुग्णालय → CHC → PHC → उप-केंद्रे, संस्थांच्या नोंदींनुसार',
+        nodesConnected: isEn ? `${facilities.length} facilities` : isHi ? `${facilities.length} केंद्र` : `${facilities.length} केंद्रे`,
         
-        apexHospital: isEn ? 'APEX FACILITY — DISTRICT HOSPITAL (DH)' : isHi ? 'शीर्ष रेफरल अस्पताल — जिला अस्पताल (DH)' : 'सर्वोच्च संदर्भ रुग्णालय — जिल्हा रुग्णालय (DH)',
-        dhName: isEn ? 'District Hospital, Gadchiroli' : isHi ? 'जिला अस्पताल, गढ़चिरौली' : 'जिल्हा रुग्णालय, गडचिरोली',
-        dhBeds: isEn ? 'Beds: 235/300 Occupied • ICU: 16/20 • Specialists: 24' : isHi ? 'बिस्तर: २३५/३०० • ICU: १६/२० • विशेषज्ञ डॉक्टर: २४' : 'खाटा: २३५/३०० • ICU: १६/२० • तज्ज्ञ डॉक्टर: २४',
-        online247: isEn ? 'Online 24x7' : isHi ? '२४x७ सक्रिय' : '२४ तास सेवारत',
-
-        fruUnit: isEn ? 'FIRST REFERRAL UNIT • SDH (AHERI)' : isHi ? 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (अहेरी)' : 'प्रथम संदर्भ सेवा केंद्र (FRU) • SDH (अहेरी)',
-        sdhName: isEn ? 'Sub-District Hospital, Aheri' : isHi ? 'उप-जिला अस्पताल, अहेरी' : 'उपजिल्हा रुग्णालय, अहेरी',
-        sdhAmbulances: isEn ? '5 Ambulances' : isHi ? '५ एम्बुलेंस' : '५ रुग्णवाहिका',
-        sdhBeds: isEn ? 'Beds: 74/100 • Emergency Obstetric Care (CEmONC) • Blood Unit' : isHi ? 'बिस्तर: ७४/१०० • आपातकालीन प्रसूति सेवा (CEmONC) • ब्लड बैंक' : 'खाटा: ७४/१०० • तातडीची प्रसूती सेवा (CEmONC) • रक्तपेढी',
-
-        chcUnit: isEn ? 'COMMUNITY HEALTH CENTRE (CHC)' : isHi ? 'सामुदायिक स्वास्थ्य केंद्र (CHC)' : 'सामुदायिक आरोग्य केंद्र (CHC)',
-        chcName: isEn ? 'CHC Etapalli' : isHi ? 'सामुदायिक स्वास्थ्य केंद्र, एटापल्ली' : 'ग्रामीण रुग्णालय (CHC), एटापल्ली',
-        chcBeds: isEn ? 'Beds: 21/30 • 24x7 Delivery Care • Teleconsult Node' : isHi ? 'बिस्तर: २१/३० • २४x७ प्रसव कक्ष • ई-संजीवनी केंद्र' : 'खाटा: २१/३० • २४x७ प्रसूती कक्ष • ई-संजीवनी केंद्र',
-
-        phcBhamragad: isEn ? 'PHC Bhamragad' : isHi ? 'प्राथमिक स्वास्थ्य केंद्र, भामरागढ़' : 'प्राथमिक आरोग्य केंद्र, भामरागड',
-        phcBeds: isEn ? 'Beds: 6/10 • 2 Doctors • Solar Mesh Active' : isHi ? 'बिस्तर: ६/१० • २ डॉक्टर • सोलर मेश सक्रिय' : 'खाटा: ६/१० • २ डॉक्टर • सौर मेश प्रणाली',
-        stationActive: isEn ? 'Station Active' : isHi ? 'वर्तमान स्टेशन' : 'सध्याचे केंद्र',
-
-        scKothi: isEn ? 'Sub-Centre Kothi (CHO + ASHA)' : isHi ? 'आरोग्य मंदिर उप-केंद्र कोठी (CHO + ASHA)' : 'आरोग्य वर्धिनी उपकेंद्र कोठी (CHO + ASHA)',
-        scGovindpur: isEn ? 'Sub-Centre Govindpur (ANM)' : isHi ? 'उप-केंद्र गोविंदपुर (ANM)' : 'उपकेंद्र गोविंदपूर (ANM)',
-        phcPerimili: isEn ? 'PHC Perimili' : isHi ? 'प्रा. स्वा. केंद्र पेरिमिली' : 'प्रा. आ. केंद्र पेरीमिली',
-        perimiliBeds: isEn ? 'Beds: 3/6' : isHi ? 'बिस्तर: ३/६' : 'खाटा: ३/६',
-
         // High-Risk Action List
         actionListTitle: isEn ? 'High-Risk Patient Action List' : isHi ? 'उच्च जोखिम मरीज कार्य सूची' : 'उच्च जोखीम रुग्ण कृती सूची',
         actionRequired: isEn ? 'Action Required' : isHi ? 'कार्रवाई अपेक्षित' : 'त्वरित कारवाई आवश्यक',
@@ -253,7 +238,7 @@ export default function DashboardPage() {
 
         // IPHS Quality Indicators
         iphsTitle: isEn ? 'Indian Public Health Standards (IPHS) Quality Indicators' : isHi ? 'भारतीय सार्वजनिक स्वास्थ्य मानक (IPHS) गुणवत्ता सूचकांक' : 'भारतीय सार्वजनिक आरोग्य मानक (IPHS) गुणवत्ता निर्देशांक',
-        iphsSub: isEn ? 'Quality, continuity, and accountability benchmarks for Gadchiroli rural district' : isHi ? 'गढ़चिरौली ग्रामीण व आदिवासी क्षेत्र हेतु गुणवत्ता व सेवा निरंतरता मानक' : 'गडचिरोली ग्रामीण व आदिवासी भागासाठी गुणवत्ता व सेवा निरंतरता मापदंड',
+        iphsSub: isEn ? 'Quality, continuity and accountability, measured from the records on this device' : isHi ? 'गुणवत्ता, निरंतरता व जवाबदेही — इस डिवाइस के अभिलेखों से मापी गई' : 'गुणवत्ता, सातत्य व उत्तरदायित्व — या उपकरणावरील नोंदींवरून मोजलेले',
         quarterlyTarget: isEn ? 'Quarterly Target: 85%+' : isHi ? 'त्रैमासिक लक्ष्य: ८५%+' : 'त्रैमासिक उद्दिष्ट: ८५%+',
 
         ind1Title: isEn ? 'Referral Completion Rate' : isHi ? 'रेफरल पूर्णता दर' : 'रेफरल पूर्णता दर',
@@ -263,39 +248,6 @@ export default function DashboardPage() {
         ind3Title: isEn ? 'IPHS Drug Stock Level' : isHi ? 'IPHS आवश्यक दवा स्टॉक स्तर' : 'IPHS अत्यावश्यक औषध साठा',
 
         ind4Title: isEn ? 'High-Risk ANC Adherence' : isHi ? 'उच्च जोखिम ANC गृह भेंट अनुपालन' : 'उच्च जोखीम माता ANC तपासणी',
-    };
-
-    // Localized patient illness descriptions
-    const getPatientCondition = (name: string, defaultDesc: string) => {
-        if (name.includes('Sunita')) {
-            return isEn
-                ? 'High-risk Antenatal: Severe gestational hypertension with severe frontal headache and visual blurring'
-                : isHi
-                ? 'उच्च जोखिम गर्भावस्था: गंभीर उच्च रक्तचाप, सिरदर्द व धुंधली दृष्टि (CEmONC रेफरल)'
-                : 'उच्च जोखीम गरोदरपण: तीव्र रक्तदाब, डोकेदुखी व अंधुक दृष्टी (CEmONC रेफरल)';
-        }
-        if (name.includes('Ramesh')) {
-            return isEn
-                ? 'Uncontrolled Type-2 Diabetes with non-healing ulcer on right plantar foot (grade 2) for 3 weeks'
-                : isHi
-                ? 'अनियंत्रित टाइप-२ मधुमेह: पैर के तलवे पर ३ सप्ताह पुराना अल्सर (ग्रेड २ जांच)'
-                : 'अनियंत्रित मधुमेह (Type-2): उजव्या पायावर ३ आठवड्यांपासून बरी न होणारी जखम (Grade 2)';
-        }
-        if (name.includes('Aarav')) {
-            return isEn
-                ? 'Severe Acute Malnutrition (SAM) with fast breathing & high fever (Pneumonia suspect)'
-                : isHi
-                ? 'गंभीर तीव्र कुपोषण (SAM): तेज सांस चलना व तेज बुखार (निमोनिया संशय NRC रेफरल)'
-                : 'तीव्र कुपोषण (SAM): धाप लागणे, जलद श्वसन व तीव्र ताप (न्यूमोनिया संशय NRC रेफरल)';
-        }
-        if (name.includes('Meshram')) {
-            return isEn
-                ? 'Pulmonary Tuberculosis Month-3 Follow up: Chronic cough reduced, sputum check needed'
-                : isHi
-                ? 'फेफड़ों का टीबी (TB) माह-३ फॉलो-अप: खांसी कम, बलगम जांच आवश्यक'
-                : 'फुफ्फुसाचा क्षयरोग (TB) महिना-३ फॉलो-अप: खोकला कमी, थुंकी तपासणी आवश्यक';
-        }
-        return defaultDesc;
     };
 
     return (
@@ -431,106 +383,8 @@ export default function DashboardPage() {
                                 </span>
                             </div>
 
-                            {/* Visual Hierarchy Nodes */}
-                            <div className="space-y-3 flex-1 overflow-y-auto pr-1">
-
-                                {/* Level 1: District Hospital */}
-                                <div className="p-3.5 bg-[#1F3A6E] text-white rounded border border-[#11223F]">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <span className="text-[9.5px] uppercase tracking-wider text-amber-400 font-bold block">
-                                                {txt.apexHospital}
-                                            </span>
-                                            <h3 className="font-extrabold text-sm">{txt.dhName}</h3>
-                                            <span className="text-[10px] text-slate-300">
-                                                {txt.dhBeds}
-                                            </span>
-                                        </div>
-                                        <span className="text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded">
-                                            {txt.online247}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Level 2: Sub-District Hospital */}
-                                <div className="pl-4 border-l-2 border-slate-300 space-y-3">
-                                    <div className="p-3 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors">
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <span className="text-[9.5px] uppercase tracking-wider text-teal-800 font-bold block">
-                                                    {txt.fruUnit}
-                                                </span>
-                                                <h3 className="font-bold text-xs text-[#1F3A6E]">{txt.sdhName}</h3>
-                                                <span className="text-[10px] text-txt-muted">
-                                                    {txt.sdhBeds}
-                                                </span>
-                                            </div>
-                                            <span className="text-[10px] font-bold bg-white text-emerald-800 px-2 py-0.5 rounded border">
-                                                {txt.sdhAmbulances}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Level 3: CHC */}
-                                    <div className="pl-4 border-l-2 border-slate-300 space-y-3">
-                                        <div className="p-3 bg-white border border-slate-300 rounded hover:bg-slate-50 transition-colors">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <span className="text-[9px] uppercase tracking-wider text-txt-muted font-bold block">
-                                                        {txt.chcUnit}
-                                                    </span>
-                                                    <h3 className="font-bold text-xs text-[#1F3A6E]">{txt.chcName}</h3>
-                                                    <span className="text-[10px] text-txt-muted">
-                                                        {txt.chcBeds}
-                                                    </span>
-                                                </div>
-                                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                                                    {isEn ? 'Online' : isHi ? 'सक्रिय' : 'सक्रिय'}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Level 4: PHCs */}
-                                        <div className="pl-4 border-l-2 border-slate-300 space-y-2">
-                                            <div className="p-2.5 bg-slate-50 border border-slate-300 rounded">
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <span className="text-[9px] bg-[#1F3A6E] text-white px-1.5 py-0.5 rounded font-bold">PHC</span>
-                                                        <span className="font-bold text-xs text-[#1F3A6E] ml-1.5">{txt.phcBhamragad}</span>
-                                                        <span className="text-[10px] text-txt-muted ml-2">({txt.phcBeds})</span>
-                                                    </div>
-                                                    <span className="text-[10px] font-bold text-[#1F3A6E]">{txt.stationActive}</span>
-                                                </div>
-
-                                                {/* Level 5: Sub-Centres / Arogya Mandir */}
-                                                <div className="mt-2 pl-3 pt-2 border-t border-slate-200 flex gap-2 flex-wrap text-[10px]">
-                                                    <span className="bg-white px-2.5 py-1 rounded border border-slate-200 text-slate-700 font-medium flex items-center gap-1">
-                                                        <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                        </svg>
-                                                        <span>{txt.scKothi}</span>
-                                                    </span>
-                                                    <span className="bg-white px-2.5 py-1 rounded border border-slate-200 text-slate-700 font-medium flex items-center gap-1">
-                                                        <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                                        </svg>
-                                                        <span>{txt.scGovindpur}</span>
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className="p-2.5 bg-gray-50 border border-border-subtle rounded-lg">
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <span className="text-[9px] bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded font-bold">PHC</span>
-                                                        <span className="font-bold text-xs text-[#1F3A6E] ml-1.5">{txt.phcPerimili}</span>
-                                                    </div>
-                                                    <span className="text-[10px] text-txt-muted">{txt.perimiliBeds}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="flex-1 overflow-y-auto pr-1">
+                                <FacilityTree facilities={facilities} currentFacilityId={session?.facilityId} language={language} />
                             </div>
                         </div>
 
@@ -562,16 +416,18 @@ export default function DashboardPage() {
                                                 </span>
                                             </div>
 
-                                            <p className="text-[11px] text-txt-secondary leading-snug line-clamp-2">
-                                                {getPatientCondition(p.name, p.vitals.injuryType || '')}
-                                            </p>
+                                            {clinicalSummary(p) && (
+                                                <p className="text-[11px] text-txt-secondary leading-snug line-clamp-2">
+                                                    {clinicalSummary(p)}
+                                                </p>
+                                            )}
 
                                             <div className="flex items-center justify-between pt-1 border-t border-gray-100 text-[10px]">
                                                 <span className="text-txt-muted">
                                                     BP: {p.vitals.bloodPressure?.systolic || 'N/A'}/{p.vitals.bloodPressure?.diastolic || 'N/A'} • SpO2: {p.vitals.spo2}%
                                                 </span>
                                                 <Link
-                                                    href={`/opd`}
+                                                    href={`/record?id=${encodeURIComponent(p.id)}`}
                                                     className="font-bold text-[#1F3A6E] hover:underline flex items-center gap-1"
                                                 >
                                                     <span>{txt.openRecord}</span>
@@ -617,7 +473,7 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind1Title}</span>
-                                    <span className="text-amber-700">{referralCompletionRate}%</span>
+                                    <span className="text-amber-700">{decided.length === 0 ? txt.awaitingData : `${referralCompletionRate}%`}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
                                     <div className="bg-[#B45309] h-full rounded" style={{ width: `${referralCompletionRate}%` }} />
@@ -649,7 +505,7 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind3Title}</span>
-                                    <span className="text-[#1F3A6E]">{medicineAvailability}%</span>
+                                    <span className="text-[#1F3A6E]">{essentialMeds.length === 0 ? txt.awaitingData : `${medicineAvailability}%`}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
                                     <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${medicineAvailability}%` }} />
@@ -663,7 +519,7 @@ export default function DashboardPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between text-xs font-bold">
                                     <span className="text-[#1F3A6E]">{txt.ind4Title}</span>
-                                    <span className="text-[#1F3A6E]">{maternalFollowUpRate}%</span>
+                                    <span className="text-[#1F3A6E]">{maternalFlagged.length === 0 ? txt.awaitingData : `${maternalFollowUpRate}%`}</span>
                                 </div>
                                 <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
                                     <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${maternalFollowUpRate}%` }} />
@@ -709,7 +565,7 @@ export default function DashboardPage() {
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-xs font-bold">
                                         <span className="text-[#1F3A6E]">{txt.escalationRate}</span>
-                                        <span className="text-[#1F3A6E]">{dangerSigns.escalationRate}%</span>
+                                        <span className="text-[#1F3A6E]">{dangerSigns.dangerSignsDetected === 0 ? txt.awaitingData : `${dangerSigns.escalationRate}%`}</span>
                                     </div>
                                     <div className="w-full bg-slate-200 h-2 rounded overflow-hidden">
                                         <div className="bg-[#1F3A6E] h-full rounded" style={{ width: `${dangerSigns.escalationRate}%` }} />

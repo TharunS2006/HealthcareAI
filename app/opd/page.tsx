@@ -124,7 +124,9 @@ export default function OPDPage() {
             : 'गरोदर माता / ANC',
         childCohort: isEn ? 'Child (< 5 Years Malnutrition Screening)' : isHi ? 'बालक (< ५ वर्ष कुपोषण जांच)' : 'बालक (< ५ वर्षे कुपोषण तपासणी)',
         sec2Title: isEn ? '2. Physiological Vitals & Clinical Examination' : isHi ? '२. शारीरिक जांच एवं महत्वपूर्ण संकेत (Vitals)' : '२. वैद्यकीय तपासणी व महत्त्वपूर्ण नोंदी (Physiological Vitals)',
-        manualSensor: isEn ? 'Live Sensor / Manual Entry' : isHi ? 'लाइव सेंसर / मैन्युअल प्रविष्टि' : 'थेट सेन्सर / मॅन्युअल नोंदणी',
+        // Typed or spoken by the worker from their own instruments — there is no
+        // device integration, so this does not say "Live Sensor".
+        manualSensor: isEn ? 'Measured by you — enter each reading' : isHi ? 'आपके द्वारा मापा गया — हर रीडिंग दर्ज करें' : 'तुम्ही मोजलेले — प्रत्येक नोंद भरा',
         spo2Label: isEn ? 'SpO2 (Oxygen Saturation)' : isHi ? 'SpO2 (ऑक्सीजन स्तर)' : 'SpO2 (ऑक्सिजन प्रमाण)',
         pulseLabel: isEn ? 'Pulse Rate (BPM)' : isHi ? 'नाड़ी दर (Pulse / BPM)' : 'नाडीचे ठोके (Pulse / BPM)',
         bpLabel: isEn ? 'Blood Pressure (mmHg)' : isHi ? 'रक्तचाप / Blood Pressure (mmHg)' : 'रक्तदाब / Blood Pressure (mmHg)',
@@ -176,7 +178,7 @@ export default function OPDPage() {
             ? 'IPHS खतरे के लक्षण प्रोटोकॉल व न्यूरल नेटवर्क के आधार पर विश्लेषण जारी है। यह पूरी तरह इस डिवाइस पर चलता है — इंटरनेट की आवश्यकता नहीं।'
             : 'IPHS धोकादायक लक्षण प्रोटोकॉल व न्यूरल नेटवर्कच्या आधारे विश्लेषण सुरू आहे. हे पूर्णपणे याच डिव्हाइसवर चालते — इंटरनेटची गरज नाही.',
         queueHeader: isEn ? 'Live OPD Queue Board' : isHi ? 'दैनिक ओपीडी कतार बोर्ड' : 'दैनिक ओपीडी रांग फलक (Live OPD Queue Board)',
-        queueLive: isEn ? 'Live Real-time' : isHi ? 'लाइव अपडेट' : 'थेट अद्ययावत',
+        queueLive: isEn ? 'On this device' : isHi ? 'इस डिवाइस पर' : 'या उपकरणावर',
         colToken: isEn ? 'Token' : isHi ? 'टोकन' : 'टोकन',
         colPatient: isEn ? 'Patient' : isHi ? 'मरीज' : 'रुग्ण',
         colPriority: isEn ? 'Priority' : isHi ? 'प्राथमिकता' : 'प्राधान्य',

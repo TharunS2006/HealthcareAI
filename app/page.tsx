@@ -18,6 +18,13 @@ import Breadcrumb from '@/components/gov/Breadcrumb';
 import { useEffect } from 'react';
 
 import { isOpenReferral } from '@/lib/referrals/workflow';
+import { dep } from '@/lib/config/deployment';
+
+const isToday = (value: Date | string | undefined, now: Date): boolean => {
+    if (!value) return false;
+    const d = new Date(value);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+};
 
 export default function Home() {
     const { language } = useLanguageStore();
@@ -34,8 +41,13 @@ export default function Home() {
         loadFacilities();
     }, [loadPatients, loadReferrals, loadFacilities]);
 
+    // Every figure below is counted from the records on this device — they are
+    // labelled that way, and the district-wide view is the Command Center's.
+    const now = new Date();
+    const seenTodayCount = patients.filter(p => isToday(p.timestamp, now) || (p.visits ?? []).some(v => isToday(v.date, now))).length;
     const activeReferralsCount = referrals.filter(r => isOpenReferral(r.status)).length;
-    const criticalPatientsCount = patients.filter(p => p.triageStatus === 'RED' || (p.highRiskFlags && p.highRiskFlags.length > 0)).length;
+    const maternalHighRiskCount = patients.filter(p => (p.highRiskFlags ?? []).some(f => f.type === 'MATERNAL')).length;
+    const district = dep('district', language);
 
     // Bed occupancy is summed from the facility records rather than asserted.
     // If no facility reports bed capacity, the row says so instead of showing a figure.
@@ -66,7 +78,7 @@ export default function Home() {
             title: isEn ? 'District Health Command (DHO)' : isHi ? 'जिला स्वास्थ्य आदेश कक्ष (DHO)' : 'जिल्हा आरोग्य आदेश कक्ष (DHO)',
             dept: isEn ? 'Public Health Command' : isHi ? 'स्वास्थ्य निगरानी' : 'आरोग्य संनियंत्रण',
             desc: isEn
-                ? 'Real-time census, IPHS facility scorecards, travel burden avoided, referral audits, and danger-sign escalation telemetry across the Gadchiroli facility network.'
+                ? `Census, IPHS facility scorecards, travel burden avoided, referral audits and danger-sign escalations across the${district ? ` ${district}` : ''} facility network.`
                 : isHi
                 ? 'जिले के सभी उपकेंद्र, प्राथमिक स्वास्थ्य केंद्र व ग्रामीण अस्पतालों का सीधा सांख्यिकी एवं गुणवत्ता मूल्यांकन।'
                 : 'जिल्ह्यातील सर्व उपकेंद्र, प्राथमिक आरोग्य केंद्र व ग्रामीण रुग्णालयांचे थेट संख्याशास्त्रीय व गुणवत्ता मूल्यमापन.',
@@ -92,7 +104,7 @@ export default function Home() {
             title: isEn ? 'Diagnostic Lab Coordination' : isHi ? 'निदान एवं प्रयोगशाला समन्वय' : 'निदान व प्रयोगशाळा समन्वय',
             dept: isEn ? 'Diagnostic Network' : isHi ? 'पैथोलॉजी व लैब नेटवर्क' : 'पॅथॉलॉजी व लॅब नेटवर्क',
             desc: isEn
-                ? 'Sample collection tracking, nearest-lab routing for unavailable tests, instant ABHA diagnostic reports, and pathology result entry.'
+                ? 'Sample collection tracking, nearest-lab routing for tests not available on site, and pathology result entry.'
                 : isHi
                 ? 'रक्त व मूत्र नमूना संग्रह, जांच स्थिति और प्राथमिक केंद्र पर अनुपलब्ध जांचों के लिए निकटतम लैब की स्वचालित मैपिंग।'
                 : 'रक्त व मूत्र नमुने संकलन, तपासणी स्थिती व प्राथमिक केंद्रावर अनुपलब्ध चाचण्यांसाठी जवळच्या लॅबचे स्वयंचलित मॅपिंग.',
@@ -105,7 +117,7 @@ export default function Home() {
             title: isEn ? 'Essential Medicine Stock (IPHS)' : isHi ? 'आवश्यक दवा उपलब्धता एवं स्टॉक' : 'आवश्यक औषध साठा व उपलब्धता',
             dept: isEn ? 'Supply Chain (IPHS)' : isHi ? 'दवा आपूर्ति विभाग' : 'औषध पुरवठा विभाग',
             desc: isEn
-                ? 'IPHS Essential Drug List tracking, emergency warehouse requisitions, near-expiry alerts, and transparent ₹0 medicines for citizens.'
+                ? 'IPHS Essential Drug List tracking, stock received and issued, low-stock and near-expiry alerts, and transparent ₹0 medicines for citizens.'
                 : isHi
                 ? 'IPHS मानकों के अनुसार मुफ्त दवा स्टॉक, तत्काल पुनःपूर्ति मांग और निकटतम एक्सपायरी दवाओं के अलर्ट।'
                 : 'IPHS मानकांनुसार मोफत व अनुदानित औषध साठा, तात्काळ पुनर्भरती मागणी व नजीकच्या मुदतबाह्य औषधांचे अलर्ट.',
@@ -118,7 +130,7 @@ export default function Home() {
             title: isEn ? '108 / 102 Emergency Referral Pipeline' : isHi ? '१०८ / १०२ रोगी रेफरल ट्रैकर' : '१०८ / १०२ रुग्ण रेफरल ट्रॅकर',
             dept: isEn ? 'Emergency Medical Services' : isHi ? 'आपातकालीन संदर्भ सेवा' : 'आपत्कालीन संदर्भ सेवा',
             desc: isEn
-                ? 'Multi-tier continuum tracker from Sub-Centre to District Hospital with live 108 ambulance dispatch and electronic longitudinal health records.'
+                ? 'Multi-tier referral tracker from Sub-Centre to District Hospital: the record reaches the receiving facility first, with the 108/102 vehicle the sender records. Ambulances are called by phone; the app does not dispatch them.'
                 : isHi
                 ? 'उपकेंद्र से जिला अस्पताल सीधा रेफरल, एम्बुलेंस समन्वय और उच्च केंद्र को डिजिटल स्वास्थ्य रिकॉर्ड (LHR) प्रेषण।'
                 : 'उपकेंद्र ते जिल्हा रुग्णालय थेट रुग्ण रेफरल, रुग्णवाहिका समन्वय व उच्च केंद्राकडे डिजिटल आरोग्य नोंद (LHR) पाठवणे.',
@@ -131,7 +143,7 @@ export default function Home() {
             title: isEn ? 'OPD Queue & Token Board' : isHi ? 'ओपीडी कतार एवं टोकन प्रबंधन' : 'ओपीडी रांग व टोकन व्यवस्थापन',
             dept: isEn ? 'Patient Services' : isHi ? 'अस्पताल प्रबंधन' : 'रुग्णालय व्यवस्थापन',
             desc: isEn
-                ? 'Live token display, wait time estimators, department triage routing, and dedicated Full-Screen TV Waiting Room display mode.'
+                ? 'Live token display, wait times measured from the tokens themselves, priority calling, and a full-screen waiting-room TV display.'
                 : isHi
                 ? 'डिजिटल टोकन नंबर, अनुमानित प्रतीक्षा समय और विभागों के अनुसार तत्काल प्राथमिकता कतार नियंत्रण प्रणाली।'
                 : 'डिजिटल टोकन क्रमांक, अंदाजित प्रतीक्षा वेळ व विभागांनुसार तात्काळ प्राधान्य रांग नियंत्रण प्रणाली.',
@@ -157,7 +169,7 @@ export default function Home() {
             title: isEn ? '4-Tier Health Facility Directory' : isHi ? '४-स्तरीय स्वास्थ्य संस्था निर्देशिका' : '४-स्तरीय आरोग्य संस्था निर्देशिका',
             dept: isEn ? 'Health Infrastructure' : isHi ? 'बुनियादी ढांचा व मानव संसाधन' : 'पायाभूत सुविधा व मनुष्यबळ',
             desc: isEn
-                ? 'Sub-Centre (Health Temple) → Primary Health Centre (PHC) → Community Health Centre (CHC) → District Hospital (DH) hierarchy with live bed status.'
+                ? 'Sub-Centre (Health Temple) → Primary Health Centre (PHC) → Community Health Centre (CHC) → District Hospital (DH) hierarchy with each facility\'s reported bed status.'
                 : isHi
                 ? 'उपकेंद्र (आरोग्य मंदिर) → प्राथमिक स्वास्थ्य केंद्र → सामुदायिक स्वास्थ्य केंद्र → जिला अस्पताल का नक्शा व बिस्तरों की जानकारी।'
                 : 'उपकेंद्र (आरोग्य मंदिर) → प्राथमिक आरोग्य केंद्र → ग्रामीण रुग्णालय → जिल्हा रुग्णालय नकाशा व खाटांची माहिती.',
@@ -179,30 +191,30 @@ export default function Home() {
             ? 'नलममेश — ग्रामीण सार्वजनिक स्वास्थ्य सेवा एवं गुणवत्ता एकीकृत मंच'
             : 'नलममेश — एकात्मिक ग्रामीण सार्वजनिक आरोग्य सेवा व गुणवत्ता मंच',
         heroSub: isEn
-            ? 'Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs, and District Hospital in Gadchiroli.'
+            ? `Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs, and the District Hospital${district ? ` in ${district}` : ''}.`
             : isHi
             ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
             : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
+        // What this table is: counts of the records held on this device. It used
+        // to call itself a live district census synchronised across the network,
+        // which a single device's IndexedDB is not.
         censusTitle: isEn
-            ? 'Live District Health Census — Gadchiroli Division'
+            ? 'Health Census — Records on This Device'
             : isHi
-            ? 'थेट स्वास्थ्य सांख्यिकी फलक — गढ़चिरौली मंडल'
-            : 'थेट आरोग्य संख्याशास्त्र फलक (Live District Health Census — Gadchiroli Division)',
-        // No hardcoded date here: a "live" census stamped with a fixed calendar date
-        // reads as stale the day after it is written, and it disagreed with the English
-        // string beside it.
+            ? 'स्वास्थ्य सांख्यिकी — इस डिवाइस के अभिलेख'
+            : 'आरोग्य आकडेवारी — या उपकरणावरील नोंदी',
         censusDate: isEn
-            ? 'Updated: Live Real-time • Synchronized across the Gadchiroli facility network'
+            ? 'Counted from this device\'s records. District-wide figures are on the District Health Command.'
             : isHi
-            ? 'अद्यतन: लाइव रीयल-टाइम | गढ़चिरौली सुविधा नेटवर्क में सीधा एकत्रीकरण'
-            : 'अद्ययावत: थेट रिअल-टाइम | गडचिरोली आरोग्य संस्था नेटवर्कमध्ये थेट एकत्रीकरण',
-        stat1Label: isEn ? 'Patients Examined Today (OPD)' : isHi ? 'आज देखे गए मरीज (OPD)' : 'आज तपासलेले रुग्ण (OPD)',
-        stat1Sub: isEn ? 'Live registered count' : isHi ? 'सक्रिय पंजीकृत संख्या' : 'सक्रिय नोंदणीकृत संख्या',
-        stat2Label: isEn ? '108 / 102 Ambulances in Transit' : isHi ? '१०८ / १०२ एम्बुलेंस ट्रांजिट' : '१०८/१०२ रुग्णवाहिका प्रवास',
-        stat2Sub: isEn ? 'Includes 108 and 102 dispatches' : isHi ? '१०८ व १०२ प्रेषण सम्मिलित' : '१०८ व १०२ प्रेषण समाविष्ट',
-        stat3Label: isEn ? 'High-Risk Maternal Cohort (ANC)' : isHi ? 'उच्च जोखिम गर्भवती माताएं (ANC)' : 'उच्च जोखीम गरोदर माता (ANC)',
-        stat3Sub: isEn ? 'Urgent follow-ups required' : isHi ? 'तत्काल गृह भेंट आवश्यक' : 'तातडीने भेटी आवश्यक',
-        stat4Label: isEn ? 'Bed Occupancy (District)' : isHi ? 'बिस्तरों की उपलब्धता (Bed Status)' : 'खाटांची उपलब्धता (Bed Status)',
+            ? 'इस डिवाइस के अभिलेखों से गिना गया। जिला-स्तरीय आँकड़े जिला स्वास्थ्य कमांड पर हैं।'
+            : 'या उपकरणावरील नोंदींवरून मोजले. जिल्हास्तरीय आकडे जिल्हा आरोग्य कमांडवर आहेत.',
+        stat1Label: isEn ? 'Patients Registered or Seen Today' : isHi ? 'आज पंजीकृत या देखे गए मरीज' : 'आज नोंदवलेले किंवा तपासलेले रुग्ण',
+        stat1Sub: isEn ? `${patients.length} patient records on this device in all` : isHi ? `इस डिवाइस पर कुल ${patients.length} मरीज़ अभिलेख` : `या उपकरणावर एकूण ${patients.length} रुग्ण नोंदी`,
+        stat2Label: isEn ? 'Open Referrals' : isHi ? 'खुले रेफरल' : 'चालू संदर्भ (रेफरल)',
+        stat2Sub: isEn ? 'Sent and not yet closed' : isHi ? 'भेजे गए, अभी बंद नहीं' : 'पाठवलेले, अद्याप बंद नाहीत',
+        stat3Label: isEn ? 'High-Risk Pregnancies (ANC)' : isHi ? 'उच्च जोखिम गर्भावस्था (ANC)' : 'उच्च जोखीम गरोदरपणा (ANC)',
+        stat3Sub: isEn ? 'Patients with a maternal high-risk flag' : isHi ? 'मातृ उच्च-जोखिम चिह्न वाले मरीज़' : 'माता उच्च-जोखीम चिन्ह असलेले रुग्ण',
+        stat4Label: isEn ? 'Bed Occupancy' : isHi ? 'बिस्तर अधिभोग' : 'खाटांचा वापर',
         stat4Sub: isEn ? 'Summed across reporting facilities' : isHi ? 'रिपोर्टिंग केंद्रों का योग' : 'नोंद करणाऱ्या केंद्रांची बेरीज',
         modulesHeading: isEn ? 'Operational Healthcare Modules' : isHi ? 'सार्वजनिक स्वास्थ्य प्रणाली विभाग' : 'सार्वजनिक आरोग्य प्रणाली विभाग',
         modulesSub: isEn
@@ -214,7 +226,7 @@ export default function Home() {
         portalTag: isEn ? 'Govt. Health Portal' : isHi ? 'सरकारी स्वास्थ्य पोर्टल' : 'शासकीय आरोग्य पोर्टल',
         citizenTitle: isEn ? 'Citizen Health Services Portal' : isHi ? 'नागरिक स्वास्थ्य सेवा कक्ष' : 'नागरिक आरोग्य सेवा दालन',
         citizenDesc: isEn
-            ? 'Citizens can locate the nearest public health center, check ₹0 essential drug stock, generate an OPD token, and access longitudinal Ayushman Bharat (ABHA) digital records.'
+            ? 'Citizens can locate the nearest public health center, see the services, clinic days and free entitlements at each, check which ₹0 essential medicines are in stock, and verify their Ayushman Bharat (ABHA) number.'
             : isHi
             ? 'नागरिकों के लिए निकटतम स्वास्थ्य केंद्र खोजना, आवश्यक मुफ्त दवा स्टॉक जांचना, ओपीडी टोकन प्राप्त करना व अपनी आभा (ABHA) डिजिटल स्वास्थ्य रिकॉर्ड देखने की सुविधा।'
             : 'नागरिकांना जवळचे आरोग्य केंद्र शोधणे, आवश्यक मोफत औषध साठा तपासणे, ओपीडी टोकन घेणे व स्वतःचे आयुष्मान भारत (ABHA) डिजिटल आरोग्य रेकॉर्ड पाहण्याची सुविधा.',
@@ -284,10 +296,10 @@ export default function Home() {
                         </thead>
                         <tbody className="text-[12.5px]">
                             {[
-                                [pageTexts.stat1Label, String(patients.length), pageTexts.stat1Sub],
+                                [pageTexts.stat1Label, String(seenTodayCount), pageTexts.stat1Sub],
                                 [pageTexts.stat2Label, String(activeReferralsCount),
-                                    `${inTransit} ${isEn ? 'currently in transit' : isHi ? 'वर्तमान में मार्ग पर' : 'सध्या मार्गावर'}`],
-                                [pageTexts.stat3Label, String(criticalPatientsCount), pageTexts.stat3Sub],
+                                    `${pageTexts.stat2Sub} · ${inTransit} ${isEn ? 'patients in transit' : isHi ? 'मरीज़ मार्ग पर' : 'रुग्ण मार्गावर'}`],
+                                [pageTexts.stat3Label, String(maternalHighRiskCount), pageTexts.stat3Sub],
                                 [pageTexts.stat4Label,
                                     bedPct === null ? noData : `${bedPct}%`,
                                     bedTotal > 0
@@ -383,7 +395,9 @@ export default function Home() {
                         <Link href="/facilities" className="gov-btn gov-btn-secondary text-xs">
                             {pageTexts.findCenter}
                         </Link>
-                        <Link href="/medicine" className="gov-btn gov-btn-secondary text-xs">
+                        {/* /medicine is the staff stock register; citizens see which free
+                            medicines their centre has in stock on Services & Entitlements. */}
+                        <Link href="/services-info" className="gov-btn gov-btn-secondary text-xs">
                             {pageTexts.checkMeds}
                         </Link>
                         <Link href="/login" className="gov-btn gov-btn-primary text-xs">

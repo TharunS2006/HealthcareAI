@@ -14,8 +14,8 @@
  * directly — run it after touching either file.
  */
 
-import { FACILITY_NETWORK, SEED_MEDICINES } from '@/lib/data/facilities';
-import { getEntitlements, freeEssentialMedicinesAt, TIER_SERVICE_SCHEDULE, nextOccurrence } from '@/lib/data/patientServices';
+import { FACILITY_NETWORK } from '@/lib/data/facilities';
+import { getEntitlements, TIER_SERVICE_SCHEDULE, nextOccurrence } from '@/lib/data/patientServices';
 import type { FacilityType } from '@/types/facility';
 import type { Language } from '@/stores/languageStore';
 
@@ -136,22 +136,6 @@ export interface EntitlementSummary {
 
 export function entitlementsAt(tier: FacilityType): EntitlementSummary {
     return { tier, lines: getEntitlements(tier).lines };
-}
-
-export interface StockSummary {
-    facilityId: string;
-    facilityName: string;
-    total: number;
-    inStock: number;
-    sample: string[];
-}
-
-/** Free essential medicine availability at a named facility. */
-export function medicineStockAt(facilityId: string): StockSummary | null {
-    const facility = FACILITY_NETWORK.find((f) => f.id === facilityId);
-    if (!facility) return null;
-    const summary = freeEssentialMedicinesAt(facilityId, SEED_MEDICINES);
-    return { facilityId, facilityName: facility.name, ...summary };
 }
 
 export interface ScheduleSummary {

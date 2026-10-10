@@ -5,13 +5,16 @@
  * available services" and "affordability" as root causes of poor rural access; this is
  * the surface that answers, per facility, "what is offered here, WHEN, and what is free."
  *
- * All content is static seed data + dates computed from today, so it works fully offline.
+ * Services, schedules and entitlements are static reference data + dates computed from
+ * today, so they work fully offline. Medicine availability is read from the stock records
+ * on this device — never from the demonstration seed, which once told citizens a drug was
+ * in stock whatever the centre actually held; with no stock reported, the panel says so.
  * The affordability panel is display-only awareness — it performs no scheme verification.
  * Full trilingual localisation: English, Hindi (हिन्दी), Marathi (मराठी). */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -25,6 +28,7 @@ import {
     type Localized,
 } from '@/lib/data/patientServices';
 import { useLanguageStore } from '@/stores/languageStore';
+import { useFacilityStore } from '@/stores/facilityStore';
 import Link from 'next/link';
 
 export default function ServicesInfoPage() {
@@ -33,13 +37,16 @@ export default function ServicesInfoPage() {
     const isHi = language === 'hi';
     const pick = (l: Localized) => (isEn ? l.en : isHi ? l.hi : l.mr);
 
-    // Default to PHC Bhamragad — the station shown throughout the app.
-    const [facilityId, setFacilityId] = useState('phc-bhamragad');
+    const [facilityId, setFacilityId] = useState(FACILITY_NETWORK.find(f => f.type === 'PHC')?.id ?? FACILITY_NETWORK[0]?.id ?? '');
     const facility = FACILITY_NETWORK.find(f => f.id === facilityId) ?? FACILITY_NETWORK[0];
+    const { medicines, loadAll } = useFacilityStore();
+    useEffect(() => {
+        void loadAll();
+    }, [loadAll]);
 
     const schedule = TIER_SERVICE_SCHEDULE[facility.type] ?? [];
     const entitlements = getEntitlements(facility.type);
-    const meds = freeEssentialMedicinesAt(facility.id);
+    const meds = freeEssentialMedicinesAt(facility.id, medicines);
 
     const weekdayNames: Localized[] = [
         { en: 'Sunday', hi: 'रविवार', mr: 'रविवार' },
@@ -82,7 +89,7 @@ export default function ServicesInfoPage() {
         chooseFacility: isEn ? 'Choose your health centre' : isHi ? 'अपना स्वास्थ्य केंद्र चुनें' : 'आपले आरोग्य केंद्र निवडा',
         servicesTitle: isEn ? 'Services Offered Here' : isHi ? 'यहां उपलब्ध सेवाएं' : 'येथे उपलब्ध सेवा',
         hoursLabel: isEn ? 'Opening hours' : isHi ? 'खुलने का समय' : 'सुरू असण्याची वेळ',
-        scheduleTitle: isEn ? 'Clinic & Camp Schedule' : isHi ? 'क्लिनिक एवं शिविर अनुसूची' : 'चिकित्सालय व शिबिर वेळापत्रक',
+        scheduleTitle: isEn ? 'Usual Clinic & Camp Days (confirm with the centre)' : isHi ? 'सामान्य क्लिनिक एवं शिविर दिन (केंद्र से पुष्टि करें)' : 'नेहमीचे चिकित्सालय व शिबिर दिवस (केंद्राकडून खात्री करा)',
         nextLabel: isEn ? 'Next:' : isHi ? 'अगला:' : 'पुढील:',
         entitlementsTitle: isEn ? 'What Is Free For You' : isHi ? 'आपके लिए क्या निःशुल्क है' : 'आपल्यासाठी काय मोफत आहे',
         freeMedsTitle: isEn ? 'Free essential medicines in stock' : isHi ? 'स्टॉक में निःशुल्क आवश्यक दवाएं' : 'साठ्यातील मोफत अत्यावश्यक औषधे',

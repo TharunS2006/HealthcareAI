@@ -15,13 +15,15 @@ import { MedicineStockItem, DiagnosticOrder } from '@/types/facility';
 import toast from 'react-hot-toast';
 import { useSession } from '@/lib/auth/session';
 import { scopeToFacility } from '@/lib/auth/permissions';
+import { districtSuffix } from '@/lib/config/deployment';
+import { requisitionCsv, requisitionLines, type StockMovementKind } from '@/lib/stock/movement';
 
 export default function MedicinePage() {
     const {
         medicines: allMedicines,
         diagnostics: allDiagnostics,
         loadAll,
-        restockMedicine,
+        recordStockMovement,
         updateDiagnosticResult
     } = useFacilityStore();
     // Stock and lab results of the officer's own facility only.
@@ -38,6 +40,14 @@ export default function MedicinePage() {
     const [selectedDiag, setSelectedDiag] = useState<DiagnosticOrder | null>(null);
     const [labResultText, setLabResultText] = useState('');
     const [isAbnormal, setIsAbnormal] = useState(false);
+    const [showRequisition, setShowRequisition] = useState(false);
+    const [movementFor, setMovementFor] = useState<MedicineStockItem | null>(null);
+    const [movementKind, setMovementKind] = useState<StockMovementKind>('RECEIVED');
+    const [movementQty, setMovementQty] = useState('');
+    const [movementBatch, setMovementBatch] = useState('');
+    const [movementExpiry, setMovementExpiry] = useState('');
+    const [movementError, setMovementError] = useState<string | null>(null);
+    const [movementBusy, setMovementBusy] = useState(false);
 
     useEffect(() => {
         loadAll();
@@ -51,6 +61,54 @@ export default function MedicinePage() {
 
     const outOfStockMeds = medicines.filter(m => m.status === 'OUT_OF_STOCK');
     const lowStockMeds = medicines.filter(m => m.status === 'LOW' || m.status === 'NEAR_EXPIRY');
+    const reorder = requisitionLines(medicines);
+
+    const openMovement = (med: MedicineStockItem) => {
+        setMovementFor(med);
+        setMovementKind('RECEIVED');
+        setMovementQty('');
+        setMovementBatch('');
+        setMovementExpiry('');
+        setMovementError(null);
+    };
+
+    const saveMovement = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!movementFor || movementBusy) return;
+        setMovementBusy(true);
+        const error = await recordStockMovement(movementFor.id, movementKind, Number(movementQty), {
+            batchNumber: movementBatch,
+            expiryDate: movementExpiry,
+        });
+        setMovementBusy(false);
+        if (error) setMovementError(error);
+        else setMovementFor(null);
+    };
+
+    const requisitionText = () => reorder
+        .map(l => `${l.name} (${l.dosageForm}) — ${l.facilityName}: ${l.currentStock}/${l.minimumRequiredStock} ${l.unit}, need ${l.quantityToMinimum}`)
+        .join('\n');
+
+    const copyRequisition = async () => {
+        try {
+            await navigator.clipboard.writeText(requisitionText());
+            toast.success(isEn ? 'Reorder list copied' : isHi ? 'पुनः मांग सूची कॉपी की गई' : 'पुनर्मागणी यादी कॉपी केली');
+        } catch {
+            toast.error(isEn ? 'This browser did not allow copying — use Download instead' : isHi ? 'ब्राउज़र ने कॉपी की अनुमति नहीं दी — डाउनलोड करें' : 'ब्राउझरने कॉपीची परवानगी दिली नाही — डाउनलोड वापरा');
+        }
+    };
+
+    const downloadRequisition = () => {
+        const url = URL.createObjectURL(new Blob([requisitionCsv(reorder)], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a');
+        const d = new Date();
+        a.href = url;
+        a.download = `reorder-list-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
 
     const handleSaveLabResult = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,29 +116,28 @@ export default function MedicinePage() {
         await updateDiagnosticResult(selectedDiag.id, labResultText, isAbnormal);
         setSelectedDiag(null);
         setLabResultText('');
-        toast.success(isEn ? 'Diagnostic result updated and linked to patient LHR' : isHi ? 'लैब रिपोर्ट अपडेट कर मरीज के डिजिटल रिकॉर्ड (LHR) में दर्ज की गई' : 'लॅब अहवाल अपडेट करून रुग्णाच्या डिजिटल आरोग्य नोंदीमध्ये (LHR) जोडला गेला');
     };
 
     const txt = {
         deptTag: isEn ? 'Indian Public Health Standards (IPHS) Drug & Diagnostic Portal' : isHi ? 'भारतीय सार्वजनिक स्वास्थ्य मानक (IPHS) दवा व निदान पोर्टल' : 'भारतीय सार्वजनिक आरोग्य मानक (IPHS) औषध व निदान पोर्टल',
         title: isEn ? 'Medicine Inventory & Diagnostic Coordination' : isHi ? 'आवश्यक दवा स्टॉक एवं निदान समन्वय' : 'अत्यावश्यक औषध साठा व निदान समन्वय',
         subTitle: isEn
-            ? 'Stock visibility, emergency reorder alerts, and cross-tier lab test tracking for Gadchiroli'
+            ? `Stock received and issued, reorder alerts, and cross-tier lab test tracking${districtSuffix(language)}`
             : isHi
-            ? 'गढ़चिरौली जिले में दवा स्टॉक, आपातकालीन पुनः आपूर्ति व बहु-स्तरीय परीक्षण ट्रैकिंग'
-            : 'गडचिरोली जिल्ह्यातील औषध साठा, तातडीची मागणी सूचना आणि सर्व स्तरीय लॅब चाचण्यांची स्थिती',
-        emergencyReqBtn: isEn ? 'Emergency Supply Request' : isHi ? 'आपातकालीन आपूर्ति मांग' : 'आपत्कालीन औषध मागणी',
+            ? `दवा स्टॉक प्राप्ति व वितरण, पुनः मांग सूचना व बहु-स्तरीय परीक्षण ट्रैकिंग${districtSuffix(language)}`
+            : `औषध साठा प्राप्ती व वितरण, पुनर्मागणी सूचना आणि सर्व स्तरीय लॅब चाचण्यांची स्थिती${districtSuffix(language)}`,
+        emergencyReqBtn: isEn ? `Reorder List (${reorder.length})` : isHi ? `पुनः मांग सूची (${reorder.length})` : `पुनर्मागणी यादी (${reorder.length})`,
         criticalAlert: isEn
             ? `Critical Stock Alert: ${outOfStockMeds.length} items Out-of-Stock, ${lowStockMeds.length} items Low`
             : isHi
             ? `गंभीर स्टॉक चेतावनी: ${outOfStockMeds.length} दवाएं अनुपलब्ध, ${lowStockMeds.length} कम स्टॉक में`
             : `गंभीर साठा सूचना: ${outOfStockMeds.length} औषधे संपली आहेत, ${lowStockMeds.length} औषधे कमी साठ्यात आहेत`,
         alertSub: isEn
-            ? `Immediate restock needed for ${outOfStockMeds.map(m => m.name).join(', ') || 'essential drugs'}.`
+            ? `Reorder from the district drug store: ${outOfStockMeds.map(m => m.name).join(', ') || 'see the reorder list'}.`
             : isHi
-            ? `${outOfStockMeds.map(m => m.name).join(', ') || 'अत्यावश्यक दवाओं'} के लिए तत्काल वेयरहाउस से आपूर्ति आवश्यक।`
-            : `${outOfStockMeds.map(m => m.name).join(', ') || 'अत्यावश्यक औषधांसाठी'} जिल्हा गोदामाकडून तातडीचा पुरवठा आवश्यक.`,
-        autoRestockBtn: isEn ? 'Auto-Restock All' : isHi ? 'सभी स्वतः पुनः मंगाएं' : 'सर्व औषधे पुन्हा मागवा',
+            ? `जिला औषधि भंडार से पुनः मंगाएं: ${outOfStockMeds.map(m => m.name).join(', ') || 'पुनः मांग सूची देखें'}।`
+            : `जिल्हा औषध भांडारातून पुन्हा मागवा: ${outOfStockMeds.map(m => m.name).join(', ') || 'पुनर्मागणी यादी पहा'}.`,
+        autoRestockBtn: isEn ? 'View Reorder List' : isHi ? 'पुनः मांग सूची देखें' : 'पुनर्मागणी यादी पहा',
         tableTitle: isEn ? 'Essential Medicine Stock (IPHS)' : isHi ? 'आवश्यक दवा स्टॉक (IPHS सूची)' : 'अत्यावश्यक औषध साठा (IPHS मानके)',
         filterPlaceholder: isEn ? 'Filter drug...' : isHi ? 'दवा खोजें...' : 'औषध शोधा...',
         allCategories: isEn ? 'All Categories' : isHi ? 'सभी श्रेणियां' : 'सर्व प्रकार',
@@ -89,13 +146,13 @@ export default function MedicinePage() {
         thStatus: isEn ? 'Status' : isHi ? 'स्थिति' : 'स्थिती',
         thFacility: isEn ? 'Facility' : isHi ? 'स्वास्थ्य केंद्र' : 'आरोग्य केंद्र',
         thAction: isEn ? 'Action' : isHi ? 'कार्रवाई' : 'क्रिया',
-        restockAction: isEn ? '+ Restock' : isHi ? '+ मंगाएं' : '+ साठा वाढवा',
+        restockAction: isEn ? 'Record stock' : isHi ? 'स्टॉक दर्ज करें' : 'साठा नोंदवा',
         labOrdersTitle: isEn ? 'Diagnostic Lab Orders' : isHi ? 'लैब परीक्षण ऑर्डर्स' : 'लॅब तपासणी ऑर्डर्स',
         resultsEntryTitle: isEn ? 'Enter Lab Result' : isHi ? 'लैब रिपोर्ट दर्ज करें' : 'लॅब अहवाल नोंदवा',
         sampleCollected: isEn ? 'Sample Collected' : isHi ? 'सैंपल संकलित' : 'नमुना गोळा केला',
         labProcessing: isEn ? 'Processing at Lab' : isHi ? 'लैब में प्रक्रियाधीन' : 'प्रयोगशाळेत तपासणी सुरू',
         completed: isEn ? 'Completed' : isHi ? 'पूर्ण' : 'पूर्ण झाले',
-        saveResultBtn: isEn ? 'Save & Push to LHR' : isHi ? 'सुरक्षित करें व LHR में भेजें' : 'जतन करा व LHR ला पाठवा',
+        saveResultBtn: isEn ? 'Save result' : isHi ? 'परिणाम सुरक्षित करें' : 'अहवाल जतन करा',
         cancelBtn: isEn ? 'Cancel' : isHi ? 'रद्द करें' : 'रद्द करा',
     };
 
@@ -126,7 +183,8 @@ export default function MedicinePage() {
                         </div>
 
                         <button
-                            onClick={() => toast.success(isEn ? 'Emergency Drug Requisition sent to District Warehouse Gadchiroli' : isHi ? 'जिला गोदाम गढ़चिरौली को आपातकालीन दवा मांग भेजी गई' : 'जिल्हा गोदाम गडचिरोलीकडे आपत्कालीन औषध मागणी नोंदवली')}
+                            onClick={() => setShowRequisition(v => !v)}
+                            aria-expanded={showRequisition}
                             className="gov-btn gov-btn-danger text-xs"
                         >
                             <Icon name="alert-siren" className="w-3.5 h-3.5" /> {txt.emergencyReqBtn}
@@ -148,15 +206,64 @@ export default function MedicinePage() {
                                 </div>
                             </div>
                             <button
-                                onClick={() => {
-                                    outOfStockMeds.forEach(m => restockMedicine(m.id, 100));
-                                    toast.success(isEn ? 'Auto-restocked essential medicines' : isHi ? 'आवश्यक दवाओं का पुनः स्टॉक किया गया' : 'अत्यावश्यक औषधांचा साठा वाढवला');
-                                }}
+                                onClick={() => setShowRequisition(true)}
                                 className="px-3 py-1.5 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700 transition-all shrink-0 ml-4 cursor-pointer"
                             >
                                 {txt.autoRestockBtn}
                             </button>
                         </div>
+                    )}
+
+                    {/* Reorder list: built from the stock lines below their minimum. It is
+                        handed to the district drug store (or entered in its system) by
+                        staff — this app does not send it anywhere, and says so. */}
+                    {showRequisition && (
+                        <section aria-label={txt.emergencyReqBtn} className="surface-card p-5 space-y-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h2 className="text-sm font-bold text-[#1F3A6E] uppercase tracking-wider">{txt.emergencyReqBtn}</h2>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={copyRequisition} disabled={reorder.length === 0} className="gov-btn gov-btn-secondary text-xs disabled:opacity-50">
+                                        {isEn ? 'Copy list' : isHi ? 'सूची कॉपी करें' : 'यादी कॉपी करा'}
+                                    </button>
+                                    <button type="button" onClick={downloadRequisition} disabled={reorder.length === 0} className="gov-btn gov-btn-primary text-xs disabled:opacity-50">
+                                        {isEn ? 'Download CSV' : isHi ? 'CSV डाउनलोड करें' : 'CSV डाउनलोड करा'}
+                                    </button>
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-txt-secondary">
+                                {isEn
+                                    ? 'Lines that are empty or below their minimum, with the quantity that brings each back to the minimum. Submit it to the district drug store through its usual indent — this app does not send it.'
+                                    : isHi
+                                    ? 'खाली या न्यूनतम से कम स्टॉक वाली दवाएं, और न्यूनतम तक पहुँचने हेतु आवश्यक मात्रा। इसे जिला औषधि भंडार को सामान्य मांग-पत्र से भेजें — यह ऐप इसे नहीं भेजता।'
+                                    : 'संपलेली किंवा किमान पातळीखालील औषधे आणि किमान पातळी गाठण्यासाठी लागणारे प्रमाण. ही यादी जिल्हा औषध भांडाराकडे नेहमीच्या मागणीपत्राने पाठवा — हे ॲप ती पाठवत नाही.'}
+                            </p>
+                            {reorder.length === 0 ? (
+                                <p className="text-xs text-txt-muted">{isEn ? 'Every line is at or above its minimum.' : isHi ? 'सभी दवाएं न्यूनतम स्तर पर या उससे ऊपर हैं।' : 'सर्व औषधे किमान पातळीवर किंवा त्याहून अधिक आहेत.'}</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="border-b border-border-subtle text-left text-txt-muted uppercase font-bold">
+                                                <th className="pb-2">{txt.thMed}</th>
+                                                <th className="pb-2">{txt.thFacility}</th>
+                                                <th className="pb-2 text-right">{isEn ? 'In stock / min' : isHi ? 'स्टॉक / न्यूनतम' : 'साठा / किमान'}</th>
+                                                <th className="pb-2 text-right">{isEn ? 'Needed' : isHi ? 'आवश्यक' : 'आवश्यक'}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-border-subtle">
+                                            {reorder.map(l => (
+                                                <tr key={`${l.facilityName}-${l.name}`}>
+                                                    <td className="py-2 font-bold text-[#1F3A6E]">{l.name} <span className="font-normal text-txt-muted">({l.dosageForm})</span></td>
+                                                    <td className="py-2 text-txt-secondary">{l.facilityName}</td>
+                                                    <td className="py-2 text-right font-mono">{l.currentStock} / {l.minimumRequiredStock} {l.unit}</td>
+                                                    <td className="py-2 text-right font-mono font-bold">{l.quantityToMinimum} {l.unit}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </section>
                     )}
 
                     {/* 3-Column Layout */}
@@ -214,7 +321,7 @@ export default function MedicinePage() {
                                                     <span className={med.currentStock === 0 ? 'text-status-red' : med.currentStock < med.minimumRequiredStock ? 'text-amber-600' : 'text-[#1F3A6E]'}>
                                                         {med.currentStock} {med.unit}
                                                     </span>
-                                                    <span className="text-[9px] text-txt-muted block">Min: {med.minimumRequiredStock}</span>
+                                                    <span className="text-[9px] text-txt-muted block">Min: {med.minimumRequiredStock}{med.expiryDate ? ` · Exp: ${med.expiryDate}` : ''}</span>
                                                 </td>
                                                 <td className="py-2.5">
                                                     <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold ${
@@ -234,10 +341,7 @@ export default function MedicinePage() {
                                                 </td>
                                                 <td className="py-2.5 text-right">
                                                     <button
-                                                        onClick={() => {
-                                                            restockMedicine(med.id, 50);
-                                                            toast.success(`+50 ${med.unit} ${med.name}`);
-                                                        }}
+                                                        onClick={() => openMovement(med)}
                                                         className="px-2 py-1 bg-teal-50 text-teal-700 hover:bg-teal-100 font-bold rounded text-[10px] cursor-pointer"
                                                     >
                                                         {txt.restockAction}
@@ -298,6 +402,72 @@ export default function MedicinePage() {
                         </div>
 
                     </div>
+
+                    {/* Stock movement: a counted receipt or issue — the only way a balance changes. */}
+                    {movementFor && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+                            <form onSubmit={saveMovement} role="dialog" aria-modal="true" aria-labelledby="movement-title" className="bg-white rounded p-6 max-w-md w-full shadow-xl space-y-4">
+                                <h3 id="movement-title" className="text-base font-black text-[#1F3A6E]">
+                                    {txt.restockAction}: {movementFor.name}
+                                </h3>
+                                <p className="text-xs text-slate-600">
+                                    {movementFor.facilityName} · {isEn ? 'in stock' : isHi ? 'स्टॉक में' : 'साठ्यात'}: <strong>{movementFor.currentStock} {movementFor.unit}</strong>
+                                </p>
+                                <div className="flex gap-2" role="radiogroup" aria-label={isEn ? 'Movement' : isHi ? 'प्रकार' : 'प्रकार'}>
+                                    {(['RECEIVED', 'ISSUED'] as const).map(kind => (
+                                        <button
+                                            key={kind}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={movementKind === kind}
+                                            onClick={() => setMovementKind(kind)}
+                                            className={`flex-1 py-2 rounded text-xs font-bold border ${movementKind === kind ? 'bg-[#1F3A6E] text-white border-[#1F3A6E]' : 'bg-white text-[#1F3A6E] border-slate-300'}`}
+                                        >
+                                            {kind === 'RECEIVED'
+                                                ? (isEn ? 'Received' : isHi ? 'प्राप्त' : 'प्राप्त')
+                                                : (isEn ? 'Issued / dispensed' : isHi ? 'वितरित' : 'वितरित')}
+                                        </button>
+                                    ))}
+                                </div>
+                                <label className="block text-xs font-bold text-slate-700">
+                                    {isEn ? `Quantity (${movementFor.unit})` : isHi ? `मात्रा (${movementFor.unit})` : `प्रमाण (${movementFor.unit})`}
+                                    <input
+                                        type="number"
+                                        inputMode="numeric"
+                                        min={1}
+                                        step={1}
+                                        required
+                                        value={movementQty}
+                                        onChange={e => setMovementQty(e.target.value)}
+                                        className="mt-1 w-full p-2.5 border border-slate-300 rounded text-sm font-mono outline-none focus:ring-2 focus:ring-[#1F3A6E]"
+                                    />
+                                </label>
+                                {movementKind === 'RECEIVED' && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <label className="block text-xs font-bold text-slate-700">
+                                            {isEn ? 'Batch (if new)' : isHi ? 'बैच (यदि नया)' : 'बॅच (नवीन असल्यास)'}
+                                            <input value={movementBatch} onChange={e => setMovementBatch(e.target.value)} maxLength={40}
+                                                className="mt-1 w-full p-2 border border-slate-300 rounded text-xs outline-none focus:ring-2 focus:ring-[#1F3A6E]" />
+                                        </label>
+                                        <label className="block text-xs font-bold text-slate-700">
+                                            {isEn ? 'Expiry (if new)' : isHi ? 'समाप्ति (यदि नई)' : 'मुदत (नवीन असल्यास)'}
+                                            <input type="date" value={movementExpiry} onChange={e => setMovementExpiry(e.target.value)}
+                                                className="mt-1 w-full p-2 border border-slate-300 rounded text-xs outline-none focus:ring-2 focus:ring-[#1F3A6E]" />
+                                        </label>
+                                    </div>
+                                )}
+                                {movementError && <p role="alert" className="text-xs font-semibold text-red-700">{movementError}</p>}
+                                <div className="flex gap-2 pt-2">
+                                    <button type="button" onClick={() => setMovementFor(null)} className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer">
+                                        {txt.cancelBtn}
+                                    </button>
+                                    <button type="submit" disabled={movementBusy} className="flex-1 py-2 bg-[#1F3A6E] hover:bg-emerald-800 text-white font-bold rounded-xl text-xs cursor-pointer disabled:opacity-50">
+                                        {isEn ? 'Save' : isHi ? 'सुरक्षित करें' : 'जतन करा'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    )}
 
                     {/* Result Entry Modal */}
                     {selectedDiag && (

@@ -16,7 +16,6 @@
  * All data here is static seed content, so the screen works fully offline. */
 
 import { FacilityType, MedicineStockItem } from '@/types/facility';
-import { SEED_MEDICINES } from '@/lib/data/facilities';
 
 export interface Localized {
     en: string;
@@ -152,18 +151,15 @@ export interface FreeMedicineSummary {
 }
 
 /**
- * Free IPHS-essential medicines available at a facility, from the live stock seed.
- * `inStock` counts those not out of stock; `sample` lists a few for display. No invented
- * counts — everything derives from SEED_MEDICINES filtered by facility. */
-/**
- * Which IPHS essential medicines are free, and currently in stock, at a tier.
+ * Which IPHS essential medicines are free, and currently in stock, at a facility.
  *
- * Counts only lines actually reported in stock — a citizen told a drug is free
- * should not arrive to find none of it.
+ * The caller passes the stock records it actually holds — the device's medicine
+ * store, never the demonstration seed. Counts only lines reported in stock: a
+ * citizen told a drug is free should not arrive to find none of it.
  */
 export function freeEssentialMedicinesAt(
     facilityId: string,
-    medicines: MedicineStockItem[] = SEED_MEDICINES
+    medicines: readonly MedicineStockItem[]
 ): FreeMedicineSummary {
     const atFacility = medicines.filter(m => m.facilityId === facilityId && m.isEssentialIPHS);
     const inStock = atFacility.filter(m => m.status !== 'OUT_OF_STOCK');

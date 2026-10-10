@@ -43,6 +43,7 @@
     "verify:intake": "tsx scripts/verify-intake.mts",
     "verify:queue-tokens": "tsx scripts/verify-queue-tokens.mts",
     "verify:session-lock": "tsx scripts/verify-session-lock.mts",
+    "verify:stock": "tsx scripts/verify-stock.mts",
     "verify:production-mode": "tsx scripts/verify-production-mode.mts",
     "verify:followup": "tsx scripts/verify-followup.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",

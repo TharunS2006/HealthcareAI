@@ -113,12 +113,16 @@ export default function GovPortalHeader() {
         staffLogin: isEn ? 'Staff Login →' : isHi ? 'कर्मचारी लॉगिन →' : 'कर्मचारी लॉगिन →',
         signOut: isEn ? 'Sign out' : isHi ? 'साइन आउट' : 'साइन आउट',
         noticeLabel: isEn ? 'IMPORTANT NOTICE' : isHi ? 'महत्वपूर्ण सूचना' : 'महत्त्वाची सूचना',
-        // No ambulance-tracking claim: nothing in this build tracks vehicles.
+        // No ambulance-tracking claim: nothing in this build tracks vehicles. And
+        // no claim about which hospitals are running which services today: it
+        // used to say emergency obstetric care was "fully operational" at two
+        // named hospitals, permanently, whatever the day — a notice a woman in
+        // labour might travel on. Facility services are on Find a Health Centre.
         noticeText: isEn
-            ? '24×7 CEmONC & BEmONC Emergency Obstetric Services fully operational at SDH Aheri and DH Gadchiroli. For an ambulance, call 108 (emergency) or 102 (mother & child).'
+            ? 'In an emergency, call 108 for an ambulance or 102 for mother & child transport. For services and hours at each health centre, see Find a Health Centre.'
             : isHi
-            ? 'उप-जिला अस्पताल अहेरी और जिला अस्पताल गढ़चिरौली में २४ घंटे आपातकालीन प्रसूति सेवाएं (CEmONC व BEmONC) पूर्णतः सक्रिय हैं। एम्बुलेंस के लिए १०८ (आपातकाल) या १०२ (माँ और शिशु) पर कॉल करें।'
-            : 'उपजिल्हा रुग्णालय अहेरी व जिल्हा रुग्णालय गडचिरोली येथे २४ तास आपत्कालीन प्रसूती सेवा (CEmONC व BEmONC) पूर्णपणे सुरू आहेत. रुग्णवाहिकेसाठी १०८ (आपत्कालीन) किंवा १०२ (माता व बालक) वर कॉल करा.',
+            ? 'आपातकाल में एम्बुलेंस के लिए १०८ या माँ व शिशु परिवहन के लिए १०२ पर कॉल करें। हर स्वास्थ्य केंद्र की सेवाएं व समय "स्वास्थ्य केंद्र खोजें" में देखें।'
+            : 'आपत्कालीन स्थितीत रुग्णवाहिकेसाठी १०८ किंवा माता व बालक वाहतुकीसाठी १०२ वर कॉल करा. प्रत्येक आरोग्य केंद्राच्या सेवा व वेळा "आरोग्य केंद्र शोधा" मध्ये पहा.',
     };
 
     return (

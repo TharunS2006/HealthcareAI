@@ -19,7 +19,6 @@ import {
     findFacilitiesByService,
     referralGuidance,
     entitlementsAt,
-    medicineStockAt,
     scheduleAt,
     routesForRole,
     localize,

@@ -3,7 +3,13 @@
  *
  * ABHA login is real: the ABDM sandbox texts an OTP to the mobile number linked
  * to the ABHA number and checks it (lib/abha/client.ts → server/relay/abha.ts).
- * Mobile OTP has no SMS gateway in this build and is labelled a demo. */
+ * Mobile OTP has no SMS gateway: it exists on evaluation builds only, labelled a
+ * demo, and a production build offers ABHA alone.
+ *
+ * There used to be three consent checkboxes here, all ticked in advance and
+ * stored nowhere. A pre-ticked box is not consent under the DPDP Act, and a
+ * choice that is not recorded binds nobody, so they are replaced by a plain
+ * notice of what this page does and does not do with the citizen's data. */
 
 'use client';
 
@@ -13,11 +19,12 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/gov/Icon';
 import toast from 'react-hot-toast';
 import { requestAbhaOtp, verifyAbhaOtp } from '@/lib/abha/client';
+import { PRODUCTION } from '@/lib/config/mode';
 
 export default function LoginPage() {
     const router = useRouter();
     const [loginMethod, setLoginMethod] = useState<'PHONE_OTP' | 'ABHA'>('ABHA');
-    const [phone, setPhone] = useState('9876543210');
+    const [phone, setPhone] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
     const [abhaId, setAbhaId] = useState('');
@@ -25,9 +32,6 @@ export default function LoginPage() {
     const [abhaOtp, setAbhaOtp] = useState('');
     const [abhaNote, setAbhaNote] = useState<{ tone: 'info' | 'error'; text: string } | null>(null);
     const [busy, setBusy] = useState(false);
-    const [consentRecordSharing, setConsentRecordSharing] = useState(true);
-    const [consentSmsReminders, setConsentSmsReminders] = useState(true);
-    const [consentTeleconsult, setConsentTeleconsult] = useState(true);
 
     const handleSendOTP = (e: React.FormEvent) => {
         e.preventDefault();
@@ -88,7 +92,8 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* Login Method Tabs */}
+                {/* Login Method Tabs — the mobile OTP demo only on evaluation builds */}
+                {!PRODUCTION && (
                 <div className="flex border-b border-border-subtle text-xs font-bold">
                     <button
                         type="button"
@@ -113,8 +118,9 @@ export default function LoginPage() {
                         ABHA ID / Number
                     </button>
                 </div>
+                )}
 
-                {loginMethod === 'PHONE_OTP' ? (
+                {loginMethod === 'PHONE_OTP' && !PRODUCTION ? (
                     <form onSubmit={otpSent ? handleVerify : handleSendOTP} className="space-y-4">
                         <div>
                             <label className="block text-xs font-bold text-txt-secondary uppercase tracking-wider mb-1">
@@ -221,41 +227,17 @@ export default function LoginPage() {
                     </form>
                 )}
 
-                {/* DPDP Consent Flags */}
-                <div className="pt-3 border-t border-border-subtle space-y-2.5 text-xs text-txt-secondary">
+                {/* What this page does with a citizen's data — a notice, not pre-ticked consent. */}
+                <div className="pt-3 border-t border-border-subtle space-y-2 text-xs text-txt-secondary">
                     <span className="font-bold text-gov-navy block uppercase text-[10px] tracking-wider">
-                        Patient Consent Preferences (DPDP Act, 2023)
+                        How your information is used (DPDP Act, 2023)
                     </span>
-
-                    <label className="flex items-start gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={consentRecordSharing}
-                            onChange={(e) => setConsentRecordSharing(e.target.checked)}
-                            className="mt-0.5 rounded border-gray-300 text-gov-navy focus:ring-gov-navy"
-                        />
-                        <span>Share health records across Government facilities (SC → PHC → CHC → DH)</span>
-                    </label>
-
-                    <label className="flex items-start gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={consentSmsReminders}
-                            onChange={(e) => setConsentSmsReminders(e.target.checked)}
-                            className="mt-0.5 rounded border-gray-300 text-gov-navy focus:ring-gov-navy"
-                        />
-                        <span>Receive SMS reminders for follow-ups, immunization & diagnostic results</span>
-                    </label>
-
-                    <label className="flex items-start gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={consentTeleconsult}
-                            onChange={(e) => setConsentTeleconsult(e.target.checked)}
-                            className="mt-0.5 rounded border-gray-300 text-gov-navy focus:ring-gov-navy"
-                        />
-                        <span>Consent for assisted teleconsultation with District Hospital specialists</span>
-                    </label>
+                    <ul className="list-disc pl-4 space-y-1">
+                        <li>Your ABHA number and OTP are checked by the Ayushman Bharat Digital Mission. This portal does not keep a citizen account or store them.</li>
+                        <li>Records made about you at a government health centre are seen by its staff, by the facility you are referred to (so it can prepare before you arrive), and by the district health officers who oversee care.</li>
+                        <li>This portal sends no SMS reminders.</li>
+                    </ul>
+                    <Link href="/privacy" className="font-bold text-gov-navy hover:underline">Privacy policy →</Link>
                 </div>
 
                 <div className="pt-2 text-center">

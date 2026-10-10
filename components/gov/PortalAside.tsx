@@ -39,20 +39,18 @@ export default function PortalAside({ tier = 'PHC' }: { tier?: FacilityType }) {
         const entries = TIER_SERVICE_SCHEDULE[tier] ?? [];
         setSchedule(
             entries
-                .map((e) => {
-                    const d = nextOccurrence(e.weekday);
-                    return {
-                        key: e.key,
-                        date: d.toLocaleDateString(isEn ? 'en-IN' : 'en-IN', {
-                            day: '2-digit', month: '2-digit', year: 'numeric',
-                        }),
-                        label: e.label[lang],
-                        time: e.time,
-                    };
-                })
-                .sort((a, b) => a.date.localeCompare(b.date))
+                .map((e) => ({ e, d: nextOccurrence(e.weekday) }))
+                // By the date itself: sorting the formatted "dd/mm/yyyy" text put
+                // 01/11 before 28/10.
+                .sort((a, b) => a.d.getTime() - b.d.getTime())
+                .map(({ e, d }) => ({
+                    key: e.key,
+                    date: d.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                    label: e.label[lang],
+                    time: e.time,
+                }))
         );
-    }, [tier, lang, isEn]);
+    }, [tier, lang]);
 
     const t = {
         announcements: isEn ? 'Announcements' : lang === 'hi' ? 'घोषणाएं' : 'घोषणा',
@@ -60,14 +58,13 @@ export default function PortalAside({ tier = 'PHC' }: { tier?: FacilityType }) {
         quickLinks: isEn ? 'Quick Links' : lang === 'hi' ? 'त्वरित लिंक' : 'जलद दुवे',
         helplines: isEn ? 'Emergency Helplines (24x7)' : lang === 'hi' ? 'आपातकालीन हेल्पलाइन (24x7)' : 'तातडीची हेल्पलाइन (24x7)',
         nodal: isEn ? 'Nodal Officer' : lang === 'hi' ? 'नोडल अधिकारी' : 'नोडल अधिकारी',
-        upcoming: isEn ? 'Next scheduled service days at this facility tier'
-            : lang === 'hi' ? 'इस स्तर पर आगामी सेवा दिवस' : 'या स्तरावरील पुढील सेवा दिवस',
+        upcoming: isEn ? 'Usual service days at this facility tier — confirm with your centre'
+            : lang === 'hi' ? 'इस स्तर पर सामान्य सेवा दिवस — अपने केंद्र से पुष्टि करें' : 'या स्तरावरील नेहमीचे सेवा दिवस — आपल्या केंद्राकडून खात्री करा',
     };
 
     const quickLinks: Array<[string, string]> = [
         [isEn ? 'Services & Entitlements' : lang === 'hi' ? 'सेवाएं व पात्रता' : 'सेवा व पात्रता', '/services-info'],
         [isEn ? 'Find a Health Centre' : lang === 'hi' ? 'स्वास्थ्य केंद्र खोजें' : 'आरोग्य केंद्र शोधा', '/facilities'],
-        [isEn ? 'Book an Appointment' : lang === 'hi' ? 'अपॉइंटमेंट बुक करें' : 'भेट नोंदवा', '/appointments'],
         [isEn ? 'Grievance Redressal' : lang === 'hi' ? 'शिकायत निवारण' : 'तक्रार निवारण', '/feedback'],
         [isEn ? 'Right to Information (RTI)' : lang === 'hi' ? 'सूचना का अधिकार (RTI)' : 'माहितीचा अधिकार (RTI)', '/rti'],
     ];
@@ -94,7 +91,7 @@ export default function PortalAside({ tier = 'PHC' }: { tier?: FacilityType }) {
                         ))}
                         {schedule.length === 0 && (
                             <li className="py-1.5 text-[11px] text-[#5A6B80]">
-                                {isEn ? 'No recurring service days recorded for this tier.' : ''}
+                                {isEn ? 'No recurring service days recorded for this tier.' : lang === 'hi' ? 'इस स्तर के लिए कोई नियमित सेवा दिवस दर्ज नहीं।' : 'या स्तरासाठी नियमित सेवा दिवस नोंदवलेले नाहीत.'}
                             </li>
                         )}
                     </ul>

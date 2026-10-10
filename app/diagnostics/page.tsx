@@ -1,7 +1,13 @@
 /**
  * Diagnostic Coordination Module — NalamMesh (the rural healthcare access problem Module 6)
- * End-to-end sample collection, processing, and results delivery to LHR.
- * Smart "Unavailable Test Router" pointing to nearest lab across Sub-Centre -> PHC -> CHC -> DH.
+ * Lab orders through sample collection and processing to the result, which then
+ * appears in the patient's record (/record). The catalogue says where each test
+ * is done in this district — a reference list, not a live lookup.
+ *
+ * "Order Diagnostic Test" used to build the order, announce "Requisition
+ * Created", and throw it away: nothing was saved. Orders are now written to the
+ * device before the screen says so, and the pipeline has the steps its filters
+ * always listed (sample collected, at the lab).
  * Full Trilingual Localization: English, Marathi (मराठी), and Hindi (हिन्दी) */
 
 'use client';
@@ -23,7 +29,7 @@ import { useSession } from '@/lib/auth/session';
 import { scopeToFacility } from '@/lib/auth/permissions';
 
 export default function DiagnosticsPage() {
-    const { diagnostics: allDiagnostics, loadAll, updateDiagnosticResult } = useFacilityStore();
+    const { diagnostics: allDiagnostics, loadAll, updateDiagnosticResult, addDiagnosticOrder, setDiagnosticStatus } = useFacilityStore();
     // Orders at the officer's own facility's lab, plus orders they sent to
     // another lab (the order records the lab, not the sender, so the sender is
     // matched by name).
@@ -47,7 +53,7 @@ export default function DiagnosticsPage() {
     // New Order Form State
     const [orderPatientId, setOrderPatientId] = useState('');
     const [orderTestType, setOrderTestType] = useState('CBC');
-    const [orderFacilityId, setOrderFacilityId] = useState(session?.facilityId ?? 'phc-bhamragad');
+    const [orderFacilityId, setOrderFacilityId] = useState(session?.facilityId ?? FACILITY_NETWORK[0]?.id ?? '');
     const [orderNotes, setOrderNotes] = useState('');
 
     // Result Entry State
@@ -90,7 +96,7 @@ export default function DiagnosticsPage() {
         return matchesStatus && matchesSearch;
     });
 
-    const handleCreateOrder = (e: React.FormEvent) => {
+    const handleCreateOrder = async (e: React.FormEvent) => {
         e.preventDefault();
         // An order is for the patient the worker chose — never whoever is first on the device.
         const p = patients.find(pat => pat.id === orderPatientId);
@@ -106,17 +112,36 @@ export default function DiagnosticsPage() {
             patientName: p.name,
             patientAge: p.age,
             facilityId: orderFacilityId,
-            facilityName: FACILITY_NETWORK.find(f => f.id === orderFacilityId)?.name || 'PHC Bhamragad',
+            facilityName: FACILITY_NETWORK.find(f => f.id === orderFacilityId)?.name ?? orderFacilityId,
             testName: isEn ? selectedCat.name : isHi ? selectedCat.nameHi : selectedCat.nameMr,
             category: selectedCat.category,
             orderedBy: session ? `${session.name} (${session.role})` : 'Unattributed',
             orderedAt: new Date().toISOString(),
             status: 'ORDERED',
             isAbnormal: false,
+            ...(orderNotes.trim() ? { labNotes: orderNotes.trim() } : {}),
         };
 
-        toast.success(isEn ? `Diagnostic Requisition Created for ${p.name}` : isHi ? `${p.name} हेतु लैब जांच ऑर्डर दर्ज किया गया` : `${p.name} साठी लॅब चाचणी नोंदवली गेली`);
+        try {
+            await addDiagnosticOrder(newOrder);
+        } catch (error) {
+            console.error('Failed to save the lab order:', error);
+            toast.error(isEn ? 'Could not save the lab order on this device — nothing was ordered' : isHi ? 'लैब ऑर्डर इस डिवाइस पर सुरक्षित नहीं हुआ — कोई ऑर्डर नहीं हुआ' : 'लॅब ऑर्डर या उपकरणावर जतन झाली नाही — कोणतीही ऑर्डर नोंदली नाही');
+            return;
+        }
+        toast.success(isEn ? `Lab order saved for ${p.name}` : isHi ? `${p.name} हेतु लैब जांच ऑर्डर दर्ज किया गया` : `${p.name} साठी लॅब चाचणी नोंदवली गेली`);
         setShowNewOrderModal(false);
+        setOrderNotes('');
+    };
+
+    const advance = async (order: DiagnosticOrder) => {
+        const next = order.status === 'ORDERED' ? 'SAMPLE_COLLECTED' : 'IN_PROGRESS';
+        try {
+            await setDiagnosticStatus(order.id, next);
+        } catch (error) {
+            console.error('Failed to update the lab order:', error);
+            toast.error(isEn ? 'Could not save the change on this device' : isHi ? 'बदलाव इस डिवाइस पर सुरक्षित नहीं हुआ' : 'बदल या उपकरणावर जतन झाला नाही');
+        }
     };
 
     const handleOpenResultModal = (order: DiagnosticOrder) => {
@@ -130,7 +155,6 @@ export default function DiagnosticsPage() {
         e.preventDefault();
         if (!selectedTest) return;
         await updateDiagnosticResult(selectedTest.id, resultText, isAbnormal);
-        toast.success(isEn ? 'Diagnostic Result Saved & Pushed to Patient LHR!' : isHi ? 'लैब रिपोर्ट सुरक्षित कर मरीज के LHR रिकॉर्ड में दर्ज की गई!' : 'लॅब अहवाल जतन करून रुग्णाच्या डिजिटल LHR ला जोडला गेला!');
         setShowResultModal(false);
     };
 
@@ -138,13 +162,13 @@ export default function DiagnosticsPage() {
         deptTag: isEn ? 'Government of Maharashtra • Cross-Tier Diagnostic Lab Network' : isHi ? 'महाराष्ट्र सरकार • बहु-स्तरीय स्वास्थ्य जांच नेटवर्क' : 'महाराष्ट्र शासन • बहु-स्तरीय लॅब व निदान नेटवर्क',
         title: isEn ? 'Diagnostic Coordination & Lab Tracking' : isHi ? 'निदान समन्वय एवं लैब ट्रैकिंग' : 'निदान व प्रयोगशाळा समन्वय',
         subTitle: isEn
-            ? 'Sample collection pipeline, nearest lab router for unavailable tests, and instant LHR push'
+            ? 'Lab orders from sample collection to result, where each test is done, and results in the patient record'
             : isHi
-            ? 'सैंपल कलेक्शन पाइपलाइन, अनुपलब्ध टेस्ट हेतु निकटतम लैब राउटर एवं डिजिटल LHR रिकॉर्ड'
-            : 'नमुने संकलन, उपलब्ध नसलेल्या चाचण्यांसाठी जवळचे लॅब राऊटर आणि थेट डिजिटल आरोग्य नोंद (LHR)',
+            ? 'सैंपल संग्रह से रिपोर्ट तक लैब ऑर्डर, कौन सी जांच कहाँ होती है, और मरीज़ के रिकॉर्ड में रिपोर्ट'
+            : 'नमुना संकलनापासून अहवालापर्यंत लॅब ऑर्डर, कोणती चाचणी कुठे होते, आणि रुग्णाच्या नोंदीत अहवाल',
         orderTestBtn: isEn ? 'Order Diagnostic Test' : isHi ? 'नई जांच ऑर्डर करें' : 'नवीन लॅब चाचणी नोंदवा',
         catalogTitle: isEn ? 'IPHS Diagnostic Catalog & Multi-Tier Facility Availability' : isHi ? 'IPHS जांच सूची एवं स्तर-वार उपलब्धता राउटर' : 'IPHS चाचण्यांची सूची व बहु-स्तरीय आरोग्य केंद्र उपलब्धता',
-        catalogSub: isEn ? 'Real-time routing for Sub-Centres & PHCs' : isHi ? 'उपकेंद्रों व प्राथमिक स्वास्थ्य केंद्रों हेतु लाइव मैपिंग' : 'उपकेंद्रे व प्राथमिक आरोग्य केंद्रांसाठी थेट लॅब जोडणी',
+        catalogSub: isEn ? 'Reference list for this district — confirm with the lab before sending a patient' : isHi ? 'इस जिले की संदर्भ सूची — मरीज़ भेजने से पहले लैब से पुष्टि करें' : 'या जिल्ह्याची संदर्भ यादी — रुग्ण पाठवण्यापूर्वी लॅबकडून खात्री करा',
         inHouse: isEn ? '✓ In-House' : isHi ? '✓ स्थानीय उपलब्ध' : '✓ केंद्रात उपलब्ध',
         referLab: isEn ? '↗ Refer Lab' : isHi ? '↗ रेफरल लैब' : '↗ संदर्भ लॅबकडे',
         allOrders: isEn ? 'All Orders' : isHi ? 'सभी ऑर्डर्स' : 'सर्व ऑर्डर्स',
@@ -159,7 +183,7 @@ export default function DiagnosticsPage() {
         resultFindings: isEn ? 'Result Findings / Measured Values:' : isHi ? 'परीक्षण परिणाम / निष्कर्ष:' : 'चाचणीचे निष्कर्ष व मूल्ये:',
         markAbnormal: isEn ? 'Flag as Abnormal / Alert Consulting Doctor' : isHi ? 'असामान्य (Abnormal) चिह्नित कर डॉक्टर को अलर्ट करें' : 'असामान्य (Abnormal) चिन्हांकित करून डॉक्टरना सतर्क करा',
         cancel: isEn ? 'Cancel' : isHi ? 'रद्द करें' : 'रद्द करा',
-        saveBtn: isEn ? 'Save & Push to Patient LHR' : isHi ? 'सुरक्षित करें व LHR में भेजें' : 'जतन करा व LHR मध्ये जोडा',
+        saveBtn: isEn ? 'Save result' : isHi ? 'परिणाम सुरक्षित करें' : 'अहवाल जतन करा',
         createModalTitle: isEn ? 'Order New Diagnostic Lab Test' : isHi ? 'नई लैब जांच ऑर्डर करें' : 'नवीन लॅब तपासणी नोंदवा',
         selectPatient: isEn ? 'Select Patient:' : isHi ? 'मरीज चुनें:' : 'रुग्ण निवडा:',
         selectTest: isEn ? 'Diagnostic Test:' : isHi ? 'जांच का नाम:' : 'चाचणीचे नाव:',
@@ -334,11 +358,21 @@ export default function DiagnosticsPage() {
                                                     {order.resultSummary}
                                                 </span>
                                                 <div className="mt-1 text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                                                    <span>✓ {isEn ? 'Recorded in local health record (LHR) • ABDM-ready' : isHi ? 'स्थानीय हेल्थ रिकॉर्ड (LHR) में दर्ज • ABDM-सज्ज' : 'स्थानिक आरोग्य रेकॉर्डमध्ये (LHR) नोंद • ABDM-सज्ज'}</span>
+                                                    <span>✓ {isEn ? 'Shown in the patient\'s record on this device' : isHi ? 'इस डिवाइस पर मरीज़ के रिकॉर्ड में दिखाया गया' : 'या उपकरणावर रुग्णाच्या नोंदीत दाखवले'}</span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="mt-2 pt-2 border-t border-gray-200 flex justify-end">
+                                            <div className="mt-2 pt-2 border-t border-gray-200 flex flex-wrap justify-end gap-2">
+                                                {(order.status === 'ORDERED' || order.status === 'SAMPLE_COLLECTED') && (
+                                                    <button
+                                                        onClick={() => void advance(order)}
+                                                        className="px-3 py-1 bg-white border border-[#1F3A6E] text-[#1F3A6E] text-xs font-bold rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                                                    >
+                                                        {order.status === 'ORDERED'
+                                                            ? (isEn ? 'Mark sample collected' : isHi ? 'सैंपल संकलित चिह्नित करें' : 'नमुना गोळा केला')
+                                                            : (isEn ? 'Mark received at lab' : isHi ? 'लैब में प्राप्त चिह्नित करें' : 'लॅबमध्ये पोहोचला')}
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => handleOpenResultModal(order)}
                                                     className="px-3 py-1 bg-[#1F3A6E] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-800 transition-colors cursor-pointer"
@@ -491,6 +525,20 @@ export default function DiagnosticsPage() {
                                                 </option>
                                             ))}
                                         </select>
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="lab-notes" className="block font-bold text-txt-primary mb-1">
+                                            {isEn ? 'Notes for the lab (optional)' : isHi ? 'लैब के लिए टिप्पणी (वैकल्पिक)' : 'लॅबसाठी टीप (ऐच्छिक)'}
+                                        </label>
+                                        <textarea
+                                            id="lab-notes"
+                                            rows={2}
+                                            maxLength={500}
+                                            value={orderNotes}
+                                            onChange={(e) => setOrderNotes(e.target.value)}
+                                            className="w-full p-2.5 border rounded-xl"
+                                        />
                                     </div>
 
                                     <div className="flex gap-2 justify-end pt-2">

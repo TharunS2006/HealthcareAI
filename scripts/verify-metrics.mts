@@ -158,5 +158,47 @@ if (scKothi) {
 }
 
 // ---------------------------------------------------------------------------
+// 5. RECORDED, NOT INVENTED — the high-risk line and the patient journey.
+//    The Command Center used to pick a patient's clinical description by first
+//    name, and the record screen drew five steps at fixed offsets for everyone.
+console.log('\n5. RECORDED, NOT INVENTED');
+const { clinicalSummary } = await import('../lib/analytics/patientSummary');
+const { patientTimeline } = await import('../lib/analytics/patientTimeline');
+
+const stranger = { ...SEED_PATIENTS[0], name: 'Sunita Ramesh Aarav Meshram', visits: [], highRiskFlags: [], notes: undefined,
+    vitals: { ...SEED_PATIENTS[0].vitals, injuryType: undefined } };
+check('a name that matches the old demo names gets no clinical description it did not record',
+    clinicalSummary(stranger as never) === '', JSON.stringify(clinicalSummary(stranger as never)));
+const withVisit = { ...stranger, visits: [
+    { visitId: 'v1', patientId: 'x', facilityId: 'phc-x', facilityName: 'PHC X', facilityType: 'PHC', date: '2026-09-01T10:00:00Z', chiefComplaint: 'Old cough', vitals: stranger.vitals, triageStatus: 'GREEN', attendingStaff: 'MO A' },
+    { visitId: 'v2', patientId: 'x', facilityId: 'phc-x', facilityName: 'PHC X', facilityType: 'PHC', date: '2026-10-01T10:00:00Z', chiefComplaint: 'Fever for three days', vitals: stranger.vitals, triageStatus: 'YELLOW', attendingStaff: 'MO B' },
+] };
+check('the description is the latest visit\'s recorded complaint', clinicalSummary(withVisit as never) === 'Fever for three days',
+    clinicalSummary(withVisit as never));
+const flagged = { ...stranger, highRiskFlags: [{ type: 'MATERNAL', severity: 'HIGH', identifiedDate: '2026-09-01', nextFollowUpDate: '2026-10-15', notes: 'BP 150/100 at 32 weeks' }] };
+check('without a visit, the high-risk flag and its notes are used', clinicalSummary(flagged as never) === 'High-risk pregnancy: BP 150/100 at 32 weeks',
+    clinicalSummary(flagged as never));
+
+const patient = { ...withVisit, id: 'p-tl', timestamp: '2026-08-31T09:00:00Z', chw_name: 'ANM Asha' };
+const referral = {
+    ...SEED_REFERRALS[0], id: 'r-tl', patientId: 'p-tl', fromFacilityName: 'PHC X', toFacilityName: 'DH Y',
+    timeline: [
+        { id: 'e1', action: 'CREATE', fromStatus: null, toStatus: 'CREATED', at: '2026-10-01T11:00:00Z', actor: { userId: 'u', name: 'MO B', role: 'MO', facilityId: 'phc-x' } },
+        { id: 'e2', action: 'ACCEPT', fromStatus: 'SENT', toStatus: 'ACCEPTED', at: '2026-10-01T11:20:00Z', actor: { userId: 'v', name: 'Dr C', role: 'SPECIALIST', facilityId: 'dh-y' } },
+    ],
+};
+const lab = { patientId: 'p-tl', testName: 'CBC', orderedAt: '2026-10-01T10:30:00Z', orderedBy: 'MO B (MO)', facilityName: 'CHC Z',
+    completedAt: '2026-10-01T14:00:00Z', resultSummary: 'Hb 8.1 g/dL', isAbnormal: true };
+const tl = patientTimeline(patient as never, [referral as never, { ...referral, id: 'other', patientId: 'someone-else' } as never], [lab]);
+check('the journey holds only recorded events: registration, 2 visits, 2 referral events, a lab order and its result',
+    tl.length === 7, tl.map(e => e.title).join(' | '));
+check('in time order', tl.every((e, i) => i === 0 || tl[i - 1].at.getTime() <= e.at.getTime()));
+check('another patient\'s referral never appears', !tl.some(e => e.title.includes('someone')) && tl.filter(e => e.kind === 'REFERRAL').length === 2);
+check('each referral event says who did it', tl.filter(e => e.kind === 'REFERRAL').every(e => Boolean(e.actor)), JSON.stringify(tl.filter(e => e.kind === 'REFERRAL')));
+check('an abnormal lab result is marked so', tl.some(e => e.kind === 'LAB_RESULT' && e.title.includes('abnormal') && e.detail === 'Hb 8.1 g/dL'));
+check('nothing is said about transport or handover that was not recorded',
+    !tl.some(e => /Transport assigned|Command Center|handover/i.test(`${e.title} ${e.actor ?? ''}`)));
+
+// ---------------------------------------------------------------------------
 console.log(failures === 0 ? '\nAll facility-metric checks passed.\n' : `\n${failures} check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

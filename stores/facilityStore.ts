@@ -14,6 +14,7 @@ import {
     saveFacility as persistFacility,
 } from '@/lib/db';
 import toast from 'react-hot-toast';
+import { applyMovement, type StockMovementKind } from '@/lib/stock/movement';
 
 interface FacilityStore {
     facilities: Facility[];
@@ -25,10 +26,23 @@ interface FacilityStore {
     // Actions
     loadAll: () => Promise<void>;
     setSelectedFacilityId: (id: string) => void;
-    restockMedicine: (id: string, amount: number) => Promise<void>;
+    /**
+     * Record a counted receipt or issue. Resolves to an error message when the
+     * movement is refused (no quantity, or more issued than held), else null.
+     */
+    recordStockMovement: (
+        id: string,
+        kind: StockMovementKind,
+        quantity: number,
+        details?: { batchNumber?: string; expiryDate?: string },
+    ) => Promise<string | null>;
     /** Super Admin edits to the facility directory. Throws on a failed write. */
     saveFacility: (facility: Facility) => Promise<void>;
     updateDiagnosticResult: (id: string, result: string, isAbnormal: boolean) => Promise<void>;
+    /** Save a new lab order. Throws on a failed write, so the screen never claims an unsaved order. */
+    addDiagnosticOrder: (order: DiagnosticOrder) => Promise<void>;
+    /** Move an order along the sample pipeline: ordered → sample collected → at the lab. */
+    setDiagnosticStatus: (id: string, status: 'SAMPLE_COLLECTED' | 'IN_PROGRESS' | 'CANCELLED') => Promise<void>;
 }
 
 export const useFacilityStore = create<FacilityStore>((set, get) => ({
@@ -69,28 +83,35 @@ export const useFacilityStore = create<FacilityStore>((set, get) => ({
         }
     },
 
-    restockMedicine: async (id: string, amount: number) => {
+    recordStockMovement: async (id, kind, quantity, details) => {
         const med = get().medicines.find(m => m.id === id);
-        if (!med) return;
+        if (!med) return 'This stock line is no longer on the device — reload the page';
+        const result = applyMovement(med, kind, quantity, details);
+        if (!result.ok) return result.message;
+        // Written before it is shown: a balance on screen that was never saved
+        // is a count the next person will trust and should not.
+        try {
+            await saveMedicine(result.item);
+        } catch (error) {
+            console.error('Failed to save stock movement:', error);
+            return 'Could not save the stock change on this device — nothing was changed';
+        }
+        set(state => ({ medicines: state.medicines.map(m => (m.id === id ? result.item : m)) }));
+        toast.success(`${kind === 'RECEIVED' ? 'Received' : 'Issued'} ${quantity} ${med.unit} of ${med.name} — ${result.item.currentStock} in stock`);
+        return null;
+    },
 
-        const newStock = med.currentStock + amount;
-        let newStatus: MedicineStockItem['status'] = 'ADEQUATE';
-        if (newStock === 0) newStatus = 'OUT_OF_STOCK';
-        else if (newStock < med.minimumRequiredStock) newStatus = 'LOW';
+    addDiagnosticOrder: async (order) => {
+        await saveDiagnostic(order);
+        set(state => ({ diagnostics: [order, ...state.diagnostics.filter(d => d.id !== order.id)] }));
+    },
 
-        const updated: MedicineStockItem = {
-            ...med,
-            currentStock: newStock,
-            status: newStatus,
-            lastRestocked: new Date().toISOString().split('T')[0]
-        };
-
-        set(state => ({
-            medicines: state.medicines.map(m => m.id === id ? updated : m)
-        }));
-
-        await saveMedicine(updated);
-        toast.success(`Restocked ${amount} ${med.unit} of ${med.name}`);
+    setDiagnosticStatus: async (id, status) => {
+        const diag = get().diagnostics.find(d => d.id === id);
+        if (!diag) return;
+        const updated: DiagnosticOrder = { ...diag, status };
+        await saveDiagnostic(updated);
+        set(state => ({ diagnostics: state.diagnostics.map(d => (d.id === id ? updated : d)) }));
     },
 
     updateDiagnosticResult: async (id: string, result: string, isAbnormal: boolean) => {
@@ -105,11 +126,10 @@ export const useFacilityStore = create<FacilityStore>((set, get) => ({
             completedAt: new Date().toISOString()
         };
 
+        await saveDiagnostic(updated);
         set(state => ({
             diagnostics: state.diagnostics.map(d => d.id === id ? updated : d)
         }));
-
-        await saveDiagnostic(updated);
-        toast.success(`Lab result recorded for ${diag.testName}`);
+        toast.success(`Lab result saved: ${diag.testName} for ${diag.patientName}`);
     }
 }));

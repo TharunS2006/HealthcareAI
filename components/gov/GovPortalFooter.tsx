@@ -9,6 +9,7 @@
 import Link from 'next/link';
 import StateEmblem from '@/components/gov/StateEmblem';
 import { useLanguageStore } from '@/stores/languageStore';
+import { dep } from '@/lib/config/deployment';
 
 export default function GovPortalFooter() {
     const { language } = useLanguageStore();
@@ -52,7 +53,7 @@ export default function GovPortalFooter() {
         trans1: isEn ? 'Accessibility Statement' : isHi ? 'पहुंच विवरण' : 'प्रवेशयोग्यता विधान (Accessibility Statement)',
         trans2: isEn ? 'Right to Information (RTI 2005)' : isHi ? 'सूचना का अधिकार (RTI 2005)' : 'माहितीचा अधिकार (RTI 2005)',
         trans3: isEn ? 'Grievance Redressal' : isHi ? 'शिकायत निवारण' : 'तक्रार निवारण (Grievance Redressal)',
-        nodal: isEn ? 'Nodal Officer: Chief Medical Officer, Gadchiroli' : isHi ? 'नोडल अधिकारी: मुख्य चिकित्सा अधिकारी, गढ़चिरौली' : 'नोडल अधिकारी: मुख्य वैद्यकीय अधिकारी, गडचिरोली',
+        nodal: `${isEn ? 'Nodal Officer' : 'नोडल अधिकारी'}: ${dep('nodalOfficer', language)}`,
         rights: isEn
             ? `© ${currentYear} NalamMesh • Department of Public Health, Government of Maharashtra. All rights reserved.`
             : isHi
