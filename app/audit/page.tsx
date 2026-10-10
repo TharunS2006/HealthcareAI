@@ -6,7 +6,11 @@
  * at which facility, when, and the before→after change. Open to the District Health
  * Officer and Super Admin (audit:view, lib/auth/permissions.ts). Data is this device's
  * IndexedDB auditLog store; referral events received from other devices are recorded
- * here too, under the user who took them. */
+ * here too, under the user who took them.
+ *
+ * Below it, the district record service's access log: every request it answered for
+ * identified records (uploads, pre-arrival board and Data Inspector reads), refused
+ * ones included, under the user their session token names. */
 
 'use client';
 
@@ -14,6 +18,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '@/components/shared/Sidebar';
 import MobileMenu from '@/components/shared/MobileMenu';
 import { getAuditLog } from '@/lib/db';
+import { fetchAccessLog, type AccessLogEntry, type AccessLogResult } from '@/lib/sync/cloudRecords';
+import { reportingBaseUrl } from '@/lib/cloudEndpoint';
 import { AuditLogEntry } from '@/types/facility';
 import { useSession } from '@/lib/auth/session';
 import { can, ROLE_LABELS, isStaffRole } from '@/lib/auth/permissions';
@@ -21,6 +27,12 @@ import { FACILITY_NETWORK } from '@/lib/data/facilities';
 import Link from 'next/link';
 
 type EntityFilter = 'ALL' | AuditLogEntry['entityType'];
+type AccessFailure = Extract<AccessLogResult, { ok: false }>['reason'];
+
+const fmt = (iso: string) => new Date(iso).toLocaleString('en-IN', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+});
+const facilityName = (id?: string | null) => (id ? FACILITY_NETWORK.find(f => f.id === id)?.name ?? id : 'District / system');
 
 export default function AuditPage() {
     const session = useSession();
@@ -48,11 +60,6 @@ export default function AuditPage() {
             .filter(e => facility === 'ALL' || e.actorFacilityId === facility),
         [entries, filter, facility]
     );
-    const facilityName = (id?: string | null) => (id ? FACILITY_NETWORK.find(f => f.id === id)?.name ?? id : 'District / system');
-
-    const fmt = (iso: string) => new Date(iso).toLocaleString('en-IN', {
-        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    });
 
     const summarise = (json?: string): string => {
         if (!json) return '';
@@ -139,7 +146,7 @@ export default function AuditPage() {
                                     updating medicine stock will appear here.
                                 </div>
                             ) : (
-                                <div className="surface-card overflow-x-auto">
+                                <div className="surface-card overflow-x-auto" tabIndex={0} role="region" aria-label="Audit trail on this device">
                                     <table className="gov-table w-full">
                                         <thead>
                                             <tr>
@@ -180,10 +187,141 @@ export default function AuditPage() {
                                     </table>
                                 </div>
                             )}
+
+                            <DistrictAccessLog />
                         </>
                     )}
                 </div>
             </main>
         </div>
+    );
+}
+
+// ── the district record service's access log ─────────────────────────────────
+
+// 'unreachable' is worded in the component, with the address, as on the Data Inspector.
+const ACCESS_REASON: Record<Exclude<AccessFailure, 'unreachable'>, string> = {
+    offline: 'This device is offline, so the district record service’s log cannot be read.',
+    forbidden: 'The district record service refused this role — its access log is open to the District Health Officer and Super Admin only.',
+    'no-session': 'You are signed in on this device only, so the district record service cannot confirm who is asking. Sign in again with your PIN while the relay is reachable.',
+    timeout: 'The district record service took too long to answer.',
+    error: 'The district record service returned an unexpected response.',
+};
+
+function outcome(status: number): { label: string; tone: string } {
+    if (status < 300) return { label: 'Answered', tone: 'bg-emerald-100 text-emerald-800' };
+    if (status === 401) return { label: 'Not signed in', tone: 'bg-red-100 text-red-800' };
+    if (status === 403) return { label: 'Refused', tone: 'bg-red-100 text-red-800' };
+    if (status === 413) return { label: 'Too large', tone: 'bg-amber-100 text-amber-900' };
+    if (status < 500) return { label: 'Rejected', tone: 'bg-amber-100 text-amber-900' };
+    return { label: 'Server error', tone: 'bg-red-100 text-red-800' };
+}
+
+function DistrictAccessLog() {
+    const [state, setState] = useState<
+        { kind: 'loading' } | { kind: 'ok'; entries: AccessLogEntry[] } | { kind: 'error'; reason: AccessFailure }
+    >({ kind: 'loading' });
+    const [attempt, setAttempt] = useState(0);
+
+    useEffect(() => {
+        let alive = true;
+        fetchAccessLog(200).then(result => {
+            if (alive) setState(result.ok ? { kind: 'ok', entries: result.entries } : { kind: 'error', reason: result.reason });
+        });
+        return () => { alive = false; };
+    }, [attempt]);
+
+    const refresh = () => { setState({ kind: 'loading' }); setAttempt(a => a + 1); };
+
+    return (
+        <section className="space-y-3" aria-labelledby="district-access-log">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                    <h2 id="district-access-log" className="text-lg font-extrabold text-[#1F3A6E]">District record service: who read whose record</h2>
+                    <p className="text-xs text-txt-secondary mt-0.5 max-w-3xl">
+                        Every request the district service answered for identified records — uploads, pre-arrival board and
+                        Data Inspector reads — under the user their session token names. Refused attempts are listed too.
+                        Kept by the service, not this device.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={refresh}
+                    disabled={state.kind === 'loading'}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#1F3A6E] text-white disabled:opacity-60"
+                >
+                    {state.kind === 'loading' ? 'Reading…' : 'Refresh'}
+                </button>
+            </div>
+
+            {state.kind === 'loading' ? (
+                <div className="surface-card p-6 text-center text-sm text-txt-secondary">Reading the district service’s access log…</div>
+            ) : state.kind === 'error' ? (
+                <div className="surface-card border-l-4 border-gov-amber bg-gov-amber-bg p-4" role="status">
+                    <p className="text-sm font-extrabold text-gov-amber">The district access log was not read</p>
+                    <p className="text-xs text-txt-primary mt-1">
+                        {state.reason === 'unreachable'
+                            ? `No response from the district record service at ${reportingBaseUrl()}.`
+                            : ACCESS_REASON[state.reason]}
+                    </p>
+                    <p className="text-xs text-txt-primary mt-1">
+                        This says nothing about what the log holds — it could not be asked. The trail above is unaffected.
+                    </p>
+                </div>
+            ) : state.entries.length === 0 ? (
+                <div className="surface-card p-6 text-center text-sm text-txt-secondary">
+                    The district service has answered no requests for records yet.
+                </div>
+            ) : (
+                <div className="surface-card overflow-x-auto" tabIndex={0} role="region" aria-label="District record service access log">
+                    <table className="gov-table w-full">
+                        <caption className="sr-only">Latest {state.entries.length} requests to the district record service, newest first</caption>
+                        <thead>
+                            <tr>
+                                <th>When</th>
+                                <th>Who</th>
+                                <th>Request</th>
+                                <th>Result</th>
+                                <th>Records</th>
+                                <th>From</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {state.entries.map((e, i) => {
+                                const result = outcome(e.status);
+                                return (
+                                    <tr key={`${e.at}-${i}`}>
+                                        <td className="whitespace-nowrap text-xs">{fmt(e.at)}</td>
+                                        <td className="text-xs">
+                                            {e.user_id ? (
+                                                <>
+                                                    <span className="font-mono font-semibold">{e.user_id}</span>
+                                                    <span className="block text-[10px] text-txt-muted">
+                                                        {isStaffRole(e.role) ? ROLE_LABELS[e.role] : e.role ?? '—'}
+                                                        {e.facility_id ? ` · ${facilityName(e.facility_id)}` : ''}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span className="text-txt-muted">No valid session</span>
+                                            )}
+                                        </td>
+                                        <td className="text-[11px] font-mono break-all">
+                                            {e.method} {e.path}{e.query ? `?${e.query}` : ''}
+                                        </td>
+                                        <td>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap ${result.tone}`}>
+                                                {result.label} · {e.status}
+                                            </span>
+                                        </td>
+                                        <td className="text-[11px] text-txt-secondary">{e.detail ?? '—'}</td>
+                                        <td className="text-[11px] font-mono text-txt-muted">{e.client ?? '—'}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+        </section>
     );
 }

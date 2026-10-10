@@ -338,3 +338,61 @@ export async function fetchStore(limit = 50): Promise<StoreResult> {
         clearTimeout(timer);
     }
 }
+
+// ── access log ───────────────────────────────────────────────────────────────
+
+/** One request the district service answered, as GET /api/v1/access-log returns it. */
+export interface AccessLogEntry {
+    at: string;
+    /** From the caller's session token; null for a request that carried none. */
+    user_id: string | null;
+    role: string | null;
+    facility_id: string | null;
+    method: string;
+    path: string;
+    query: string | null;
+    status: number;
+    /** Which records the request carried or returned, e.g. "patient P-1". */
+    detail: string | null;
+    client: string | null;
+}
+
+export type AccessLogResult =
+    | { ok: true; entries: AccessLogEntry[] }
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' };
+
+/**
+ * Who read or uploaded identified records at the district service, newest first.
+ *
+ * The device's own audit trail records what was done on this device; this is
+ * the other half — every request the service answered, refused ones included.
+ * Open to audit:view (the DHO and the Super Admin). Like fetchStore, a failure
+ * returns a reason, never an empty log.
+ */
+export async function fetchAccessLog(limit = 200): Promise<AccessLogResult> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return { ok: false, reason: 'offline' };
+    }
+    if (!hasCloudIdentity()) return { ok: false, reason: 'no-session' };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+    try {
+        const url = `${reportingBaseUrl()}/api/v1/access-log?limit=${encodeURIComponent(String(limit))}`;
+        const response = await fetch(reachable(url), { signal: controller.signal, headers: identityProvider() });
+        if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
+        if (!response.ok) return { ok: false, reason: 'error' };
+
+        const data = (await response.json()) as { entries?: AccessLogEntry[] };
+        if (!Array.isArray(data.entries)) return { ok: false, reason: 'error' };
+        return { ok: true, entries: data.entries };
+    } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+            return { ok: false, reason: 'timeout' };
+        }
+        return { ok: false, reason: 'unreachable' };
+    } finally {
+        clearTimeout(timer);
+    }
+}

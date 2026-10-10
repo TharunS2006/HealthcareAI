@@ -87,7 +87,7 @@ if (!(await waitForBackend())) {
     process.exit(1);
 }
 
-const { uploadPatientRecord, uploadCareReferral, fetchIncoming, fetchStore, setIdentityProvider, wireStatus } =
+const { uploadPatientRecord, uploadCareReferral, fetchIncoming, fetchStore, fetchAccessLog, setIdentityProvider, wireStatus } =
     await import('../lib/sync/cloudRecords');
 
 // The district service answers only a signed-in role (backend/app/access.py).
@@ -155,6 +155,9 @@ check('with no session the store is not asked, and the screen is told why',
 const anonymousBoard = await fetchIncoming('phc-bhamragad');
 check('…and the same for a pre-arrival board',
     anonymousBoard.ok === false && anonymousBoard.reason === 'no-session', JSON.stringify(anonymousBoard));
+const anonymousLog = await fetchAccessLog(10);
+check('…and for the access log',
+    anonymousLog.ok === false && anonymousLog.reason === 'no-session', JSON.stringify(anonymousLog));
 setIdentityProvider(() => ({ Authorization: 'Bearer forged.token.value' }));
 const forged = await fetchStore(50);
 check('a token the relay never signed is refused by the store',
@@ -304,6 +307,32 @@ if (!store.ok) {
         JSON.stringify(store.store.patient_records.map((r) => r.id)));
 }
 
+// ── 6b. The access log names who uploaded and who read ───────────────────────
+// The Audit screen shows this beside the device's own trail: the service's
+// half of "who saw whose record", refused attempts included.
+console.log('\nThe district access log names who uploaded, who read, and who was refused:');
+const log = await fetchAccessLog(200);
+if (!log.ok) {
+    fail('the DHO can read the access log', `reason: ${log.reason}`);
+} else {
+    const recent = JSON.stringify(log.entries.slice(0, 6).map((e) => [e.path, e.user_id, e.status, e.detail]));
+    check('the upload is logged under the user who sent it, naming the record',
+        log.entries.some((e) => e.path === '/api/v1/records/patients' && e.user_id === 'u-dho' && e.detail === 'patient pat-verify-1'),
+        recent);
+    check('the store read is logged',
+        log.entries.some((e) => e.path === '/api/v1/store' && e.user_id === 'u-dho' && e.status === 200), recent);
+    check('a refused read of another facility\'s board is logged under the token\'s user',
+        log.entries.some((e) => e.path === '/api/v1/records/incoming' && e.user_id === 'u-mo-bhamragad' && e.status === 403), recent);
+    check('a forged token is logged as an anonymous 401',
+        log.entries.some((e) => e.path === '/api/v1/store' && e.user_id === null && e.status === 401), recent);
+    check('newest first',
+        log.entries.every((e, i) => i === 0 || Date.parse(log.entries[i - 1].at) >= Date.parse(e.at)), recent);
+}
+setIdentityProvider(() => bearerFor('u-mo-bhamragad', 'MO', 'phc-bhamragad'));
+const moLog = await fetchAccessLog(10);
+check('a Medical Officer cannot read the access log', moLog.ok === false && moLog.reason === 'forbidden', JSON.stringify(moLog));
+setIdentityProvider(() => DHO);
+
 // A 200 with a body of the wrong shape is the one failure that would render as
 // a healthy, empty store — the exact reading the page must never produce.
 console.log('\nA well-formed reply of the wrong shape is a failure, not an empty store:');
@@ -330,6 +359,8 @@ check('an upload to an unreachable cloud stays retryable',
 const deadStore = await fetchStore(50);
 check('an unreachable store reads as unreachable, not as "the cloud is empty"',
     deadStore.ok === false && deadStore.reason === 'unreachable', JSON.stringify(deadStore));
+const deadLog = await fetchAccessLog(10);
+check('…and so does the access log', deadLog.ok === false && deadLog.reason === 'unreachable', JSON.stringify(deadLog));
 process.env.NEXT_PUBLIC_REPORTING_URL = `http://127.0.0.1:${PORT}`;
 
 // ── 8. The hosted site does not dial what the browser will block ─────────────
