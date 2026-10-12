@@ -15,6 +15,8 @@ This is an evaluation build: every patient, referral and staff member is fiction
 The district record service holds identified patient records, so it runs only on a facility or district network and is not hosted; the Pre-Arrival Board and Data Inspector say so when it is out of reach.
 
 > **Before any real patient:** read [`docs/PRODUCTION_READINESS.md`](./docs/PRODUCTION_READINESS.md) — what the software already enforces, how to configure a production deployment, and the approvals (licence, clinical validation, CDSCO, CERT-In audit, hosting, ABDM) that only the department and the team can obtain.
+>
+> Everything changed to get here — safety, privacy, reliability, tests — is listed, with the commit for each item, in [`docs/CHANGES.md`](./docs/CHANGES.md).
 
 ## Stack
 

@@ -165,7 +165,7 @@ E.append(table([
     ["Stack", "Next.js 15 (App Router, static export) · React 19 · TypeScript · Zustand · "
               "IndexedDB · Socket.io relay · FastAPI district service"],
     ["Scale", "45 routes · 13 on-device stores · 6 staff roles · 7 modelled facilities · "
-              "37 verify suites and 3 browser checks"],
+              "38 verify suites and 3 browser checks"],
     ["Status", "Software ready for a supervised pilot; approvals still due before real "
                "patients — see docs/PRODUCTION_READINESS.md"],
     ["Languages", "English, Hindi and Marathi — every citizen-facing screen is trilingual"],
@@ -312,7 +312,7 @@ E.append(table([
     ["public/sw.js", "The service worker. Bump "
                      "<font face='Courier' size='7.5'>CACHE_VERSION</font> whenever you "
                      "change the pre-cache list, or clients keep the stale shell."],
-    ["scripts/", "37 verify suites (<font face='Courier' size='7.5'>npm run verify</font>) "
+    ["scripts/", "38 verify suites (<font face='Courier' size='7.5'>npm run verify</font>) "
                  "and three browser checks (<font face='Courier' size='7.5'>check:a11y</font>, "
                  "<font face='Courier' size='7.5'>check:offline</font>, "
                  "<font face='Courier' size='7.5'>check:production</font>). CI runs them all."],
@@ -604,7 +604,7 @@ E.append(Paragraph("Before every commit", H2))
 E.append(Paragraph(
     "npm run lint            # zero warnings<br/>"
     "npm run typecheck<br/>"
-    "npm run verify          # all 37 suites, with a summary<br/>"
+    "npm run verify          # all 38 suites, with a summary<br/>"
     "npm run build           # static export, then stamps the service worker<br/>"
     "npm run check:offline   # opens the ANM's screens with the server stopped<br/>"
     "npm run check:a11y      # WCAG 2.1 A/AA on 28 pages<br/>"
@@ -654,7 +654,7 @@ E.append(table([
     ["Check", "Status"],
     ["Production build", "Passes"],
     ["Lint and TypeScript", "Clean — zero warnings, no errors"],
-    ["Verify suites", "37 / 37, including the district service on PostgreSQL"],
+    ["Verify suites", "38 / 38, including the district service on PostgreSQL"],
     ["Triage clinical suite", "20 / 20, through all three decision paths"],
     ["Offline", "Every ANM screen starts with the server stopped (check:offline)"],
     ["Accessibility", "No axe-core WCAG 2.1 A/AA violation on 28 pages (check:a11y)"],
