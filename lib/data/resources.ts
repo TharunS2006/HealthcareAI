@@ -53,7 +53,7 @@ export const SEED_RESOURCES: FacilityResources[] = [
             { specialty: 'NEPHROLOGY', count: 1 },
         ],
         updatedAt: iso(35),
-        updatedBy: 'Meera Wanjari',
+        updatedBy: 'Meera Gholap',
     },
     {
         facilityId: 'sdh-aheri',
@@ -81,7 +81,7 @@ export const SEED_RESOURCES: FacilityResources[] = [
             { specialty: 'ORTHOPAEDICS', count: 1 },
         ],
         updatedAt: iso(80),
-        updatedBy: 'Nanda Gedam',
+        updatedBy: 'Nanda Khemnar',
     },
     {
         facilityId: 'chc-etapalli',
@@ -105,7 +105,7 @@ export const SEED_RESOURCES: FacilityResources[] = [
             { specialty: 'ANAESTHESIA', count: 1 },
         ],
         updatedAt: iso(20),
-        updatedBy: 'Rajesh Kodape',
+        updatedBy: 'Rajesh Kolhe',
     },
     {
         facilityId: 'phc-bhamragad',
@@ -117,7 +117,7 @@ export const SEED_RESOURCES: FacilityResources[] = [
         shift,
         staffOnDuty: [{ specialty: 'GENERAL_MEDICINE', count: 2 }],
         updatedAt: iso(60),
-        updatedBy: 'Dr. Suresh Atram',
+        updatedBy: 'Dr. Suresh Thorat',
     },
     {
         facilityId: 'phc-perimili',
@@ -129,7 +129,7 @@ export const SEED_RESOURCES: FacilityResources[] = [
         shift,
         staffOnDuty: [{ specialty: 'GENERAL_MEDICINE', count: 1 }],
         updatedAt: iso(90),
-        updatedBy: 'Dr. Anjali Borkar',
+        updatedBy: 'Dr. Anjali Kanawade',
     },
 ];
 
@@ -143,7 +143,7 @@ export const SEED_MAINTENANCE: MaintenanceTicket[] = [
         description: 'X-ray tube failure — exposures come out blank',
         status: 'ASSIGNED',
         reportedAt: iso(2 * 24 * 60),
-        reportedBy: 'Rajesh Kodape',
+        reportedBy: 'Rajesh Kolhe',
         assignedTo: 'District Biomedical Engineer',
         assignedAt: iso(2 * 24 * 60 - 90),
         expectedRepairDate: day(3),
@@ -157,7 +157,7 @@ export const SEED_MAINTENANCE: MaintenanceTicket[] = [
         description: 'Preventive maintenance — flow sensor calibration',
         status: 'OPEN',
         reportedAt: iso(5 * 60),
-        reportedBy: 'Meera Wanjari',
+        reportedBy: 'Meera Gholap',
         expectedRepairDate: day(1),
     },
     {
@@ -169,7 +169,7 @@ export const SEED_MAINTENANCE: MaintenanceTicket[] = [
         description: 'RO water plant fault on dialysis station 3',
         status: 'ASSIGNED',
         reportedAt: iso(26 * 60),
-        reportedBy: 'Meera Wanjari',
+        reportedBy: 'Meera Gholap',
         assignedTo: 'Vendor service engineer',
         assignedAt: iso(24 * 60),
         expectedRepairDate: day(5),
@@ -183,7 +183,7 @@ export const SEED_MAINTENANCE: MaintenanceTicket[] = [
         description: 'ICU bed 7 — motor fault, cannot tilt',
         status: 'OPEN',
         reportedAt: iso(3 * 60),
-        reportedBy: 'Meera Wanjari',
+        reportedBy: 'Meera Gholap',
     },
     {
         id: 'mt-005',
@@ -194,11 +194,11 @@ export const SEED_MAINTENANCE: MaintenanceTicket[] = [
         description: 'Convex probe cracked',
         status: 'RESOLVED',
         reportedAt: iso(3 * 24 * 60),
-        reportedBy: 'Nanda Gedam',
+        reportedBy: 'Nanda Khemnar',
         assignedTo: 'Vendor service engineer',
         assignedAt: iso(3 * 24 * 60 - 60),
         resolvedAt: iso(24 * 60),
-        resolvedBy: 'Nanda Gedam',
+        resolvedBy: 'Nanda Khemnar',
         resolutionNote: 'Probe replaced under warranty',
     },
 ];

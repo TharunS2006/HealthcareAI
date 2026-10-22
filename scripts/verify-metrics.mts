@@ -165,7 +165,7 @@ console.log('\n5. RECORDED, NOT INVENTED');
 const { clinicalSummary } = await import('../lib/analytics/patientSummary');
 const { patientTimeline } = await import('../lib/analytics/patientTimeline');
 
-const stranger = { ...SEED_PATIENTS[0], name: 'Sunita Ramesh Aarav Meshram', visits: [], highRiskFlags: [], notes: undefined,
+const stranger = { ...SEED_PATIENTS[0], name: 'Sunita Ramesh Aarav Jadhav', visits: [], highRiskFlags: [], notes: undefined,
     vitals: { ...SEED_PATIENTS[0].vitals, injuryType: undefined } };
 check('a name that matches the old demo names gets no clinical description it did not record',
     clinicalSummary(stranger as never) === '', JSON.stringify(clinicalSummary(stranger as never)));

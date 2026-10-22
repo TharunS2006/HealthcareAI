@@ -189,7 +189,7 @@ check('a bad timestamp shows nothing rather than NaN', minutesWaiting({ register
 
 check('TV: three names → first name and initials', maskedName('Sunita Ramdas Kowe') === 'Sunita R. K.', maskedName('Sunita Ramdas Kowe'));
 check('TV: one name is left as it is', maskedName('Lakshmi') === 'Lakshmi');
-check('TV: extra spaces are ignored', maskedName('  Ravi   Atram ') === 'Ravi A.', maskedName('  Ravi   Atram '));
+check('TV: extra spaces are ignored', maskedName('  Ravi   Thorat ') === 'Ravi T.', maskedName('  Ravi   Thorat '));
 const devanagari = maskedName('सुनीता क्षीरसागर');
 check('TV: a Devanagari initial is a whole letter, never a dangling half-letter (virama)',
     devanagari.startsWith('सुनीता ') && devanagari.endsWith('.') && !devanagari.includes('\u094D.'), devanagari);

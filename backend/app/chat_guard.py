@@ -88,6 +88,13 @@ _REDACTIONS: Tuple[Tuple[str, "re.Pattern[str]"], ...] = (
     # Indian mobile: an optional trunk 0, then ten digits starting 6-9.
     ("phone number", re.compile(
         f"{_NOT_AFTER_DIGIT}[0\u0966]?{_D69}{_D}{{4}}[ -]?{_D}{{5}}{_NOT_BEFORE_DIGIT}")),
+    # Mobiles grouped 3-3-4 or 4-3-3, with or without +91 / a trunk 0.
+    ("phone number", re.compile(
+        f"{_NOT_AFTER_DIGIT}(?:\\+91[ -]?|[0\u0966][ -]?)?{_D69}"
+        f"(?:{_D}{{2}}[ -]{_D}{{3}}[ -]{_D}{{4}}|{_D}{{3}}[ -]{_D}{{3}}[ -]{_D}{{3}}){_NOT_BEFORE_DIGIT}")),
+    # Landlines: 0, a 2-4 digit STD code, then the number (02425-221265, 022 12345678).
+    ("phone number", re.compile(
+        f"{_NOT_AFTER_DIGIT}[0\u0966](?:{_D}{{2}}[ -]{_D}{{8}}|{_D}{{3}}[ -]{_D}{{7}}|{_D}{{4}}[ -]{_D}{{6}}){_NOT_BEFORE_DIGIT}")),
     # Anything else that is nine or more digits in a row is an identifier of
     # some kind (MCTS/RCH, ration card, hospital number); no vital sign, dose,
     # date or count a health worker would type is that long.

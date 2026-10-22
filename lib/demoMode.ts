@@ -14,7 +14,7 @@ let demoInterval: NodeJS.Timeout | null = null;
 
 const DEMO_PRESETS = [
     {
-        name: 'Savita Rama Madavi',
+        name: 'Savita Rama Wakchaure',
         age: 24,
         gender: 'F' as const,
         village: 'Pemgiri',
@@ -33,7 +33,7 @@ const DEMO_PRESETS = [
         gpsOffset: { lat: 0.012, lng: -0.008 },
     },
     {
-        name: 'Bandu Soma Atram',
+        name: 'Bandu Soma Thorat',
         age: 48,
         gender: 'M' as const,
         village: 'Sawargaon Ghule',
@@ -70,7 +70,7 @@ const DEMO_PRESETS = [
         gpsOffset: { lat: -0.006, lng: -0.014 },
     },
     {
-        name: 'Ganesh Devrao Gawde',
+        name: 'Ganesh Devrao Bhalerao',
         age: 38,
         gender: 'M' as const,
         village: 'Dhandarphal',
@@ -140,7 +140,7 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
             },
             timestamp: new Date().toISOString(),
             isSynced: true,
-            chw_name: 'Lakshmi Netam (ASHA)',
+            chw_name: 'Lakshmi Kale (ASHA)',
             notes: 'Auto-generated via NalamMesh Maharashtra Demonstration Engine',
         };
 

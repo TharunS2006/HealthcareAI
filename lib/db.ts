@@ -19,6 +19,20 @@ import { SEED_REFERRALS, SEED_NOTIFICATIONS } from '@/lib/data/referralSeed';
 import { SEED_RESOURCES, SEED_MAINTENANCE } from '@/lib/data/resources';
 import { RETIRED_FACILITY_IDS, remapRetiredFacilityIds } from '@/lib/data/facilityIds';
 import { PLACE_NAME_STORES, restorePlaceNames } from '@/lib/data/placeNames';
+
+/** Seeded accounts as they were before the demo moved to Sangamner (2026-10-22). */
+const OLD_SEED_STAFF: Record<string, { staffId: string; name: string }> = {
+    'u-anm-kothi': { staffId: 'ANM-KOT-1021', name: 'Sunita Hichami' },
+    'u-anm-govindpur': { staffId: 'ANM-GOV-1022', name: 'Kavita Madavi' },
+    'u-mo-bhamragad': { staffId: 'MO-GAD-4412', name: 'Dr. Suresh Atram' },
+    'u-mo-perimili': { staffId: 'MO-PER-4413', name: 'Dr. Anjali Borkar' },
+    'u-ha-chc': { staffId: 'HA-CHC-7001', name: 'Rajesh Kodape' },
+    'u-ha-sdh': { staffId: 'HA-SDH-7002', name: 'Nanda Gedam' },
+    'u-ha-dh': { staffId: 'HA-DH-7003', name: 'Meera Wanjari' },
+    'u-sp-chc': { staffId: 'SP-CHC-5101', name: 'Dr. Prakash Uike' },
+    'u-sp-dh': { staffId: 'SP-DH-5102', name: 'Dr. Pramod Khandate' },
+    'u-dho': { staffId: 'DHO-DIST-0001', name: 'Dr. Kiran Dhurve' },
+};
 import { PRODUCTION } from '@/lib/config/mode';
 import { normalizeReferral } from '@/lib/referrals/workflow';
 import { v4 as uuidv4 } from 'uuid';
@@ -505,6 +519,12 @@ async function seedDatabase(db: IDBPDatabase<NalamMeshDB>): Promise<void> {
             // Not where the relay withheld the hash: that user's PIN may have been
             // changed, and putting the demo PIN back would let 2468 in.
             if (stored && !stored.pinHash && !stored.pinHashWithheld && seed.pinHash) await tx.store.put({ ...stored, pinHash: seed.pinHash });
+            // The demo moved to Sangamner (2026-10-22): a seeded account still carrying its
+            // old Staff ID or name takes the new ones. An account the Super Admin edited keeps its edits.
+            const moved = stored && OLD_SEED_STAFF[seed.id];
+            if (moved && stored.staffId === moved.staffId && stored.name === moved.name && (stored.staffId !== seed.staffId || stored.name !== seed.name)) {
+                await tx.store.put({ ...stored, staffId: seed.staffId, name: seed.name });
+            }
         }
         await tx.done;
     }

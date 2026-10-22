@@ -140,7 +140,7 @@ console.log('\n3. REJECTION & RE-ROUTING');
 check('rejecting without a reason is refused', act(d, 'REJECT', 'u-mo-bhamragad', 2).ok === false);
 check('"Other" without a description is refused', act(d, 'REJECT', 'u-mo-bhamragad', 2, { reject: { code: 'OTHER' } }).ok === false);
 const rej = mustOk(act(d, 'REJECT', 'u-mo-bhamragad', 2, { reject: { code: 'NO_BED' } }), 'reject').referral;
-check('REJECTED carries the reason and who rejected', rej.status === 'REJECTED' && rej.rejection?.code === 'NO_BED' && rej.rejection.byName === 'Dr. Suresh Atram');
+check('REJECTED carries the reason and who rejected', rej.status === 'REJECTED' && rej.rejection?.code === 'NO_BED' && rej.rejection.byName === 'Dr. Suresh Thorat');
 check('the receiver cannot re-route; only the sender can', act(rej, 'REROUTE', 'u-mo-bhamragad', 3, { reroute: fac('phc-perimili') }).ok === false);
 check('re-routing back to the facility that rejected is refused', act(rej, 'REROUTE', 'u-anm-kothi', 3, { reroute: fac('phc-bhamragad') }).ok === false);
 const rr = mustOk(act(rej, 'REROUTE', 'u-anm-kothi', 3, { reroute: fac('phc-perimili') }), 'reroute').referral;

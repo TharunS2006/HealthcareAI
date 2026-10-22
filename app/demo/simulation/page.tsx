@@ -188,7 +188,7 @@ export default function SimulationPage() {
             setStep(0);
             setRightView({ mode: 'board' });
             const prefill: ReferralFormPrefill = {
-                newPatient: { name: 'Gangubai Madavi', age: '61', gender: 'F', village: 'Pemgiri' },
+                newPatient: { name: 'Gangubai Wakchaure', age: '61', gender: 'F', village: 'Pemgiri' },
                 spo2: '96', pulse: '118', systolic: '88', diastolic: '58', temperature: '99.0', respiratoryRate: '22',
                 reason: 'Acute gastroenteritis — 12 watery stools since last night, unable to keep fluids down, BP 88/58. Severe dehydration: needs IV fluids and observation.',
                 priority: 'EMERGENCY',
@@ -204,7 +204,7 @@ export default function SimulationPage() {
             let id = '';
             for (let i = 0; i < 40 && !id; i++) {
                 await pause(150);
-                id = useReferralStore.getState().referrals.find(r => !known.has(r.id) && r.patientName === 'Gangubai Madavi')?.id ?? '';
+                id = useReferralStore.getState().referrals.find(r => !known.has(r.id) && r.patientName === 'Gangubai Wakchaure')?.id ?? '';
             }
             if (!id) throw new Error('The referral was not created — see the form for the reason');
             await until(id, r => r.status !== 'CREATED', 'delivery to the PHC');
@@ -273,7 +273,7 @@ export default function SimulationPage() {
         const thresholdSeconds = 20;
         const created = await store.create(
             {
-                patient: { id: `p-sim-${Date.now().toString(36)}`, name: 'Rama Kowase', age: 34, gender: 'M' },
+                patient: { id: `p-sim-${Date.now().toString(36)}`, name: 'Rama Dighe', age: 34, gender: 'M' },
                 from: { id: left.facilityId!, name: left.facilityName, type: 'SC' },
                 to: { id: right.facilityId!, name: right.facilityName, type: 'PHC' },
                 reason: 'Fall from tree 30 min ago — head injury, vomited twice, drowsy. Suspected fracture left forearm.',

@@ -401,7 +401,7 @@ console.log('\nA replacement phone restores its facility\'s records, and only wh
         ...patient, id, name, registeredAtFacilityId: 'phc-bhamragad', timestamp: NOW, visits: undefined, activeReferral: undefined,
     } as Patient);
     setIdentityProvider(() => DHO);
-    for (const [id, name] of [['pat-phc-1', 'Rekha Usendi'], ['pat-phc-2', 'Manda Kodape'], ['pat-phc-3', 'Sita Pungati']]) {
+    for (const [id, name] of [['pat-phc-1', 'Rekha Usendi'], ['pat-phc-2', 'Manda Kolhe'], ['pat-phc-3', 'Sita Pungati']]) {
         await uploadPatientRecord(phcPatient(id, name), NOW);
     }
     setIdentityProvider(() => bearerFor('u-mo-bhamragad', 'MO', 'phc-bhamragad'));
@@ -411,13 +411,13 @@ console.log('\nA replacement phone restores its facility\'s records, and only wh
     check('…and asking for ids sends ids, not records', ids.ok && ids.patients.length === 0);
 
     // The new phone already holds one of them, edited since it was uploaded.
-    await savePatient({ ...phcPatient('pat-phc-2', 'Manda Kodape (edited on this phone)') });
+    await savePatient({ ...phcPatient('pat-phc-2', 'Manda Kolhe (edited on this phone)') });
     const before = await countMissing('phc-bhamragad');
     check('the phone finds which records it lacks', before.ok && before.missing === 2 && before.total === 3, JSON.stringify(before));
     const restored = await restoreFacilityPatients('phc-bhamragad');
     check('restoring downloads exactly those', restored.ok && restored.restored === 2, JSON.stringify(restored));
     check('…whole, as uploaded', (await getPatient('pat-phc-1'))?.name === 'Rekha Usendi' && (await getPatient('pat-phc-3'))?.vitals?.spo2 === 91);
-    check('…and never overwrites what the phone already held', (await getPatient('pat-phc-2'))?.name === 'Manda Kodape (edited on this phone)');
+    check('…and never overwrites what the phone already held', (await getPatient('pat-phc-2'))?.name === 'Manda Kolhe (edited on this phone)');
     const after = await countMissing('phc-bhamragad');
     check('afterwards nothing is missing, so the offer goes away', after.ok && after.missing === 0, JSON.stringify(after));
     const again = await restoreFacilityPatients('phc-bhamragad');

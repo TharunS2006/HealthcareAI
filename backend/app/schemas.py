@@ -165,7 +165,7 @@ class PatientRecordIn(BaseModel):
     """
 
     id: str = Field(examples=["pat-7f3a"])
-    name: str = Field(examples=["Sunita Madavi"])
+    name: str = Field(examples=["Sunita Wakchaure"])
     # Float, not int: an infant's age is recorded in fractions of a year on the
     # device ("1.5y"), and paediatric emergencies are exactly the referrals this
     # service must not refuse. The value is a projection for querying — the

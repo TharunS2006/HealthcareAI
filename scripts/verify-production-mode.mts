@@ -75,7 +75,7 @@ check('…and adds no patient', generated.length === 0 && (await count('patients
 stopDemoMode();
 
 print('\n3. STAFF ID');
-const unknown = await signInWithStaffId('ANM-KOT-1021', '2468', await DB.getUsers());
+const unknown = await signInWithStaffId('ANM-PEM-1021', '2468', await DB.getUsers());
 check('with no relay, a Staff ID this device has never seen cannot sign in', !unknown.ok);
 check('…and is told to connect once', !unknown.ok && /connected/.test(unknown.message), unknown.ok ? '' : unknown.message);
 

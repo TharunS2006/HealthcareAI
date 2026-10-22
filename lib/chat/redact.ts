@@ -41,6 +41,10 @@ const RULES: Rule[] = [
     { label: 'ABHA number', pattern: new RegExp(`${START}${D}{2}[ -]?${D}{4}[ -]?${D}{4}[ -]?${D}{4}${END}`, 'g'), lead: true },
     { label: 'Aadhaar number', pattern: new RegExp(`${START}${D29}${D}{3}[ -]?${D}{4}[ -]?${D}{4}${END}`, 'g'), lead: true },
     { label: 'phone number', pattern: new RegExp(`${START}[0०]?${D69}${D}{4}[ -]?${D}{5}${END}`, 'g'), lead: true },
+    // Mobiles grouped 3-3-4 or 4-3-3 (987-654-3210, 98765 432 10 is the 5-5 rule above), with or without +91 / 0.
+    { label: 'phone number', pattern: new RegExp(`${START}(?:\\+91[ -]?|[0०][ -]?)?${D69}(?:${D}{2}[ -]${D}{3}[ -]${D}{4}|${D}{3}[ -]${D}{3}[ -]${D}{3})${END}`, 'g'), lead: true },
+    // Landlines: 0, a 2-4 digit STD code, then the number — 02425-221265, 022 12345678.
+    { label: 'phone number', pattern: new RegExp(`${START}[0०](?:${D}{2}[ -]${D}{8}|${D}{3}[ -]${D}{7}|${D}{4}[ -]${D}{6})${END}`, 'g'), lead: true },
     // Nine or more digits in a row is an identifier of some kind; no vital
     // sign, date or count a health worker types is that long.
     { label: 'ID number', pattern: new RegExp(`${START}${D}{9,}${END}`, 'g'), lead: true },

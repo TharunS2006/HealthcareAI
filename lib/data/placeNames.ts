@@ -68,7 +68,7 @@ const SEED_VALUES: Record<string, string> = {
     'Block B Village, Sub-Division Tehsil, 442705': 'Jawale Baleshwar, Tal. Sangamner, Ahilyanagar',
     'Village 1 Gram Panchayat, Block A 442710': 'Pemgiri Gram Panchayat, Tal. Sangamner',
     'Village 2 Village, Block A 442710': 'Sawargaon Ghule, Tal. Sangamner',
-    'Nikshay ID: NK-PHC-01, DOTS regimen adherence good': 'Nikshay ID: NK-MH-GAD-29402, DOTS regimen adherence good',
+    'Nikshay ID: NK-PHC-01, DOTS regimen adherence good': 'Nikshay ID: NK-MH-ANR-29402, DOTS regimen adherence good',
 };
 
 /** The generic build's one placeholder tehsil; the real one depends on the record. */
@@ -95,6 +95,14 @@ const MOVED_WORDS: [RegExp, string][] = [
     [/\bGadchiroli\b/g, 'Ahilyanagar'], [/\bBhamragad\b/g, 'Dhandarphal'], [/\bPerimili\b/g, 'Jawale Baleshwar'],
     [/\bEtapalli\b/g, 'Sakur'], [/\bAheri\b/g, 'Sangamner'], [/\bKothi\b/g, 'Pemgiri'], [/\bGovindpur\b/g, 'Sawargaon Ghule'],
     [/\bMH-33\b/g, 'MH-16'],
+    // People: Gadchiroli surnames → Sangamner-area surnames, and staff/ASHA ids that named old villages.
+    ...([['Hichami', 'Gunjal'], ['Atram', 'Thorat'], ['Madavi', 'Wakchaure'], ['Netam', 'Kale'], ['Pendam', 'Rahane'],
+        ['Kowase', 'Dighe'], ['Wadde', 'Varpe'], ['Dhurve', 'Deshmukh'], ['Kodape', 'Kolhe'], ['Uike', 'Navale'],
+        ['Gedam', 'Khemnar'], ['Wanjari', 'Gholap'], ['Khandate', 'Shinde'], ['Borkar', 'Kanawade'], ['Narote', 'Pawar'],
+        ['Meshram', 'Jadhav'], ['Gawde', 'Bhalerao']] as const).map(([from, to]): [RegExp, string] => [new RegExp(`\\b${from}\\b`, 'g'), to]),
+    [/\bANM-KOT-1021\b/g, 'ANM-PEM-1021'], [/\bANM-GOV-1022\b/g, 'ANM-SAW-1022'], [/\bMO-GAD-4412\b/g, 'MO-DHA-4412'],
+    [/\bMO-PER-4413\b/g, 'MO-JAW-4413'], [/\bASHA-KOTHI-01\b/g, 'ASHA-PEM-01'], [/\bASHA-GOV-02\b/g, 'ASHA-SAW-02'],
+    [/\bNK-MH-GAD-29402\b/g, 'NK-MH-ANR-29402'],
 ];
 /** Old facility labels, as whole values — safe to map even in records made on a device. */
 const MOVED_LABELS: Record<string, string> = Object.fromEntries([
@@ -102,6 +110,8 @@ const MOVED_LABELS: Record<string, string> = Object.fromEntries([
     'Primary Health Centre, Bhamragad', 'Primary Health Centre, Perimili', 'Sub-Centre / Ayushman Arogya Mandir, Kothi',
     'Sub-Centre, Govindpur', 'DH Gadchiroli', 'SDH Aheri', 'CHC Etapalli', 'PHC Bhamragad', 'PHC Perimili', 'SC Kothi',
     'SC Govindpur', 'Sub-Centre Kothi', 'Sub-Centre Govindpur',
+    'Sunita Hichami', 'Kavita Madavi', 'Dr. Suresh Atram', 'Dr. Anjali Borkar', 'Rajesh Kodape', 'Nanda Gedam', 'Meera Wanjari',
+    'Dr. Prakash Uike', 'Dr. Pramod Khandate', 'Dr. Kiran Dhurve',
 ].map(old => [old, MOVED_WORDS.reduce((v, [re, to]) => v.replace(re, to), old)]));
 const MOVED_TEHSILS = new Set(['Bhamragad', 'Aheri', 'Etapalli']);
 /** Old map positions → new, matched exactly (the seed's own values). */

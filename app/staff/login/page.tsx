@@ -244,7 +244,7 @@ function LoginForm() {
                     <div>
                         <label className={label} htmlFor="staff-id">Staff ID</label>
                         <input id="staff-id" value={staffIdText} onChange={e => setStaffIdText(e.target.value)} autoComplete="username"
-                            autoCapitalize="characters" placeholder="e.g. ANM-KOT-1021" className={`${field} font-mono`} />
+                            autoCapitalize="characters" placeholder="e.g. ANM-PEM-1021" className={`${field} font-mono`} />
                     </div>
                     <div>
                         <label className={label} htmlFor="staff-id-pin">PIN</label>

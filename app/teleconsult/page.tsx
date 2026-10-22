@@ -230,7 +230,7 @@ function TeleconsultDemonstration() {
                                 <div className="absolute bottom-20 right-6 w-32 h-20 bg-slate-900 border-2 border-teal-500/60 rounded-xl overflow-hidden shadow-lg p-2 flex flex-col justify-between">
                                     <span className="text-[9px] font-bold text-teal-300">CHO Field Device</span>
                                     <div className="flex justify-center text-teal-300"><Icon name="community-worker" className="w-5 h-5" /></div>
-                                    <span className="text-[8px] text-slate-400 truncate">Sunita Hichami</span>
+                                    <span className="text-[8px] text-slate-400 truncate">Sunita Gunjal</span>
                                 </div>
 
                                 {/* Call Action Bar */}
