@@ -155,7 +155,7 @@ export default function SimulationPage() {
     const cancelled = useRef(false);
 
     if (!left || !right) {
-        return <p className="p-6 text-sm text-slate-600">The simulation needs the seeded ANM (Sub Centre Kothi) and Medical Officer (PHC Bhamragad) in the staff directory.</p>;
+        return <p className="p-6 text-sm text-slate-600">The simulation needs the seeded ANM (Sub Centre Pemgiri) and Medical Officer (PHC Dhandarphal) in the staff directory.</p>;
     }
 
     const pause = async (ms: number) => {
@@ -188,7 +188,7 @@ export default function SimulationPage() {
             setStep(0);
             setRightView({ mode: 'board' });
             const prefill: ReferralFormPrefill = {
-                newPatient: { name: 'Gangubai Madavi', age: '61', gender: 'F', village: 'Kothi' },
+                newPatient: { name: 'Gangubai Madavi', age: '61', gender: 'F', village: 'Pemgiri' },
                 spo2: '96', pulse: '118', systolic: '88', diastolic: '58', temperature: '99.0', respiratoryRate: '22',
                 reason: 'Acute gastroenteritis — 12 watery stools since last night, unable to keep fluids down, BP 88/58. Severe dehydration: needs IV fluids and observation.',
                 priority: 'EMERGENCY',
@@ -245,7 +245,7 @@ export default function SimulationPage() {
             await pause(2200);
 
             setStep(6);
-            await must(store.act(id, { action: 'DISPATCH', dispatch: { vehicleNo: 'MH-33-AMB-1087', etaMinutes: 25 } }, left), 'Dispatch');
+            await must(store.act(id, { action: 'DISPATCH', dispatch: { vehicleNo: 'MH-16-AMB-1087', etaMinutes: 25 } }, left), 'Dispatch');
             await pause(2800);
 
             setStep(7);

@@ -379,10 +379,10 @@ console.log('\n7b. PATIENT RECORDS');
     const record = { id: pid, name: 'Scope Test', age: 33, gender: 'F', registeredAtFacilityId: 'sc-kothi', timestamp: new Date(registeredAt).toISOString() };
     socks.kothi.emit('patient:sync', record);
     await settle();
-    check('a record registered at Kothi reaches the DHO', heard.dho.includes(pid), JSON.stringify(heard));
+    check('a record registered at Pemgiri reaches the DHO', heard.dho.includes(pid), JSON.stringify(heard));
     check('…and no device at another sub-centre or PHC', !heard.govindpur.includes(pid) && !heard.bhamragad.includes(pid) && !heard.perimili.includes(pid), JSON.stringify(heard));
     const sinceFor = async (userId: string) => ((await (await fetch(`${BASE}/api/sync/since/0`, { headers: headersAs(userId) })).json()) as { records: Array<{ id: string }> }).records.map(r => r.id);
-    check('catch-up gives it to Kothi and the DHO only', (await sinceFor('u-anm-kothi')).includes(pid) && (await sinceFor('u-dho')).includes(pid)
+    check('catch-up gives it to Pemgiri and the DHO only', (await sinceFor('u-anm-kothi')).includes(pid) && (await sinceFor('u-dho')).includes(pid)
         && !(await sinceFor('u-anm-govindpur')).includes(pid) && !(await sinceFor('u-mo-bhamragad')).includes(pid));
     const hijack = await postAs('/api/sync/patient', { ...record, name: 'Overwritten', registeredAtFacilityId: 'sc-govindpur', timestamp: new Date().toISOString() }, 'u-anm-govindpur');
     check('another facility cannot overwrite it, or claim it by renaming the facility', hijack.status === 403, String(hijack.status));
@@ -396,7 +396,7 @@ console.log('\n7b. PATIENT RECORDS');
         reason: 'Severe anaemia in pregnancy', priority: 'URGENT', transportMode: 'AMBULANCE_102',
     }, actor('u-anm-kothi'))).referral;
     scoped = must(wf.applyAction(scoped, { action: 'SEND', actor: actor('u-anm-kothi'), at: at(0), eventId: 'ps1' })).referral;
-    check('the referral to Bhamragad is accepted', (await postAs('/api/referrals/publish', { referral: scoped, notifications: [] }, 'u-anm-kothi')).status === 202);
+    check('the referral to Dhandarphal is accepted', (await postAs('/api/referrals/publish', { referral: scoped, notifications: [] }, 'u-anm-kothi')).status === 202);
     await settle();
     check('the referral hands the record to the receiving PHC\'s devices', heard.bhamragad.includes(pid), JSON.stringify(heard));
     check('…and still to no one else', !heard.govindpur.includes(pid) && !heard.perimili.includes(pid));

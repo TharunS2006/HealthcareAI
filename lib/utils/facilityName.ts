@@ -1,5 +1,5 @@
 /**
- * "Primary Health Centre, Bhamragad" → "PHC Bhamragad". Board cards and
+ * "Primary Health Centre, Dhandarphal" → "PHC Dhandarphal". Board cards and
  * notifications have room for the short form; the detail view shows the full name.
  */
 export function shortFacilityName(name: string): string {

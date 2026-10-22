@@ -115,7 +115,7 @@ print('\n3. SESSION');
 const store = useAuthStore.getState();
 store.login({
     userId: 'u-anm-kothi', name: 'Asha Test', role: 'ANM', staffId: 'ANM-01',
-    facilityId: 'sc-kothi', facilityName: 'Sub Centre Kothi', facilityType: 'SC',
+    facilityId: 'sc-kothi', facilityName: 'Sub Centre Pemgiri', facilityType: 'SC',
     token: 'tok', tokenExpiresAt: Date.now() + 3_600_000,
 });
 check('signing in starts the idle clock', idle.readLastActive() > 0);

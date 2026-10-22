@@ -193,8 +193,8 @@ export default function Home() {
         heroSub: isEn
             ? `Unified digital care delivery, triage intelligence, cross-tier referrals, and electronic health records connecting Sub-Centres, PHCs, CHCs, and the District Hospital${district ? ` in ${district}` : ''}.`
             : isHi
-            ? 'गढ़चिरौली एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
-            : 'गडचिरोली व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
+            ? 'अहिल्यानगर एवं दुर्गम आदिवासी क्षेत्रों के उपकेंद्रों, प्राथमिक स्वास्थ्य केंद्रों (PHC), ग्रामीण अस्पतालों (CHC) व जिला अस्पताल (DH) के बीच निर्बाध डिजिटल स्वास्थ्य सेवा प्रणाली।'
+            : 'अहिल्यानगर व दुर्गम आदिवासी भागातील आरोग्य उपकेंद्रे, प्राथमिक आरोग्य केंद्रे (PHC), ग्रामीण रुग्णालये (CHC) व जिल्हा रुग्णालय (DH) यांमधील अखंड डिजिटल आरोग्य सेवा व सातत्य व्यवस्थापन प्रणाली.',
         // What this table is: counts of the records held on this device. It used
         // to call itself a live district census synchronised across the network,
         // which a single device's IndexedDB is not.

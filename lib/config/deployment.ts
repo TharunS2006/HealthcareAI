@@ -57,16 +57,16 @@ export const DEPLOYMENT: DeploymentConfig = {
     },
     programmeShort: 'NHM Maharashtra',
 
-    // This build serves Gadchiroli district. Blank these for a generic build.
-    district: { en: 'Gadchiroli', hi: 'गढ़चिरौली', mr: 'गडचिरोली' },
-    subDivision: { en: 'Aheri', hi: 'अहेरी', mr: 'अहेरी' },
-    stationCode: 'MH-GAD-04',
+    // This build serves Ahilyanagar district. Blank these for a generic build.
+    district: { en: 'Ahilyanagar', hi: 'अहिल्यानगर', mr: 'अहिल्यानगर' },
+    subDivision: { en: 'Sangamner', hi: 'संगमनेर', mr: 'संगमनेर' },
+    stationCode: 'MH-SGM-04',
     statisticsState: 'Maharashtra',
 
     nodalOfficer: {
-        en: 'Chief Medical Officer, District Health Office, Gadchiroli',
-        hi: 'मुख्य चिकित्सा अधिकारी, जिला स्वास्थ्य कार्यालय, गढ़चिरौली',
-        mr: 'मुख्य वैद्यकीय अधिकारी, जिल्हा आरोग्य कार्यालय, गडचिरोली',
+        en: 'Chief Medical Officer, District Health Office, Ahilyanagar',
+        hi: 'मुख्य चिकित्सा अधिकारी, जिला स्वास्थ्य कार्यालय, अहिल्यानगर',
+        mr: 'मुख्य वैद्यकीय अधिकारी, जिल्हा आरोग्य कार्यालय, अहिल्यानगर',
     },
 };
 

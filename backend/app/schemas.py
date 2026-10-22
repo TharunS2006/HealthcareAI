@@ -32,9 +32,9 @@ MAX_CONTEXT_CHARS = _positive_int_env("CHAT_MAX_CONTEXT_CHARS", 32_000)
 
 class FacilityIn(BaseModel):
     id: str = Field(examples=["phc-block-a"])
-    name: str = Field(examples=["Primary Health Centre, Bhamragad"])
+    name: str = Field(examples=["Primary Health Centre, Dhandarphal"])
     tier: FacilityTier = Field(examples=["PHC"])
-    block: Optional[str] = Field(default=None, examples=["Bhamragad"])
+    block: Optional[str] = Field(default=None, examples=["Dhandarphal"])
     beds_total: int = Field(default=0, ge=0, examples=[10])
     beds_occupied: int = Field(default=0, ge=0, examples=[6])
 

@@ -500,7 +500,7 @@ export default function ReferralDetail({ referralId, session, onClose, onOpenRef
                                     <span className="block text-[11px] font-bold text-slate-600 mb-0.5">
                                         Vehicle number {ref.transportMode.startsWith('AMBULANCE') ? '(required)' : '(optional)'}
                                     </span>
-                                    <input value={vehicle} onChange={e => setVehicle(e.target.value)} className={`${input} font-mono`} placeholder="e.g. MH-33-AMB-1081" />
+                                    <input value={vehicle} onChange={e => setVehicle(e.target.value)} className={`${input} font-mono`} placeholder="e.g. MH-16-AMB-1081" />
                                 </label>
                                 <label className="block">
                                     <span className="block text-[11px] font-bold text-slate-600 mb-0.5">ETA (min)</span>

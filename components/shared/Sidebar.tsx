@@ -23,7 +23,7 @@ export default function Sidebar() {
     const isHi = language === 'hi';
 
     // The station is the signed-in user's posting — never a hardcoded facility,
-    // or every user would appear to be working at PHC Bhamragad.
+    // or every user would appear to be working at PHC Dhandarphal.
     const stationMeta = {
         badge: isEn ? 'Station' : isHi ? 'कार्यरत केंद्र' : 'कार्यरत केंद्र',
         name: session?.facilityName ?? (isEn ? 'Not signed in' : isHi ? 'साइन इन नहीं' : 'साइन इन केलेले नाही'),

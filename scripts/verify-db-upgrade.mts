@@ -23,7 +23,7 @@
  *  11. FAILED MIGRATION    rolled back whole: old version, records untouched
  *  12. PINS BACKFILLED     seeded accounts stored before PINs get theirs; admin-set PINs kept
  *  13. GENERIC-BUILD SEED  placeholder place names ("Block A", "Village 1") become the
- *                          Gadchiroli ones; a facility the Super Admin renamed is kept
+ *                          Ahilyanagar ones; a facility the Super Admin renamed is kept
  */
 
 import 'fake-indexeddb/auto';
@@ -372,31 +372,31 @@ await scenario('13. SEEDED BY THE GENERIC BUILD', async () => {
     // one facility renamed by the Super Admin and one referral made on the device.
     const { readFileSync } = await import('node:fs');
     const generic = JSON.parse(readFileSync(new URL('./fixtures/generic-build-seed.json', import.meta.url), 'utf8')).stores;
-    const facilities = generic.facilities.map((f: any) => (f.id === 'phc-perimili' ? { ...f, name: 'PHC Perimili (24x7)' } : f));
+    const facilities = generic.facilities.map((f: any) => (f.id === 'phc-perimili' ? { ...f, name: 'PHC Jawale Baleshwar (24x7)' } : f));
     const onDevice = { ...USER_REFERRAL, id: 'REF-DEVICE-02', toFacilityId: CURRENT, fromFacilityName: 'Primary Health Centre — Block A', toFacilityName: 'District Hospital', reason: 'Fall near Block A market' };
     await createDevice(6, V5_SCHEMA, { ...generic, facilities, referrals: [...generic.referrals, onDevice], users: SEED_USERS });
     const s = await snapshot();
-    check('every seeded facility has its Gadchiroli name', FACILITY_NETWORK.filter(f => f.id !== 'phc-perimili').every(f => byId(s.all.facilities, f.id)?.name === f.name),
+    check('every seeded facility has its Ahilyanagar name', FACILITY_NETWORK.filter(f => f.id !== 'phc-perimili').every(f => byId(s.all.facilities, f.id)?.name === f.name),
         s.all.facilities.map(f => f.name).join('; '));
-    check('the facility the Super Admin renamed keeps its name', byId(s.all.facilities, 'phc-perimili')?.name === 'PHC Perimili (24x7)');
-    check('seeded patients live in Gadchiroli villages', SEED_PATIENTS.every(p => { const r = byId(s.all.patients, p.id); return r?.village === p.village && r?.tehsil === p.tehsil && r?.district === p.district; }));
+    check('the facility the Super Admin renamed keeps its name', byId(s.all.facilities, 'phc-perimili')?.name === 'PHC Jawale Baleshwar (24x7)');
+    check('seeded patients live in Ahilyanagar villages', SEED_PATIENTS.every(p => { const r = byId(s.all.patients, p.id); return r?.village === p.village && r?.tehsil === p.tehsil && r?.district === p.district; }));
     const seededRef = byId(s.all.referrals, SEED_REFERRALS[0].id);
     check('seeded referrals name the real facilities and vehicles', seededRef?.fromFacilityName === SEED_REFERRALS[0].fromFacilityName && seededRef?.ambulanceVehicleNo === SEED_REFERRALS[0].ambulanceVehicleNo,
         `${seededRef?.fromFacilityName} / ${seededRef?.ambulanceVehicleNo}`);
     const device = byId(s.all.referrals, 'REF-DEVICE-02');
-    check('a referral made on the device gets the facility labels', device?.fromFacilityName === 'Primary Health Centre, Bhamragad' && device?.toFacilityName === 'District Hospital, Gadchiroli',
+    check('a referral made on the device gets the facility labels', device?.fromFacilityName === 'Primary Health Centre, Dhandarphal' && device?.toFacilityName === 'District Hospital, Ahilyanagar',
         `${device?.fromFacilityName} → ${device?.toFacilityName}`);
     check('…and keeps what the worker typed', device?.reason === 'Fall near Block A market');
     const left = Object.entries(s.all).filter(([store]) => store !== 'referrals').flatMap(([store, rows]) =>
         (JSON.stringify(rows).match(/Block [AB]\b|Village [12]\b|ब्लॉक [अब]|गाव [१२]|AMB-[TE]-/g) ?? []).map(m => `${store}: ${m}`));
     check('no placeholder place name is left outside what a worker typed', left.length === 0, [...new Set(left)].join(', '));
     check('no record was added or lost', storeCounts(generic).every(([store, n]) => s.all[store].length === n + (store === 'referrals' ? 1 : 0)));
-    check('the first open reports what it restored', logged.some(l => l.includes('Restored Gadchiroli place names')));
+    check('the first open reports what it restored', logged.some(l => l.includes('Restored Ahilyanagar place names')));
     // Opening again finds nothing to do.
     await DB.closeDB();
     logged.length = 0;
     await DB.getDB();
-    check('a second open rewrites nothing', !logged.some(l => l.includes('Restored Gadchiroli place names')), logged.join(' | '));
+    check('a second open rewrites nothing', !logged.some(l => l.includes('Restored Ahilyanagar place names')), logged.join(' | '));
 });
 
 function storeCounts(generic: Record<string, unknown[]>): [string, number][] {

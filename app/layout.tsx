@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     keywords: [
         "NalamMesh", "National Health Mission", "Government of Maharashtra",
         "सार्वजनिक आरोग्य विभाग", "ABDM", "FHIR R4", "OPD Triage",
-        "Gadchiroli", "eSanjeevani", "108 Ambulance", "Public Healthcare",
+        "Ahilyanagar", "eSanjeevani", "108 Ambulance", "Public Healthcare",
     ],
 };
 

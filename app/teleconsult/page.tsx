@@ -195,7 +195,7 @@ function TeleconsultDemonstration() {
                                     </div>
 
                                     <div className="bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-full border border-slate-700 text-[10px] text-teal-300 font-mono">
-                                        Sub-Centre Kothi ↔ DH Gadchiroli
+                                        Sub-Centre Pemgiri ↔ DH Ahilyanagar
                                     </div>
                                 </div>
 
@@ -281,7 +281,7 @@ function TeleconsultDemonstration() {
                                         <strong className="text-emerald-deep">Dr. Priya Sharma:</strong> &ldquo;Check fetal heart sounds with Doppler. Is patient experiencing visual disturbance or epigastric pain?&rdquo;
                                     </div>
                                     <div className="p-2 bg-teal-50 rounded-lg">
-                                        <strong className="text-teal-800">CHO Sunita (Kothi):</strong> &ldquo;Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours.&rdquo;
+                                        <strong className="text-teal-800">CHO Sunita (Pemgiri):</strong> &ldquo;Yes doctor, FHR is 142 bpm. Patient complains of frontal headache and visual blurring since 2 hours.&rdquo;
                                     </div>
                                 </div>
                             </div>
@@ -301,7 +301,7 @@ function TeleconsultDemonstration() {
                                             {session.patientName}
                                         </h3>
                                         <p className="text-xs text-txt-muted">
-                                            Age: {session.patientAge} • Sub-Centre Kothi • 32 Weeks ANC
+                                            Age: {session.patientAge} • Sub-Centre Pemgiri • 32 Weeks ANC
                                         </p>
                                     </div>
                                     <span className="font-mono text-xs text-txt-muted">
@@ -388,7 +388,7 @@ function TeleconsultDemonstration() {
                                         title={referringFacility ? undefined : 'Raised by staff at the referring facility (ANM / Medical Officer)'}
                                         className="w-full py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Icon name="ambulance" className="w-4 h-4" /> Raise Emergency Referral to DH Gadchiroli
+                                        <Icon name="ambulance" className="w-4 h-4" /> Raise Emergency Referral to DH Ahilyanagar
                                     </button>
                                     {!referringFacility && (
                                         <p className="text-[11px] text-slate-600">Specialists advise; the referral is raised by the ANM or Medical Officer at the patient&apos;s facility.</p>

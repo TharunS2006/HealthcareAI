@@ -143,7 +143,7 @@ const eclampsia = targetFor('Suspected pre-eclampsia at 34 weeks — severe head
     { spo2: 91, heartRate: 118, bloodPressure: { systolic: 172, diastolic: 114 }, isPregnant: true, injuryType: '' });
 check('a maternal emergency from a Sub Centre skips a PHC that has no blood bank or obstetrician',
     eclampsia?.facility.id !== 'phc-bhamragad' && eclampsia?.check.overall === 'OK', `${eclampsia?.facility.id} ${eclampsia?.check.overall}`);
-check('…and goes to the nearest facility that can take her (CHC Etapalli)', eclampsia?.facility.id === 'chc-etapalli', eclampsia?.facility.id);
+check('…and goes to the nearest facility that can take her (SDH Sangamner)', eclampsia?.facility.id === 'sdh-aheri', eclampsia?.facility.id);
 const fever = targetFor('Fever 3 days, vomiting, needs IV fluids', 'URGENT', { spo2: 97, heartRate: 100, injuryType: '' });
 check('a case the parent PHC can take stays with the parent', fever?.facility.id === 'phc-bhamragad', `${fever?.facility.id} ${fever?.check.overall}`);
 const phcOrigin = FACILITY_NETWORK.find(f => f.id === 'phc-bhamragad')!;

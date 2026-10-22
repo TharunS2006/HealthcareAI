@@ -223,8 +223,8 @@ try {
         return toasts.includes(`admin: ${name} saved`);
     }
     const created = [
-        await addUser('Test ANM Kothi', 'ANM-KOT-0001', 'ANM', 'sc-kothi', '482913'),
-        await addUser('Test MO Bhamragad', 'MO-BHA-0001', 'MO', 'phc-bhamragad', '615273'),
+        await addUser('Test ANM Pemgiri', 'ANM-KOT-0001', 'ANM', 'sc-kothi', '482913'),
+        await addUser('Test MO Dhandarphal', 'MO-BHA-0001', 'MO', 'phc-bhamragad', '615273'),
         await addUser('Test DHO', 'DHO-0001', 'DHO', null, '739104'),
     ];
     check('the Super Admin creates an ANM, an MO and a DHO', created.every(Boolean), toasts.filter(t => t.startsWith('admin')).join(' | '));
@@ -234,10 +234,10 @@ try {
     check('the ANM signs in by Staff ID and lands on My Dashboard', (await signIn(anm.page, 'ANM-KOT-0001', '482913')) === '/my-dashboard');
     const p = anm.page;
     await p.goto(`${APP}/opd`);
-    await p.locator('#opd-name').fill('Test Patient Kothi');
+    await p.locator('#opd-name').fill('Test Patient Pemgiri');
     await p.locator('#opd-age').fill('27');
     await p.getByRole('radiogroup', { name: /Gender/ }).getByRole('radio').nth(1).click();
-    await p.locator('#opd-village').fill('Kothi');
+    await p.locator('#opd-village').fill('Pemgiri');
     await p.getByLabel(/SpO2/).fill('86');
     await p.getByLabel(/Pulse Rate/).fill('124');
     await p.getByLabel('Systolic').fill('150');
@@ -251,7 +251,7 @@ try {
     check('the slip says triage is decision support and the health worker decides', slip.includes('Decision support only'));
     await until(async () => toasts.some(t => t.startsWith('anm: RED: emergency referral')), 'the referral toast', 15000).catch(() => {});
     check('the RED patient is referred at once to the PHC above',
-        toasts.some(t => /^anm: RED: emergency referral \S+ raised to .*Bhamragad/.test(t)), toasts.filter(t => t.startsWith('anm')).join(' | '));
+        toasts.some(t => /^anm: RED: emergency referral \S+ raised to .*Dhandarphal/.test(t)), toasts.filter(t => t.startsWith('anm')).join(' | '));
 
     console.log('\n3. RECEIVING MO');
     const mo = await device('mo');
@@ -260,7 +260,7 @@ try {
     for (let i = 0; i < 20 && !onBoard; i++) {
         await mo.page.goto(`${APP}/incoming`);
         await mo.page.waitForTimeout(1500);
-        onBoard = (await mo.page.getByText('Test Patient Kothi').count()) > 0;
+        onBoard = (await mo.page.getByText('Test Patient Pemgiri').count()) > 0;
     }
     check('the patient is on the MO\'s Pre-Arrival Board, from the district service', onBoard);
     if (onBoard) await noViolations(mo.page, 'Pre-Arrival Board');
@@ -268,7 +268,7 @@ try {
     let referred = false;
     for (let i = 0; i < 20 && !referred; i++) {
         await mo.page.waitForTimeout(1000);
-        referred = (await mo.page.getByText('Test Patient Kothi').count()) > 0;
+        referred = (await mo.page.getByText('Test Patient Pemgiri').count()) > 0;
     }
     check('the referral is on the MO\'s Referrals board, through the relay', referred);
 
@@ -286,7 +286,7 @@ try {
     await dho.page.goto(`${APP}/data`);
     await dho.page.getByRole('button', { name: /Patient records\s*patient_records/ }).click({ timeout: 20000 }).catch(() => {});
     await dho.page.waitForTimeout(1000);
-    check('the Data Inspector reads the district store', (await dho.page.locator('body').innerText()).includes('Test Patient Kothi'));
+    check('the Data Inspector reads the district store', (await dho.page.locator('body').innerText()).includes('Test Patient Pemgiri'));
 
     console.log('\n5. REVOCATION');
     await admin.page.goto(`${APP}/admin`);
@@ -294,15 +294,15 @@ try {
     await admin.page.getByRole('button', { name: 'Edit' }).first().click();
     await admin.page.getByLabel('Active').uncheck();
     await admin.page.getByRole('button', { name: 'Save changes' }).click();
-    await until(async () => toasts.filter(t => t === 'admin: Test MO Bhamragad saved').length >= 2, 'the deactivation to save', 10000).catch(() => {});
-    check('the Super Admin deactivates the MO without resetting their PIN', toasts.filter(t => t === 'admin: Test MO Bhamragad saved').length >= 2,
+    await until(async () => toasts.filter(t => t === 'admin: Test MO Dhandarphal saved').length >= 2, 'the deactivation to save', 10000).catch(() => {});
+    check('the Super Admin deactivates the MO without resetting their PIN', toasts.filter(t => t === 'admin: Test MO Dhandarphal saved').length >= 2,
         toasts.filter(t => t.startsWith('admin')).slice(-3).join(' | '));
     const moAgain = await device('mo-again');
     check('the deactivated MO cannot sign in', (await signIn(moAgain.page, 'MO-BHA-0001', '615273')) === '/staff/login');
     await mo.page.waitForTimeout(3000); // past the district service's revocation cache (2 s here)
     await mo.page.goto(`${APP}/incoming`);
     await mo.page.waitForTimeout(2500);
-    check('the MO\'s open session is refused by the district service', !(await mo.page.locator('body').innerText()).includes('Test Patient Kothi'));
+    check('the MO\'s open session is refused by the district service', !(await mo.page.locator('body').innerText()).includes('Test Patient Pemgiri'));
 
     console.log('\n6. RELAY RESTART');
     await stop(relay, relayPort);
@@ -321,10 +321,10 @@ try {
     });
     await stop(relay, relayPort);
     await anm.page.goto(`${APP}/opd`);
-    await anm.page.locator('#opd-name').fill('Second Patient Kothi');
+    await anm.page.locator('#opd-name').fill('Second Patient Pemgiri');
     await anm.page.locator('#opd-age').fill('41');
     await anm.page.getByRole('radiogroup', { name: /Gender/ }).getByRole('radio').first().click();
-    await anm.page.locator('#opd-village').fill('Kothi');
+    await anm.page.locator('#opd-village').fill('Pemgiri');
     await anm.page.getByLabel(/SpO2/).fill('98');
     await anm.page.getByLabel(/Pulse Rate/).fill('78');
     await anm.page.getByLabel('Systolic').fill('118');
@@ -348,8 +348,8 @@ try {
         await until(async () => toasts.some(t => /^replacement: \d+ patient records? restored from the district service$/.test(t)), 'the restore', 30000).catch(() => {});
     }
     const held = (await patientsOn(replacement.page)).names;
-    check('…and then holds the patient only the district service had', held.includes('Second Patient Kothi'), JSON.stringify(held));
-    check('…as well as the earlier one', held.includes('Test Patient Kothi'), JSON.stringify(held));
+    check('…and then holds the patient only the district service had', held.includes('Second Patient Pemgiri'), JSON.stringify(held));
+    check('…as well as the earlier one', held.includes('Test Patient Pemgiri'), JSON.stringify(held));
     check('the offer goes away once nothing is missing', (await replacement.page.getByRole('button', { name: /^Restore \d+ records?$/ }).count()) === 0);
 
     check('no page threw an error', pageErrors.length === 0, pageErrors.join(' | '));

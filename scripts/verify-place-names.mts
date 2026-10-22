@@ -2,7 +2,7 @@
  * Place-name restoration check — `npm run verify:place-names`
  *
  * A device seeded by the generic build holds "Primary Health Centre — Block A"
- * where this build says "Primary Health Centre, Bhamragad". lib/data/placeNames
+ * where this build says "Primary Health Centre, Dhandarphal". lib/data/placeNames
  * puts the real names back. scripts/fixtures/generic-build-seed.json is that
  * build's own seed, generated with the clock frozen; this regenerates today's
  * seed at the same instant and checks:
@@ -92,8 +92,8 @@ const mine = {
     timeline: [{ note: 'EMERGENCY referral to District Hospital', actor: { facilityName: 'Sub-Centre — Village 2' } }],
 };
 const mineOut: any = restorePlaceNames('referrals', mine);
-check('facility labels are mapped', mineOut.fromFacilityName === 'Sub-Centre, Govindpur' && mineOut.toFacilityName === 'District Hospital, Gadchiroli'
-    && mineOut.timeline[0].actor.facilityName === 'Sub-Centre, Govindpur', JSON.stringify(mineOut));
+check('facility labels are mapped', mineOut.fromFacilityName === 'Sub-Centre, Sawargaon Ghule' && mineOut.toFacilityName === 'District Hospital, Ahilyanagar'
+    && mineOut.timeline[0].actor.facilityName === 'Sub-Centre, Sawargaon Ghule', JSON.stringify(mineOut));
 check('what a worker typed is left as written', mineOut.reason === mine.reason && mineOut.timeline[0].note === mine.timeline[0].note, mineOut.reason);
 check('the stored original is not mutated', mine.fromFacilityName === 'Sub-Centre — Village 2');
 const patientOut: any = restorePlaceNames('patients', { id: 'p-device-9', village: 'Block A', tehsil: 'Block', district: 'District' });
@@ -101,9 +101,9 @@ check('a patient registered on the device keeps what was entered', patientOut.vi
 
 console.log('\n4. EDITED');
 const generic = fixture.stores.facilities.find((f: any) => f.id === 'phc-bhamragad');
-const edited: any = restorePlaceNames('facilities', { ...generic, name: 'PHC Bhamragad (upgraded 24x7)' });
-check('a renamed facility keeps its new name', edited.name === 'PHC Bhamragad (upgraded 24x7)', edited.name);
-check('…and its other generic fields are still restored', edited.tehsil === 'Bhamragad' && edited.district === 'Gadchiroli', `${edited.tehsil}, ${edited.district}`);
+const edited: any = restorePlaceNames('facilities', { ...generic, name: 'PHC Dhandarphal (upgraded 24x7)' });
+check('a renamed facility keeps its new name', edited.name === 'PHC Dhandarphal (upgraded 24x7)', edited.name);
+check('…and its other generic fields are still restored', edited.tehsil === 'Sangamner' && edited.district === 'Ahilyanagar', `${edited.tehsil}, ${edited.district}`);
 
 console.log('\n5. NO LEFTOVERS');
 const GENERIC = /Block [AB]\b|Village [12]\b|ब्लॉक [अब]|गाव [१२]|Sub-Division|उपविभाग|AMB-[TEG]-|NK-PHC-01|"tehsil":"Block"|"district":"District"/;

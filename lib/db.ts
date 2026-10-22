@@ -541,7 +541,7 @@ async function restoreSeededPlaceNames(db: IDBPDatabase<NalamMeshDB>): Promise<v
         }
     }
     await tx.done;
-    if (restored > 0) logger.info('Restored Gadchiroli place names in records seeded by the generic build', { records: restored });
+    if (restored > 0) logger.info('Restored Ahilyanagar place names in records seeded by the generic build', { records: restored });
 }
 
 // -------------------------------------------------------------

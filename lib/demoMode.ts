@@ -1,6 +1,6 @@
 /**
  * Live Demo Mode Controller — NalamMesh (Maharashtra Rural Public Health)
- * Auto-generates simulated patient flow (RED, YELLOW, GREEN) in Gadchiroli
+ * Auto-generates simulated patient flow (RED, YELLOW, GREEN) in Ahilyanagar
  * Triggers live socket sync, real-time map updates, and audio alerts for RED patients
  */
 
@@ -17,7 +17,7 @@ const DEMO_PRESETS = [
         name: 'Savita Rama Madavi',
         age: 24,
         gender: 'F' as const,
-        village: 'Kothi',
+        village: 'Pemgiri',
         triageStatus: 'RED' as TriageStatus,
         triagePriority: 'EMERGENCY' as TriagePriority,
         vitals: {
@@ -36,7 +36,7 @@ const DEMO_PRESETS = [
         name: 'Bandu Soma Atram',
         age: 48,
         gender: 'M' as const,
-        village: 'Govindpur',
+        village: 'Sawargaon Ghule',
         triageStatus: 'YELLOW' as TriageStatus,
         triagePriority: 'URGENT' as TriagePriority,
         vitals: {
@@ -54,7 +54,7 @@ const DEMO_PRESETS = [
         name: 'Baby Anaya (s/o Radha)',
         age: 2,
         gender: 'F' as const,
-        village: 'Perimili',
+        village: 'Jawale Baleshwar',
         triageStatus: 'RED' as TriageStatus,
         triagePriority: 'EMERGENCY' as TriagePriority,
         vitals: {
@@ -73,7 +73,7 @@ const DEMO_PRESETS = [
         name: 'Ganesh Devrao Gawde',
         age: 38,
         gender: 'M' as const,
-        village: 'Bhamragad',
+        village: 'Dhandarphal',
         triageStatus: 'GREEN' as TriageStatus,
         triagePriority: 'ROUTINE' as TriagePriority,
         vitals: {
@@ -116,9 +116,9 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
         const preset = DEMO_PRESETS[presetIndex % DEMO_PRESETS.length];
         presetIndex++;
 
-        // Base location: Gadchiroli, Maharashtra
-        const baseLat = 19.4678;
-        const baseLng = 80.3789;
+        // Base location: Ahilyanagar, Maharashtra
+        const baseLat = 19.5600;
+        const baseLng = 74.1500;
 
         const patient: Patient = {
             id: `p-demo-${uuidv4().slice(0, 6)}`,
@@ -127,8 +127,8 @@ export function startDemoMode(onPatientGenerated?: (p: Patient) => void) {
             age: preset.age,
             gender: preset.gender,
             village: preset.village,
-            tehsil: 'Bhamragad',
-            district: 'Gadchiroli',
+            tehsil: 'Sangamner',
+            district: 'Ahilyanagar',
             state: 'Maharashtra',
             vitals: preset.vitals,
             triageStatus: preset.triageStatus,
