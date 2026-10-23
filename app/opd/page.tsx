@@ -15,6 +15,7 @@ import Icon from '@/components/gov/Icon';
 import { Patient } from '@/types/patient';
 import { EMPTY_INTAKE, readIntake, type Avpu, type IntakeDraft } from '@/lib/triage/intake';
 import { DEPLOYMENT } from '@/lib/config/deployment';
+import { PRODUCTION } from '@/lib/config/mode';
 import { QueueEntry } from '@/types/facility';
 import { classifyTriage, TriageResult } from '@/lib/triage/model';
 import { usePatientStore } from '@/stores/patientStore';
@@ -97,6 +98,22 @@ export default function OPDPage() {
         setPatientId(''); setName(''); setAgeText(''); setGender(''); setPhone(''); setVillage('');
         setAbhaId(''); setAadhaarLast4(''); setSearchQuery(''); setDraft(EMPTY_INTAKE);
         setTriageResult(null); setGeneratedToken(null); setCreatedPatient(null); setShowQR(false); setFormProblems([]);
+    };
+
+    // Evaluation build only: one click fills a fictional pregnant woman with
+    // pre-eclampsia danger signs so the RED path can be shown live. The worker
+    // still presses Run AI Triage; a production build never shows the button.
+    const showDemoFill = !PRODUCTION && session?.role === 'ANM';
+    const fillDemoPregnancy = () => {
+        resetForNextPatient();
+        setName('Priya Rahane'); setAgeText('24'); setGender('F'); setVillage('Pemgiri');
+        setDraft({
+            ...EMPTY_INTAKE,
+            spo2: '94', pulse: '118', systolic: '168', diastolic: '112', respiratoryRate: '24',
+            temperature: '98.8', avpu: 'VOICE', pregnant: true, gestationalWeeks: '34',
+            complaint: '34 weeks pregnant. Severe headache and blurred vision since morning, swelling of face and feet, one fit (convulsion) at home an hour ago; drowsy since.',
+        });
+        toast.success(isEn ? 'Demo patient filled — press Run AI Triage' : isHi ? 'डेमो मरीज भरा गया — एआई ट्राइएज दबाएं' : 'डेमो रुग्ण भरला — एआई ट्राइएज दाबा');
     };
 
     // Dynamic Translations Dictionary
@@ -421,6 +438,18 @@ export default function OPDPage() {
                     <div className="grid lg:grid-cols-12 gap-5">
                         {/* Left Column (7 cols): Official Medical Intake Form */}
                         <form onSubmit={handleRunTriage} noValidate className="lg:col-span-7 space-y-4">
+                            {showDemoFill && (
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white border border-dashed border-red-300 rounded px-3 py-2 text-xs">
+                                    <span className="text-slate-700">
+                                        <strong className="text-red-800">{isEn ? 'Evaluation demo:' : isHi ? 'मूल्यांकन डेमो:' : 'मूल्यमापन डेमो:'}</strong>{' '}
+                                        {isEn ? 'pregnant woman, 34 weeks, with danger signs (critical)' : isHi ? 'गर्भवती महिला, 34 सप्ताह, खतरे के लक्षण (गंभीर)' : 'गरोदर महिला, 34 आठवडे, धोक्याची लक्षणे (गंभीर)'}
+                                    </span>
+                                    <button type="button" onClick={fillDemoPregnancy}
+                                        className="shrink-0 px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white font-bold rounded transition-colors">
+                                        {isEn ? 'Fill demo patient' : isHi ? 'डेमो मरीज भरें' : 'डेमो रुग्ण भरा'}
+                                    </button>
+                                </div>
+                            )}
                             {/* Section 1: Demographics Fieldset */}
                             <div className="gov-card">
                                 <div className="gov-card-header flex items-center justify-between">
