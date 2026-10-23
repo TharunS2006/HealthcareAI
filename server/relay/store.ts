@@ -55,6 +55,8 @@ export interface RelayStore {
     clearPinFailures(userId: string): Promise<void>;
     /** Run `fn` while no other instance works on the same key. */
     withLock<T>(key: string, fn: () => Promise<T>): Promise<T>;
+    /** Remove these referrals (evaluation clean-up); returns how many were held. */
+    deleteReferrals(ids: string[]): Promise<number>;
     reset(): Promise<void>;
 }
 
@@ -82,6 +84,7 @@ export class MemoryStore implements RelayStore {
     async getReferral(id: string) { return this.referrals.get(id); }
     async putReferral(entry: CachedReferral) { this.referrals.set(entry.referral.id, entry); trim(this.referrals, REFERRAL_LIMIT); }
     async listReferrals() { return [...this.referrals.values()]; }
+    async deleteReferrals(ids: string[]) { let n = 0; for (const id of ids) if (this.referrals.delete(id)) n += 1; return n; }
     async putPatient(entry: CachedPatient) { this.patients.set(entry.patient.id, entry); trim(this.patients, PATIENT_LIMIT); }
     async listPatients() { return [...this.patients.values()]; }
     async putResources(r: FacilityResources) { this.resources.set(r.facilityId, r); }
@@ -183,6 +186,7 @@ export class FileStore extends MemoryStore {
     override async putResources(r: FacilityResources) { await super.putResources(r); await this.save(); }
     override async putTicket(t: MaintenanceTicket) { await super.putTicket(t); await this.save(); }
     override async putUser(u: StaffUser) { await super.putUser(u); await this.save(); }
+    override async deleteReferrals(ids: string[]) { const n = await super.deleteReferrals(ids); if (n) await this.save(); return n; }
     override async reset() { await super.reset(); await this.save(); }
 
     /** Resolves once a write holding every change made so far is on disk. */
@@ -265,6 +269,7 @@ export class UpstashStore implements RelayStore {
         await this.bound<CachedReferral>(K.referrals, REFERRAL_LIMIT, e => e.referral.id);
     }
     listReferrals() { return this.hall<CachedReferral>(K.referrals); }
+    async deleteReferrals(ids: string[]) { return ids.length ? await this.redis.hdel(K.referrals, ...ids) : 0; }
     async putPatient(entry: CachedPatient) {
         await this.hput(K.patients, entry.patient.id, entry);
         await this.bound<CachedPatient>(K.patients, PATIENT_LIMIT, e => e.patient.id);

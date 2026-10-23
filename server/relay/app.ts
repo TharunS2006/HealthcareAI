@@ -493,6 +493,27 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         send(res, result, v => ({ ok: true, id: v.entry.referral.id }));
     }));
 
+    // Evaluation clean-up: keep the newest `keep` hand-made referrals and remove
+    // the rest. The shipped demo referrals are never touched, and a production
+    // relay — whose referrals are real — refuses outright.
+    app.post('/api/referrals/prune', route(async (req, res) => {
+        const who = await fromRequest(req);
+        if (!who) return res.status(401).json({ error: 'Sign in to clean up referrals' });
+        if (!demoAccounts) return res.status(403).json({ error: 'A production relay holds real referrals; they are never deleted' });
+        if (who.role !== 'DHO' && who.role !== 'SUPER_ADMIN') return res.status(403).json({ error: `${who.role} may not delete referrals` });
+        const keep = Number((req.body ?? {}).keep);
+        if (!Number.isInteger(keep) || keep < 0 || keep > 50) return res.status(400).json({ error: 'keep must be a whole number from 0 to 50' });
+        const seeded = new Set(SEED_REFERRALS.map(r => r.id));
+        const madeByHand = (await store.listReferrals())
+            .filter(e => !seeded.has(e.referral.id))
+            .sort((x, y) => String(y.referral.referredAt).localeCompare(String(x.referral.referredAt)));
+        const kept = madeByHand.slice(0, keep).map(e => e.referral.id);
+        const removed = madeByHand.slice(keep).map(e => e.referral.id);
+        const n = await store.deleteReferrals(removed);
+        log('Evaluation referrals pruned', { by: who.userId, kept, removed });
+        res.json({ ok: true, kept, removed, deleted: n });
+    }));
+
     app.post('/api/resources/publish', route(async (req, res) => {
         const result = await publishResources(req.body, await fromRequest(req));
         if (result.ok) io?.emit('resources:update', { resources: result.value });

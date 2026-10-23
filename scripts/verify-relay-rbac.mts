@@ -586,6 +586,25 @@ console.log('\n10. PRODUCTION');
 const { relayModeFromEnv, durabilityProblem } = await import('../server/relay/mode');
 const { FileStore } = await import('../server/relay/store');
 const { hashPin } = await import('../lib/auth/pin');
+console.log('\nEVALUATION CLEAN-UP (/api/referrals/prune)');
+const seededIds = new Set(SEED_REFERRALS.map(r => r.id));
+const beforePrune = (await since('u-dho')).referrals.map(x => x.referral.id);
+const handMade = beforePrune.filter(id => !seededIds.has(id));
+check('the run so far has hand-made referrals to clean up', handMade.length >= 2, String(handMade.length));
+check('an ANM may not delete referrals', (await post('/api/referrals/prune', { keep: 0 }, 'u-anm-kothi')).status === 403);
+check('a Medical Officer may not either', (await post('/api/referrals/prune', { keep: 0 }, 'u-mo-bhamragad')).status === 403);
+check('nobody signed out may', (await post('/api/referrals/prune', { keep: 0 })).status === 401);
+check('keep must be a sensible whole number', (await post('/api/referrals/prune', { keep: -1 }, 'u-dho')).status === 400
+    && (await post('/api/referrals/prune', { keep: 'all' }, 'u-dho')).status === 400);
+const pruned = (await (await post('/api/referrals/prune', { keep: 1 }, 'u-dho')).json()) as { kept: string[]; removed: string[]; deleted: number };
+check('the DHO keeps the newest one and removes the other hand-made referrals',
+    pruned.kept.length === 1 && pruned.removed.length === handMade.length - 1 && pruned.deleted === pruned.removed.length, JSON.stringify(pruned));
+check('…never a shipped demo referral', [...pruned.kept, ...pruned.removed].every(id => !seededIds.has(id)));
+const afterPrune = (await since('u-dho')).referrals.map(x => x.referral.id);
+check('…and the removed ones are gone from the relay while the rest remain',
+    pruned.removed.every(id => !afterPrune.includes(id)) && pruned.kept.every(id => afterPrune.includes(id))
+    && beforePrune.filter(id => seededIds.has(id)).every(id => afterPrune.includes(id)));
+
 check('a production relay without a bootstrap PIN will not serve',
     relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production' }).problems.length === 1
     && relayModeFromEnv({ NALAMMESH_DEPLOYMENT_MODE: 'production', NALAMMESH_BOOTSTRAP_ADMIN_PIN: '2468' }).problems.length === 1);
@@ -623,6 +642,8 @@ check('…who signs in by Staff ID on a new device', (await staffLogin('ANM-KOT-
 const demoReferral = SEED_REFERRALS[0];
 const seededPublish = await fetch(`${P}/api/referrals/publish`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminBody.token}` }, body: JSON.stringify({ referral: demoReferral, notifications: [] }) });
 check('a demonstration referral is refused by a production relay', seededPublish.status === 409 || seededPublish.status === 403, String(seededPublish.status));
+const prodPrune = await fetch(`${P}/api/referrals/prune`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminBody.token}` }, body: JSON.stringify({ keep: 0 }) });
+check('a production relay refuses to delete referrals, even for its Super Admin', prodPrune.status === 403, String(prodPrune.status));
 for (let i = 0; i < 5; i++) await staffLogin('NO-SUCH-ID', '111111');
 check('guessing Staff IDs is locked out like guessing PINs', (await staffLogin('NO-SUCH-ID', '111111')).status === 423);
 prodServer.close();
