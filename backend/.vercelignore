@@ -1,0 +1,44 @@
+# The keys and the patient records must not be uploaded. All of them are
+# already git-ignored; named again here because this directory is deployed
+# directly, and "another file covers it" is not a good enough reason for a
+# key to stay on this machine.
+#
+# The glob matters: .env holds the provider key and .env.local holds the
+# OIDC token Vercel itself wrote here. Matching only ".env" would upload
+# the second one.
+.env*
+.vercel/
+*.db
+.venv/
+__pycache__/
+app/__pycache__/
+
+# Test suites. They run locally, and verify_records/verify_store_dump import
+# the database layer this deployment deliberately does not have.
+scripts/
+
+# Procfile names `app.main:app` — the FULL district service, record endpoints
+# and all. It exists for hosts that read it (Render, Railway) and is correct
+# there, where the service sits on a trusted network.
+#
+# Vercel reads it too, and treats its presence as "this project is a service",
+# which silently overrides the api/ directory and deploys main.py instead of
+# the assistant-only entry point. Excluded so this deployment can only ever be
+# what api/index.py says it is.
+Procfile
+
+# app/main.py is the district service. Excluded from THIS deployment entirely,
+# for two reasons.
+#
+# The first is detection: Vercel scans for an ASGI app and finds main.py before
+# it looks at api/, then deploys the district service instead of the assistant
+# — which promptly crashes, because its first act is to create a SQLite file on
+# a read-only filesystem. The warning it prints ("the api/ directory will not
+# be built") is easy to read past.
+#
+# The second is the reason that one is worth fixing properly rather than
+# working around: the assistant imports app.chat_engine and app.schemas and
+# nothing else, so main.py has no business being uploaded. Absent beats present
+# and unrouted — there is no configuration mistake that can expose a record
+# endpoint that was never shipped.
+app/main.py

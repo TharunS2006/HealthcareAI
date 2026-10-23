@@ -1,0 +1,16 @@
+# What must never leave this machine.
+#
+# Vercel already honours .gitignore, but the one file that matters most here —
+# backend/district.db — holds identified patient records, and "it was probably
+# ignored" is not a good enough reason for that to be true. Named explicitly.
+backend/
+*.db
+.env
+.env.local
+
+# Not part of the web build. Excluded to keep the upload small, not for safety.
+android/
+out/
+.next/
+dist/
+brag-output*/

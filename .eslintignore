@@ -1,0 +1,8 @@
+.next/
+out/
+android/
+dist/
+backend/
+docs/
+public/sw.js
+next-env.d.ts

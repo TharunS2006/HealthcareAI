@@ -1,0 +1,6 @@
+.vercel
+.env*
+
+# Generated deploy root for the chat assistant (scripts/build_assistant_deploy.sh).
+# Regenerate it; never edit or commit it.
+assistant-deploy/

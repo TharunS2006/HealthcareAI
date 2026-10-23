@@ -1,49 +1,35 @@
 /**
- * Language Selector Dropdown (English, Tamil, Hindi)
- * Styled for dark sidebar & glassmorphism interfaces
+ * Language Selector component — Official Government Portal Standard
+ * Marathi (मराठी), Hindi (हिन्दी), English
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useLanguageStore, Language } from '@/stores/languageStore';
 
 export default function LanguageSelector() {
     const { language, setLanguage } = useLanguageStore();
-    const [mounted, setMounted] = useState(false);
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const languages: Array<{ code: Language; label: string; flag: string }> = [
-        { code: 'en', label: 'English', flag: '🇬🇧' },
-        { code: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
-        { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
+    const languages: { code: Language; label: string }[] = [
+        { code: 'mr', label: 'मराठी' },
+        { code: 'hi', label: 'हिन्दी' },
+        { code: 'en', label: 'English' },
     ];
 
-    if (!mounted) {
-        return (
-            <div className="flex items-center justify-between gap-1 bg-white/10 p-1 rounded-xl border border-white/10 text-xs h-9">
-                <div className="w-full text-center text-teal-100/50 text-[10px]">Loading languages...</div>
-            </div>
-        );
-    }
-
     return (
-        <div className="flex items-center justify-between gap-1 bg-white/10 p-1 rounded-xl border border-white/10 text-xs">
-            {languages.map((lang) => (
+        <div className="flex items-center gap-1 bg-white border border-slate-300 p-0.5 rounded">
+            {languages.map((l) => (
                 <button
-                    key={lang.code}
-                    onClick={() => setLanguage(lang.code)}
-                    className={`flex-1 py-1 px-1.5 rounded-lg font-semibold transition-all flex items-center justify-center gap-1 text-[11px] ${
-                        language === lang.code
-                            ? 'bg-teal-accent text-white shadow-md font-bold'
-                            : 'text-teal-100/70 hover:text-white hover:bg-white/10'
+                    key={l.code}
+                    onClick={() => setLanguage(l.code)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                        language === l.code
+                            ? 'bg-[#1F3A6E] text-white shadow-none'
+                            : 'text-slate-700 hover:bg-slate-100'
                     }`}
+                    title={l.label}
                 >
-                    <span>{lang.flag}</span>
-                    <span>{lang.label}</span>
+                    <span>{l.label}</span>
                 </button>
             ))}
         </div>

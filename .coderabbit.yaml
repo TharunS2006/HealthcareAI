@@ -1,0 +1,60 @@
+# CodeRabbit review settings for NalamMesh.
+# https://docs.coderabbit.ai/reference/configuration
+language: en-US
+
+reviews:
+  profile: assertive
+  high_level_summary: true
+  poem: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    # The default branch (new) is always included; main is listed so a
+    # full-project review pull request (new -> main) is reviewed too.
+    base_branches:
+      - "main"
+      - "new"
+
+  # Review source code, not editor settings, lockfiles, generated or binary assets.
+  path_filters:
+    - "!.idea/**"
+    - "!.claude/**"
+    - "!android/**"
+    - "!public/**"
+    - "!docs/**"
+    - "!prompt/**"
+    - "!**/*.md"
+    - "!**/package-lock.json"
+    - "!**/*.tsbuildinfo"
+    - "!**/*.db"
+
+  path_instructions:
+    - path: "lib/triage/**"
+      instructions: >-
+        Clinical decision support for rural health workers. A vital sign that was
+        not measured must never be replaced by a healthy default. IPHS danger-sign
+        rules must always override the ML model's output. The app must never
+        suggest a medicine or a dose. Flag any path where a missing or out-of-range
+        reading could lower a patient's triage priority.
+    - path: "{lib/auth,server/relay,lib/sync}/**"
+      instructions: >-
+        Staff identity, sessions and the referral relay. Check that every route
+        verifies the bearer token and the role/facility permission before reading
+        or writing, that PINs are only ever stored as salted hashes, that tokens
+        expire, and that a failure is surfaced rather than silently treated as
+        success. Look for any way one facility can read or change another
+        facility's referrals.
+    - path: "backend/**"
+      instructions: >-
+        District reporting service (FastAPI) that stores identified patient
+        records. Check access control on every data route, that identity is
+        verified (relay tokens), input validation, and that no patient data can
+        be returned to an unauthorised caller.
+    - path: "{app,components}/**"
+      instructions: >-
+        Government (GIGW 3.0) health app used offline on low-end phones in
+        English, Hindi and Marathi. Check accessibility (WCAG 2.1 AA: labels,
+        contrast, keyboard use), that every loading, empty and error state is
+        handled, and that no user-facing text claims something the app does not
+        actually do.

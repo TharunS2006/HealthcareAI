@@ -1,19 +1,23 @@
 /**
- * Zustand state management for patient records
- * Provides optimistic UI updates and sync status tracking
- */
+ * Zustand state management for longitudinal patient records
+ * Optimistic UI updates, offline-first IndexedDB persistence & mesh sync */
 
 import { create } from 'zustand';
 import { Patient } from '@/types/patient';
-import { savePatient, getAllPatients, getUnsyncedPatients } from '@/lib/db';
+import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
+import { PRODUCTION } from '@/lib/config/mode';
+import { queuePatient } from '@/lib/sync/outbox';
+import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 
 interface PatientStore {
     patients: Patient[];
     unsyncedCount: number;
     isLoading: boolean;
+    selectedPatient: Patient | null;
 
     // Actions
+    setSelectedPatient: (patient: Patient | null) => void;
     addPatient: (patient: Patient) => Promise<void>;
     updatePatient: (patient: Patient) => Promise<void>;
     loadPatients: () => Promise<void>;
@@ -23,47 +27,113 @@ interface PatientStore {
     initSocket: () => Promise<void>;
 }
 
+/** The sign-in subscription behind patient catch-up; replaced if the socket is set up again. */
+let unsubscribeSession: (() => void) | undefined;
+
 export const usePatientStore = create<PatientStore>((set, get) => ({
     patients: [],
     unsyncedCount: 0,
     isLoading: false,
+    selectedPatient: null,
 
-    // Initialize socket listeners
+    setSelectedPatient: (patient) => set({ selectedPatient: patient }),
+
     initSocket: async () => {
         try {
             const { getSocket } = await import('@/lib/socket');
             const socket = getSocket();
 
-            socket.off('patient:sync'); // Remove old listeners
+            // ---- Catch-up sync -------------------------------------------------
+            // patient:sync is a live broadcast; a device that was offline when a
+            // record was created never receives it. On every (re)connect and every
+            // sign-in we ask the relay for everything newer than this user last saw
+            // and merge it in. The relay sends only the records this user may hold.
+            //
+            // The cursor is per user: on a shared device one user's progress must
+            // not stand for another's, and a batch is filed under the user the relay
+            // says it was for — never under nobody, so a signed-out request cannot
+            // move anyone's cursor past records they have not received.
+            const LAST_SYNC_KEY = 'nalammesh-last-sync-at';
+            const cursorKey = (userId: string) => `${LAST_SYNC_KEY}:${userId}`;
+            const readLastSync = (userId: string): number => {
+                try { return Number(localStorage.getItem(cursorKey(userId))) || 0; } catch { return 0; }
+            };
+            const writeLastSync = (userId: string, t: number): void => {
+                try { localStorage.setItem(cursorKey(userId), String(t)); } catch { /* private mode */ }
+            };
+
+            const requestCatchUp = () => {
+                const session = useAuthStore.getState().session;
+                if (!session?.token) return;
+                // Identify first, so the relay answers for this user, not for whoever
+                // the socket was a moment ago.
+                socket.emit('session:identify', { token: session.token });
+                socket.emit('sync:request', { since: readLastSync(session.userId) });
+            };
+
+            socket.off('sync:batch');
+            socket.on('sync:batch', async (data: { patients: Patient[]; serverTime?: number; userId?: string }) => {
+                const incoming = Array.isArray(data?.patients) ? data.patients : [];
+                const fileUnder = (t: number | undefined) => {
+                    if (data?.userId && typeof t === 'number') writeLastSync(data.userId, t);
+                };
+                if (incoming.length === 0) {
+                    fileUnder(data?.serverTime);
+                    return;
+                }
+
+                let applied = 0;
+                for (const patient of incoming) {
+                    const existing = get().patients.find(p => p.id === patient.id);
+                    // Same last-write-wins guard the live path uses.
+                    if (existing && new Date(existing.timestamp) >= new Date(patient.timestamp)) continue;
+                    try {
+                        await savePatient(patient);
+                        applied++;
+                    } catch (err) {
+                        console.error('Catch-up sync: failed to persist', patient.id, err);
+                    }
+                }
+
+                if (applied > 0) {
+                    await get().loadPatients();
+                    toast.success(`Synced ${applied} record${applied === 1 ? '' : 's'} missed while offline`);
+                }
+                fileUnder(data?.serverTime);
+            });
+
+            socket.off('connect', requestCatchUp);
+            socket.on('connect', requestCatchUp);
+            if (socket.connected) requestCatchUp();
+            unsubscribeSession?.();
+            unsubscribeSession = useAuthStore.subscribe((state, previous) => {
+                if (state.session?.userId !== previous.session?.userId || state.session?.token !== previous.session?.token) requestCatchUp();
+            });
+
+            socket.off('patient:sync');
             socket.on('patient:sync', (patient: Patient) => {
-                console.log('Received patient sync:', patient.id);
                 set(state => {
                     const exists = state.patients.find(p => p.id === patient.id);
                     if (exists && new Date(exists.timestamp) >= new Date(patient.timestamp)) {
-                        return state; // Ignore older/duplicate
+                        return state;
                     }
                     const others = state.patients.filter(p => p.id !== patient.id);
-
-                    // Show confirmation toast
-                    toast.success(`Remote Sync: Patient #${patient.id.slice(0, 4)} received`);
-
+                    toast.success(`Sync: Patient record #${patient.id.slice(-4)} updated`);
                     return { patients: [patient, ...others] };
                 });
-                // Also save to DB
                 savePatient(patient).catch(console.error);
             });
 
-            // Listen for global reset
             socket.off('data:reset');
             socket.on('data:reset', () => {
-                console.log('Received global reset command');
-                toast.success('Remote Sync: System Data Reset');
-
-                // Perform local reset of store and DB
-                import('@/lib/db').then(({ clearAllPatients }) => {
-                    clearAllPatients().catch(console.error);
+                // A production device holds real records; no broadcast wipes it.
+                if (PRODUCTION) return;
+                resetToDefaultSeed().then(async () => {
+                    get().loadPatients();
+                    const { announceReset } = await import('@/lib/referrals/transport');
+                    announceReset();
+                    toast.success('System Data Reset Received');
                 });
-                set({ patients: [], unsyncedCount: 0 });
             });
         } catch (error) {
             console.error('Socket init failed:', error);
@@ -71,12 +141,15 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
     },
 
     resetData: async () => {
+        if (PRODUCTION) {
+            toast.error('Resetting to demonstration data is not available in a production build');
+            return;
+        }
         try {
-            const { clearAllPatients } = await import('@/lib/db');
-            await clearAllPatients();
-            set({ patients: [], unsyncedCount: 0 });
-
-            // Emit global reset to others
+            await resetToDefaultSeed();
+            await get().loadPatients();
+            const { announceReset } = await import('@/lib/referrals/transport');
+            announceReset();
             try {
                 const { getSocket } = await import('@/lib/socket');
                 const socket = getSocket();
@@ -84,39 +157,41 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             } catch (err) {
                 console.warn('Socket reset emit failed:', err);
             }
+            toast.success('Reset to Maharashtra Rural Benchmark Data');
         } catch (error) {
             console.error('Failed to reset data:', error);
+            toast.error('The reset did not complete — the data on this device may be partly reset. Reload and try again.');
         }
     },
 
     addPatient: async (patient: Patient) => {
-        // Optimistic UI update
+        const previous = get().patients;
         set(state => ({
-            patients: [patient, ...state.patients],
+            patients: [patient, ...state.patients.filter(p => p.id !== patient.id)],
             unsyncedCount: state.unsyncedCount + 1,
         }));
 
         try {
             await savePatient(patient);
-
-            // Emit sync event
-            try {
-                const { getSocket } = await import('@/lib/socket');
-                const socket = getSocket();
-                socket.emit('patient:sync', patient);
-            } catch (err) {
-                console.warn('Socket emit failed:', err);
-            }
-
         } catch (error) {
+            // Take the optimistic row back off the screen: a patient shown as
+            // registered who is not stored would vanish on the next reload.
             console.error('Failed to save patient:', error);
-            // Rollback on error
-            set(state => ({
-                patients: state.patients.filter(p => p.id !== patient.id),
-                unsyncedCount: Math.max(0, state.unsyncedCount - 1),
-            }));
+            set({ patients: previous, unsyncedCount: Math.max(0, get().unsyncedCount - 1) });
             throw error;
         }
+        try {
+            const { getSocket } = await import('@/lib/socket');
+            const socket = getSocket();
+            socket.emit('patient:sync', patient);
+        } catch (err) {
+            console.warn('Socket emit failed:', err);
+        }
+        // Queue for the district cloud. The socket above only reaches devices on
+        // the same mesh; this is what lets a hospital in another town open the
+        // record before the patient arrives. Not awaited — it is durable and
+        // uploads itself whenever connectivity returns.
+        void queuePatient(patient);
     },
 
     loadPatients: async () => {
@@ -146,6 +221,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
     },
 
     updatePatient: async (updatedPatient: Patient) => {
+        const previous = get().patients;
         set(state => ({
             patients: state.patients.map(p =>
                 p.id === updatedPatient.id ? updatedPatient : p
@@ -154,20 +230,29 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
         try {
             await savePatient(updatedPatient);
-            try {
-                const { getSocket } = await import('@/lib/socket');
-                const socket = getSocket();
-                socket.emit('patient:sync', updatedPatient);
-            } catch (err) {
-                console.warn('Socket emit update failed:', err);
-            }
         } catch (error) {
+            // Roll back and tell the caller — a vitals update that silently
+            // fails leaves the screen showing readings the record does not hold.
             console.error('Failed to update patient:', error);
+            set({ patients: previous });
+            throw error;
         }
+        try {
+            const { getSocket } = await import('@/lib/socket');
+            const socket = getSocket();
+            socket.emit('patient:sync', updatedPatient);
+        } catch (err) {
+            console.warn('Socket emit update failed:', err);
+        }
+        void queuePatient(updatedPatient);
     },
 
     refreshUnsyncedCount: async () => {
-        const unsynced = await getUnsyncedPatients();
-        set({ unsyncedCount: unsynced.length });
+        try {
+            const unsynced = await getUnsyncedPatients();
+            set({ unsyncedCount: unsynced.length });
+        } catch {
+            set({ unsyncedCount: 0 });
+        }
     },
 }));

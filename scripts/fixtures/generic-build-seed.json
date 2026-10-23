@@ -1,0 +1,3424 @@
+{
+ "generatedAt": 1790000000000,
+ "from": "lib/data seeds at f12962f (generic build), Date.now frozen at generatedAt",
+ "stores": {
+  "facilities": [
+   {
+    "id": "dh-district",
+    "name": "District Hospital",
+    "nameMarathi": "जिल्हा रुग्णालय, ",
+    "type": "DH",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 20.1809,
+     "lng": 79.9934,
+     "address": "Complex Area, Chamorshi Road, 442605"
+    },
+    "contact": "+91-7132-222108",
+    "medicalOfficerInCharge": "Dr. Pramod Khandate (Civil Surgeon)",
+    "staff": {
+     "doctors": 24,
+     "nurses": 65,
+     "ashaWorkers": 0,
+     "anmWorkers": 8,
+     "pharmacists": 6,
+     "labTechnicians": 8
+    },
+    "beds": {
+     "total": 300,
+     "occupied": 235,
+     "icu": {
+      "total": 20,
+      "occupied": 16
+     },
+     "maternity": {
+      "total": 60,
+      "occupied": 52
+     },
+     "emergency": {
+      "total": 25,
+      "occupied": 18
+     }
+    },
+    "services": [
+     "General Medicine",
+     "General Surgery",
+     "Obstetrics & Gynaecology",
+     "Pediatrics & SNCU",
+     "Orthopedics",
+     "Blood Bank",
+     "CT Scan",
+     "Dialysis",
+     "24x7 Emergency"
+    ],
+    "equipment": [
+     "Ventilators (12)",
+     "CT Scanner",
+     "Digital X-Ray",
+     "Ultrasound Color Doppler",
+     "Automated Cell Counter",
+     "ECG Machines",
+     "Central Oxygen Plant"
+    ],
+    "operatingHours": "24 Hours Open",
+    "ambulanceAvailable": 6,
+    "isOnline": true
+   },
+   {
+    "id": "sdh-aheri",
+    "name": "Sub-District Hospital",
+    "nameMarathi": "उपजिल्हा रुग्णालय, उपविभाग",
+    "type": "SDH",
+    "parentFacilityId": "dh-district",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.4144,
+     "lng": 80.0031,
+     "address": "Allapalli Road, Sub-Division, 442705"
+    },
+    "contact": "+91-7133-272022",
+    "medicalOfficerInCharge": "Dr. Nitin Meshram (Medical Superintendent)",
+    "staff": {
+     "doctors": 12,
+     "nurses": 30,
+     "ashaWorkers": 0,
+     "anmWorkers": 4,
+     "pharmacists": 3,
+     "labTechnicians": 4
+    },
+    "beds": {
+     "total": 100,
+     "occupied": 74,
+     "icu": {
+      "total": 6,
+      "occupied": 4
+     },
+     "maternity": {
+      "total": 30,
+      "occupied": 24
+     },
+     "emergency": {
+      "total": 10,
+      "occupied": 7
+     }
+    },
+    "services": [
+     "First Referral Unit (FRU)",
+     "Emergency Obstetric Care (CEmONC)",
+     "Blood Storage Unit",
+     "General Surgery",
+     "Newborn Stabilization Unit (NBSU)"
+    ],
+    "equipment": [
+     "Semi-automated Biochemistry Analyzer",
+     "Mobile X-Ray",
+     "Ultrasound",
+     "Phototherapy Units",
+     "Oxygen Concentrators"
+    ],
+    "operatingHours": "24 Hours Open",
+    "ambulanceAvailable": 3,
+    "isOnline": true
+   },
+   {
+    "id": "chc-etapalli",
+    "name": "Community Health Centre — Block A",
+    "nameMarathi": "ग्रामीण रुग्णालय (CHC), ब्लॉक अ",
+    "type": "CHC",
+    "parentFacilityId": "sdh-aheri",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.6468,
+     "lng": 80.2884,
+     "address": "Main Road, Block A, 442704"
+    },
+    "contact": "+91-7133-264100",
+    "medicalOfficerInCharge": "Dr. Sachin Madavi (Medical Officer)",
+    "staff": {
+     "doctors": 4,
+     "nurses": 14,
+     "ashaWorkers": 0,
+     "anmWorkers": 4,
+     "pharmacists": 2,
+     "labTechnicians": 2
+    },
+    "beds": {
+     "total": 30,
+     "occupied": 21,
+     "maternity": {
+      "total": 12,
+      "occupied": 9
+     },
+     "emergency": {
+      "total": 4,
+      "occupied": 2
+     }
+    },
+    "services": [
+     "24x7 Delivery Care (BEmONC)",
+     "Basic Emergency Care",
+     "Routine Diagnostics",
+     "Immunization",
+     "Inpatient Care",
+     "Teleconsultation Link"
+    ],
+    "equipment": [
+     "Radiant Warmers",
+     "Semi-Auto Lab Analyzer",
+     "Suction Machine",
+     "Defibrillator",
+     "Nebulizers",
+     "Oxygen Cylinders"
+    ],
+    "operatingHours": "24 Hours Open",
+    "ambulanceAvailable": 2,
+    "isOnline": true
+   },
+   {
+    "id": "phc-bhamragad",
+    "name": "Primary Health Centre — Block A",
+    "nameMarathi": "प्राथमिक आरोग्य केंद्र, ब्लॉक अ",
+    "type": "PHC",
+    "parentFacilityId": "chc-etapalli",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.4678,
+     "lng": 80.3789,
+     "address": "Near Tehsil Office, Block A, 442710"
+    },
+    "contact": "+91-7134-220033",
+    "medicalOfficerInCharge": "Dr. Suresh Atram (Medical Officer)",
+    "staff": {
+     "doctors": 2,
+     "nurses": 5,
+     "ashaWorkers": 28,
+     "anmWorkers": 6,
+     "pharmacists": 1,
+     "labTechnicians": 1
+    },
+    "beds": {
+     "total": 10,
+     "occupied": 6,
+     "maternity": {
+      "total": 4,
+      "occupied": 3
+     }
+    },
+    "services": [
+     "OPD Registration",
+     "Normal Deliveries",
+     "Antenatal & Postnatal Care",
+     "Sickle Cell Screening",
+     "Malaria & TB Diagnostics",
+     "Assisted Teleconsultation"
+    ],
+    "equipment": [
+     "Hemoglobinometer",
+     "Rapid Diagnostic Kits (Malaria/Sickle)",
+     "Microscope",
+     "Delivery Table",
+     "Fetal Doppler",
+     "Solar Power Backup"
+    ],
+    "operatingHours": "OPD: 8 AM - 2 PM, Emergency 24x7",
+    "ambulanceAvailable": 1,
+    "isOnline": true
+   },
+   {
+    "id": "phc-perimili",
+    "name": "Primary Health Centre — Block B",
+    "nameMarathi": "प्राथमिक आरोग्य केंद्र, ब्लॉक ब",
+    "type": "PHC",
+    "parentFacilityId": "chc-etapalli",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.3512,
+     "lng": 80.1245,
+     "address": "Block B Village, Sub-Division Tehsil, 442705"
+    },
+    "contact": "+91-7133-289122",
+    "medicalOfficerInCharge": "Dr. Anjali Borkar",
+    "staff": {
+     "doctors": 1,
+     "nurses": 4,
+     "ashaWorkers": 22,
+     "anmWorkers": 4,
+     "pharmacists": 1,
+     "labTechnicians": 1
+    },
+    "beds": {
+     "total": 6,
+     "occupied": 3,
+     "maternity": {
+      "total": 2,
+      "occupied": 1
+     }
+    },
+    "services": [
+     "OPD",
+     "Maternal Health",
+     "Vector Borne Disease Control",
+     "Childhood Immunization"
+    ],
+    "equipment": [
+     "Microscope",
+     "BP Apparatus",
+     "Glucometers",
+     "Cold Chain Refrigerator"
+    ],
+    "operatingHours": "OPD: 9 AM - 4 PM",
+    "ambulanceAvailable": 1,
+    "isOnline": true
+   },
+   {
+    "id": "sc-kothi",
+    "name": "Sub-Centre / Ayushman Arogya Mandir — Village 1",
+    "nameMarathi": "आरोग्य उपकेंद्र, गाव १",
+    "type": "SC",
+    "parentFacilityId": "phc-bhamragad",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.4981,
+     "lng": 80.4512,
+     "address": "Village 1 Gram Panchayat, Block A 442710"
+    },
+    "contact": "+91-9423-889911",
+    "medicalOfficerInCharge": "Sunita Hichami (CHO / Community Health Officer)",
+    "staff": {
+     "doctors": 0,
+     "nurses": 0,
+     "ashaWorkers": 6,
+     "anmWorkers": 1,
+     "pharmacists": 0,
+     "labTechnicians": 0
+    },
+    "beds": {
+     "total": 0,
+     "occupied": 0
+    },
+    "services": [
+     "First Contact Care",
+     "NCD Screening (BP/Sugar)",
+     "ANC Check-up",
+     "Immunization Day",
+     "ASHA Field Kit"
+    ],
+    "equipment": [
+     "Digital BP Monitor",
+     "Pulse Oximeter",
+     "Weighing Scale",
+     "RDT Malaria Kits",
+     "NalamMesh Offline PWA Device"
+    ],
+    "operatingHours": "9:00 AM - 1:00 PM (Field Visits 2-5 PM)",
+    "ambulanceAvailable": 0,
+    "isOnline": false
+   },
+   {
+    "id": "sc-govindpur",
+    "name": "Sub-Centre — Village 2",
+    "nameMarathi": "आरोग्य उपकेंद्र, गाव २",
+    "type": "SC",
+    "parentFacilityId": "phc-bhamragad",
+    "district": "District",
+    "tehsil": "Block",
+    "location": {
+     "lat": 19.5211,
+     "lng": 80.3992,
+     "address": "Village 2 Village, Block A 442710"
+    },
+    "contact": "+91-9423-889922",
+    "medicalOfficerInCharge": "Ramesh Gawde (MPW) / Kavita Madavi (ANM)",
+    "staff": {
+     "doctors": 0,
+     "nurses": 0,
+     "ashaWorkers": 5,
+     "anmWorkers": 1,
+     "pharmacists": 0,
+     "labTechnicians": 0
+    },
+    "beds": {
+     "total": 0,
+     "occupied": 0
+    },
+    "services": [
+     "Basic Triage",
+     "Maternal Follow-up",
+     "Child Malnutrition Screening"
+    ],
+    "equipment": [
+     "Pulse Oximeter",
+     "Infantometer",
+     "MUAC Tape",
+     "Oral Rehydration Point"
+    ],
+    "operatingHours": "9:00 AM - 1:00 PM",
+    "ambulanceAvailable": 0,
+    "isOnline": true
+   }
+  ],
+  "patients": [
+   {
+    "id": "p-gad-1001",
+    "registeredAtFacilityId": "sc-kothi",
+    "abhaId": "ABHA-9128-4421-8890",
+    "aadhaarLast4": "4821",
+    "name": "Sunita M. Devi",
+    "age": 26,
+    "gender": "F",
+    "phone": "+91-98765-43210",
+    "village": "Village 1",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 94,
+     "heartRate": 104,
+     "bloodPressure": {
+      "systolic": 160,
+      "diastolic": 102
+     },
+     "temperature": 99.2,
+     "respiratoryRate": 22,
+     "bloodGlucose": 110,
+     "weight": 54,
+     "consciousness": "ALERT",
+     "isPregnant": true,
+     "gestationalWeeks": 32,
+     "injuryType": "High-risk Antenatal: Severe gestational hypertension with severe frontal headache and visual blurring"
+    },
+    "triageStatus": "RED",
+    "triagePriority": "EMERGENCY",
+    "transportStatus": "IN_TRANSIT",
+    "gps": {
+     "lat": 19.4981,
+     "lng": 80.4512
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T13:28:20.000Z",
+    "chw_id": "ASHA-KOTHI-01",
+    "chw_name": "Lakshmi Netam (ASHA)",
+    "notes": "Advised immediate transfer to CHC Block A for parenteral antihypertensives and fetal monitoring. 102 ambulance dispatched.",
+    "highRiskFlags": [
+     {
+      "type": "MATERNAL",
+      "severity": "HIGH",
+      "identifiedDate": "2026-09-18T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-23T14:13:20.000Z",
+      "notes": "Preeclampsia risk: Systolic BP > 150 consistently on 2 readings",
+      "overdueDays": 0
+     },
+     {
+      "type": "NCD_HYPERTENSION",
+      "severity": "HIGH",
+      "identifiedDate": "2026-08-22T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-23T14:13:20.000Z",
+      "notes": "Pregnancy-induced hypertension"
+     }
+    ],
+    "visits": [
+     {
+      "visitId": "v-101",
+      "patientId": "p-gad-1001",
+      "facilityId": "sc-kothi",
+      "facilityName": "Sub-Centre Village 1",
+      "facilityType": "SC",
+      "date": "2026-09-07T14:13:20.000Z",
+      "chiefComplaint": "Routine 3rd ANC checkup",
+      "vitals": {
+       "spo2": 98,
+       "heartRate": 82,
+       "bloodPressure": {
+        "systolic": 138,
+        "diastolic": 88
+       },
+       "temperature": 98.4,
+       "injuryType": "Mild swelling over feet"
+      },
+      "triageStatus": "YELLOW",
+      "diagnosis": "ANC 30 weeks with mild pedal edema",
+      "prescription": [
+       {
+        "id": "rx-1",
+        "medicine": "Iron & Folic Acid (IFA)",
+        "dosage": "100mg elemental iron",
+        "frequency": "1-0-0",
+        "duration": "30 days",
+        "dispensed": true
+       },
+       {
+        "id": "rx-2",
+        "medicine": "Calcium Carbonate",
+        "dosage": "500mg",
+        "frequency": "0-1-0",
+        "duration": "30 days",
+        "dispensed": true
+       }
+      ],
+      "attendingStaff": "Sunita Hichami (CHO)"
+     }
+    ]
+   },
+   {
+    "id": "p-gad-1002",
+    "registeredAtFacilityId": "sc-govindpur",
+    "abhaId": "ABHA-7741-2309-1123",
+    "aadhaarLast4": "1904",
+    "name": "Ramesh Pandu Patil",
+    "age": 54,
+    "gender": "M",
+    "phone": "+91-94218-77112",
+    "village": "Village 2",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 97,
+     "heartRate": 88,
+     "bloodPressure": {
+      "systolic": 154,
+      "diastolic": 96
+     },
+     "temperature": 98.6,
+     "respiratoryRate": 18,
+     "bloodGlucose": 284,
+     "weight": 68,
+     "consciousness": "ALERT",
+     "injuryType": "Uncontrolled Type-2 Diabetes with non-healing ulcer on right plantar foot (grade 2) for 3 weeks"
+    },
+    "triageStatus": "YELLOW",
+    "triagePriority": "URGENT",
+    "transportStatus": "PENDING",
+    "gps": {
+     "lat": 19.5211,
+     "lng": 80.3992
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T12:43:20.000Z",
+    "chw_id": "ASHA-GOV-02",
+    "chw_name": "Kavita Madavi (ANM)",
+    "highRiskFlags": [
+     {
+      "type": "NCD_DIABETES",
+      "severity": "HIGH",
+      "identifiedDate": "2026-06-23T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-16T14:13:20.000Z",
+      "notes": "Random blood sugar > 280 mg/dL, diabetic foot ulcer",
+      "overdueDays": 5
+     }
+    ]
+   },
+   {
+    "id": "p-gad-1003",
+    "registeredAtFacilityId": "phc-perimili",
+    "abhaId": "ABHA-3319-8802-9914",
+    "name": "Baby Aarav (s/o Meena)",
+    "age": 1.5,
+    "gender": "M",
+    "village": "Block B",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 91,
+     "heartRate": 138,
+     "bloodPressure": {
+      "systolic": 85,
+      "diastolic": 55
+     },
+     "temperature": 102.4,
+     "respiratoryRate": 48,
+     "weight": 7.1,
+     "consciousness": "ALERT",
+     "childAgeMonths": 18,
+     "injuryType": "Severe Acute Malnutrition (SAM) with Fast Breathing & High Fever (Pneumonia suspect)"
+    },
+    "triageStatus": "RED",
+    "triagePriority": "EMERGENCY",
+    "transportStatus": "IN_TRANSIT",
+    "gps": {
+     "lat": 19.3512,
+     "lng": 80.1245
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T13:53:20.000Z",
+    "chw_id": "ASHA-PER-01",
+    "chw_name": "Sharda Narote (ASHA)",
+    "highRiskFlags": [
+     {
+      "type": "CHILD_U5",
+      "severity": "HIGH",
+      "identifiedDate": "2026-09-11T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-21T14:13:20.000Z",
+      "notes": "MUAC < 11.5 cm, Severe wasting, fast breathing (48/min)",
+      "overdueDays": 1
+     },
+     {
+      "type": "MALNUTRITION",
+      "severity": "HIGH",
+      "identifiedDate": "2026-08-22T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-21T14:13:20.000Z"
+     }
+    ]
+   },
+   {
+    "id": "p-gad-1004",
+    "registeredAtFacilityId": "phc-bhamragad",
+    "abhaId": "ABHA-5520-1194-6632",
+    "name": "Lata B. Meshram",
+    "age": 42,
+    "gender": "F",
+    "phone": "+91-91300-44982",
+    "village": "Block A",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 96,
+     "heartRate": 78,
+     "bloodPressure": {
+      "systolic": 118,
+      "diastolic": 76
+     },
+     "temperature": 99,
+     "respiratoryRate": 16,
+     "weight": 48,
+     "consciousness": "ALERT",
+     "injuryType": "Pulmonary Tuberculosis Month-3 Follow-up: Chronic cough reduced, sputum check needed"
+    },
+    "triageStatus": "GREEN",
+    "triagePriority": "ROUTINE",
+    "gps": {
+     "lat": 19.4678,
+     "lng": 80.3789
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T11:13:20.000Z",
+    "highRiskFlags": [
+     {
+      "type": "TB",
+      "severity": "MEDIUM",
+      "identifiedDate": "2026-07-08T14:13:20.000Z",
+      "nextFollowUpDate": "2026-09-25T14:13:20.000Z",
+      "notes": "Nikshay ID: NK-PHC-01, DOTS regimen adherence good"
+     }
+    ]
+   },
+   {
+    "id": "p-gad-1005",
+    "registeredAtFacilityId": "phc-bhamragad",
+    "name": "Devendra Somu Yadav",
+    "age": 34,
+    "gender": "M",
+    "village": "Nainer",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "hi",
+    "vitals": {
+     "spo2": 98,
+     "heartRate": 74,
+     "bloodPressure": {
+      "systolic": 122,
+      "diastolic": 80
+     },
+     "temperature": 98.4,
+     "respiratoryRate": 14,
+     "bloodGlucose": 98,
+     "consciousness": "ALERT",
+     "injuryType": "Mild seasonal viral fever and body ache since 2 days. No danger signs."
+    },
+    "triageStatus": "GREEN",
+    "triagePriority": "ROUTINE",
+    "gps": {
+     "lat": 19.38,
+     "lng": 80.2
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T10:13:20.000Z"
+   },
+   {
+    "id": "p-gad-1006",
+    "name": "Mangesh Pendam",
+    "age": 38,
+    "gender": "M",
+    "village": "Village 2",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 95,
+     "heartRate": 112,
+     "bloodPressure": {
+      "systolic": 132,
+      "diastolic": 86
+     },
+     "respiratoryRate": 22,
+     "consciousness": "ALERT",
+     "injuryType": "Snake bite (suspected krait) 40 min ago while asleep on floor; early ptosis, abdominal pain"
+    },
+    "triageStatus": "RED",
+    "triagePriority": "EMERGENCY",
+    "gps": {
+     "lat": 19.5211,
+     "lng": 80.3992
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T13:48:20.000Z",
+    "registeredAtFacilityId": "sc-govindpur",
+    "chw_name": "Kavita Madavi (ANM)"
+   },
+   {
+    "id": "p-gad-1007",
+    "name": "Rukhmini Atram",
+    "age": 65,
+    "gender": "F",
+    "village": "Village 1",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 96,
+     "heartRate": 104,
+     "bloodPressure": {
+      "systolic": 104,
+      "diastolic": 68
+     },
+     "temperature": 102.6,
+     "consciousness": "ALERT",
+     "injuryType": "Fever 5 days, RDT malaria positive (Pf), repeated vomiting — cannot retain oral ACT"
+    },
+    "triageStatus": "YELLOW",
+    "triagePriority": "URGENT",
+    "gps": {
+     "lat": 19.4981,
+     "lng": 80.4512
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T13:18:20.000Z",
+    "registeredAtFacilityId": "sc-kothi",
+    "chw_name": "Sunita Hichami (ANM)"
+   },
+   {
+    "id": "p-gad-1008",
+    "name": "Sanjay Wadde",
+    "age": 22,
+    "gender": "M",
+    "village": "Block B",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 97,
+     "heartRate": 118,
+     "bloodPressure": {
+      "systolic": 112,
+      "diastolic": 70
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Road traffic accident — closed fracture right tibia, deformity and swelling, distal pulse present"
+    },
+    "triageStatus": "RED",
+    "triagePriority": "EMERGENCY",
+    "gps": {
+     "lat": 19.3512,
+     "lng": 80.1245
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T11:53:20.000Z",
+    "registeredAtFacilityId": "phc-perimili"
+   },
+   {
+    "id": "p-gad-1009",
+    "name": "Pooja Netam",
+    "age": 24,
+    "gender": "F",
+    "village": "Village 2",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 98,
+     "heartRate": 108,
+     "bloodPressure": {
+      "systolic": 96,
+      "diastolic": 62
+     },
+     "temperature": 99.1,
+     "consciousness": "ALERT",
+     "injuryType": "Acute gastroenteritis with moderate dehydration — 9 loose stools since morning"
+    },
+    "triageStatus": "YELLOW",
+    "triagePriority": "URGENT",
+    "gps": {
+     "lat": 19.5211,
+     "lng": 80.3992
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-19T14:13:20.000Z",
+    "registeredAtFacilityId": "sc-govindpur",
+    "chw_name": "Kavita Madavi (ANM)"
+   },
+   {
+    "id": "p-gad-1010",
+    "name": "Vitthal Kowase",
+    "age": 58,
+    "gender": "M",
+    "village": "Block A",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 93,
+     "heartRate": 96,
+     "bloodPressure": {
+      "systolic": 150,
+      "diastolic": 94
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Central chest pain 2 hours, sweating; ECG shows ST elevation in V2–V4 (cardiac event suspected)"
+    },
+    "triageStatus": "RED",
+    "triagePriority": "EMERGENCY",
+    "gps": {
+     "lat": 19.4678,
+     "lng": 80.3789
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T11:43:20.000Z",
+    "registeredAtFacilityId": "phc-bhamragad"
+   },
+   {
+    "id": "p-gad-1011",
+    "name": "Kamla Usendi",
+    "age": 70,
+    "gender": "F",
+    "village": "Block B",
+    "tehsil": "Block",
+    "district": "District",
+    "languagePreference": "mr",
+    "vitals": {
+     "spo2": 94,
+     "heartRate": 116,
+     "bloodPressure": {
+      "systolic": 100,
+      "diastolic": 60
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Severe anaemia (Hb 5.8 g/dL) with breathlessness on walking — needs transfusion"
+    },
+    "triageStatus": "YELLOW",
+    "triagePriority": "URGENT",
+    "gps": {
+     "lat": 19.3512,
+     "lng": 80.1245
+    },
+    "isSynced": true,
+    "timestamp": "2026-09-21T09:13:20.000Z",
+    "registeredAtFacilityId": "phc-perimili"
+   }
+  ],
+  "queue": [
+   {
+    "id": "q-038",
+    "tokenNumber": "T-038",
+    "sequence": 38,
+    "patientId": "p-gad-1004",
+    "patientName": "Lata B. Meshram",
+    "patientAge": 42,
+    "patientGender": "F",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "registeredAt": "2026-09-21T13:38:20.000Z",
+    "calledAt": "2026-09-21T14:01:20.000Z",
+    "priority": "ROUTINE",
+    "chiefComplaint": "TB Follow-up & Sputum Result Review",
+    "status": "IN_CONSULTATION",
+    "consultingDoctor": "Dr. Suresh Atram",
+    "roomNo": "Room 2 (General OPD)",
+    "estimatedWaitMinutes": 0
+   },
+   {
+    "id": "q-039",
+    "tokenNumber": "T-039",
+    "sequence": 39,
+    "patientId": "p-gad-1002",
+    "patientName": "Ramesh Pandu Patil",
+    "patientAge": 54,
+    "patientGender": "M",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "registeredAt": "2026-09-21T13:48:20.000Z",
+    "priority": "URGENT",
+    "chiefComplaint": "Diabetic Foot Ulcer & Blood Sugar 284",
+    "status": "WAITING",
+    "estimatedWaitMinutes": 8
+   },
+   {
+    "id": "q-040",
+    "tokenNumber": "T-040",
+    "sequence": 40,
+    "patientId": "p-gad-1001",
+    "patientName": "Sunita M. Devi",
+    "patientAge": 26,
+    "patientGender": "F",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "registeredAt": "2026-09-21T13:58:20.000Z",
+    "priority": "EMERGENCY",
+    "chiefComplaint": "Pregnancy 32w with Severe BP 160/100",
+    "status": "WAITING",
+    "estimatedWaitMinutes": 2
+   },
+   {
+    "id": "q-041",
+    "tokenNumber": "T-041",
+    "sequence": 41,
+    "patientId": "p-gad-1005",
+    "patientName": "Devendra Somu Yadav",
+    "patientAge": 34,
+    "patientGender": "M",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "registeredAt": "2026-09-21T14:03:20.000Z",
+    "priority": "ROUTINE",
+    "chiefComplaint": "Viral Fever & Generalized Body Ache",
+    "status": "WAITING",
+    "estimatedWaitMinutes": 18
+   },
+   {
+    "id": "q-042",
+    "tokenNumber": "T-042",
+    "sequence": 42,
+    "patientId": "p-gad-1006",
+    "patientName": "Anita Kumari Madavi",
+    "patientAge": 22,
+    "patientGender": "F",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "registeredAt": "2026-09-21T14:08:20.000Z",
+    "priority": "ROUTINE",
+    "chiefComplaint": "Routine 1st Trimester ANC Registration",
+    "status": "WAITING",
+    "estimatedWaitMinutes": 26
+   }
+  ],
+  "medicineStock": [
+   {
+    "id": "med-01",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Paracetamol Tablets 500mg",
+    "category": "Analgesic",
+    "dosageForm": "Tablet",
+    "currentStock": 450,
+    "unit": "tabs",
+    "minimumRequiredStock": 200,
+    "isEssentialIPHS": true,
+    "batchNumber": "PCM-2024-88",
+    "expiryDate": "2026-11-30",
+    "status": "ADEQUATE",
+    "lastRestocked": "2025-07-15"
+   },
+   {
+    "id": "med-02",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Amoxicillin Capsules 250mg",
+    "category": "Antibiotic",
+    "dosageForm": "Capsule",
+    "currentStock": 24,
+    "unit": "caps",
+    "minimumRequiredStock": 100,
+    "isEssentialIPHS": true,
+    "batchNumber": "AMX-2024-12",
+    "expiryDate": "2026-05-15",
+    "status": "LOW",
+    "lastRestocked": "2025-06-01"
+   },
+   {
+    "id": "med-03",
+    "facilityId": "sc-kothi",
+    "facilityName": "Sub-Centre Village 1",
+    "name": "Iron & Folic Acid (IFA Large)",
+    "category": "Maternal/ANC",
+    "dosageForm": "Tablet",
+    "currentStock": 0,
+    "unit": "tabs",
+    "minimumRequiredStock": 500,
+    "isEssentialIPHS": true,
+    "batchNumber": "IFA-2024-04",
+    "expiryDate": "2026-08-30",
+    "status": "OUT_OF_STOCK",
+    "lastRestocked": "2025-04-10"
+   },
+   {
+    "id": "med-04",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Oral Rehydration Salts (ORS) WHO Formula",
+    "category": "Rehydration",
+    "dosageForm": "Packet",
+    "currentStock": 140,
+    "unit": "packs",
+    "minimumRequiredStock": 80,
+    "isEssentialIPHS": true,
+    "batchNumber": "ORS-2025-01",
+    "expiryDate": "2027-01-31",
+    "status": "ADEQUATE",
+    "lastRestocked": "2025-07-20"
+   },
+   {
+    "id": "med-05",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Metformin Tablets 500mg",
+    "category": "Anti-diabetic",
+    "dosageForm": "Tablet",
+    "currentStock": 18,
+    "unit": "tabs",
+    "minimumRequiredStock": 150,
+    "isEssentialIPHS": true,
+    "batchNumber": "MET-2024-91",
+    "expiryDate": "2026-04-30",
+    "status": "LOW",
+    "lastRestocked": "2025-05-18"
+   },
+   {
+    "id": "med-06",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Human Insulin Regular (100 IU/ml Vial)",
+    "category": "Anti-diabetic",
+    "dosageForm": "Injection",
+    "currentStock": 0,
+    "unit": "vials",
+    "minimumRequiredStock": 10,
+    "isEssentialIPHS": true,
+    "batchNumber": "INS-2024-03",
+    "expiryDate": "2025-12-31",
+    "status": "OUT_OF_STOCK",
+    "lastRestocked": "2025-03-12"
+   },
+   {
+    "id": "med-07",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Oxytocin Injection 5 IU/ml Ampoules",
+    "category": "Maternal/ANC",
+    "dosageForm": "Injection",
+    "currentStock": 6,
+    "unit": "amps",
+    "minimumRequiredStock": 25,
+    "isEssentialIPHS": true,
+    "batchNumber": "OXY-2024-77",
+    "expiryDate": "2025-09-30",
+    "status": "NEAR_EXPIRY",
+    "lastRestocked": "2025-02-14"
+   },
+   {
+    "id": "med-08",
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "name": "Artemether-Lumefantrine (ACT Kit)",
+    "category": "Emergency",
+    "dosageForm": "Tablet",
+    "currentStock": 85,
+    "unit": "kits",
+    "minimumRequiredStock": 40,
+    "isEssentialIPHS": true,
+    "batchNumber": "ACT-2024-55",
+    "expiryDate": "2027-03-31",
+    "status": "ADEQUATE",
+    "lastRestocked": "2025-07-01"
+   }
+  ],
+  "diagnostics": [
+   {
+    "id": "diag-01",
+    "patientId": "p-gad-1002",
+    "patientName": "Ramesh Pandu Patil",
+    "patientAge": 54,
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "testName": "Fasting Blood Glucose (FBG) & HbA1c",
+    "category": "Biochemistry",
+    "orderedBy": "Dr. Suresh Atram",
+    "orderedAt": "2026-09-21T12:43:20.000Z",
+    "status": "COMPLETED",
+    "resultSummary": "FBG: 284 mg/dL (High), HbA1c: 9.4% (Poor control)",
+    "isAbnormal": true,
+    "completedAt": "2026-09-21T13:53:20.000Z",
+    "normalRange": "FBG: 70-100 mg/dL, HbA1c: < 6.5%"
+   },
+   {
+    "id": "diag-02",
+    "patientId": "p-gad-1004",
+    "patientName": "Lata B. Meshram",
+    "patientAge": 42,
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "testName": "Sputum Smear for AFB (Ziehl-Neelsen)",
+    "category": "Microbiology/Sputum",
+    "orderedBy": "Dr. Suresh Atram",
+    "orderedAt": "2026-09-20T14:13:20.000Z",
+    "status": "COMPLETED",
+    "resultSummary": "No Acid-Fast Bacilli Seen (Negative on 2 smears)",
+    "isAbnormal": false,
+    "completedAt": "2026-09-21T11:13:20.000Z",
+    "normalRange": "Negative / No AFB observed"
+   },
+   {
+    "id": "diag-03",
+    "patientId": "p-gad-1001",
+    "patientName": "Sunita M. Devi",
+    "patientAge": 26,
+    "facilityId": "phc-bhamragad",
+    "facilityName": "PHC Block A",
+    "testName": "Urine Albumin (Proteinuria Check) & Hb%",
+    "category": "Urine",
+    "orderedBy": "Sunita Hichami (CHO)",
+    "orderedAt": "2026-09-21T13:33:20.000Z",
+    "status": "IN_PROGRESS",
+    "resultSummary": "Dipstick: Albumin +++ (3+), Hb: 9.8 g/dL (Mild Anemia)",
+    "isAbnormal": true,
+    "normalRange": "Albumin: Nil, Hb: 11-14 g/dL"
+   },
+   {
+    "id": "diag-04",
+    "patientId": "p-gad-1003",
+    "patientName": "Baby Aarav",
+    "patientAge": 1.5,
+    "facilityId": "phc-perimili",
+    "facilityName": "PHC Block B",
+    "testName": "Rapid Malaria Antigen (Pf/Pv RDT)",
+    "category": "Rapid Test",
+    "orderedBy": "Dr. Anjali Borkar",
+    "orderedAt": "2026-09-21T13:48:20.000Z",
+    "status": "COMPLETED",
+    "resultSummary": "Plasmodium Falciparum (Pf) Positive (+)",
+    "isAbnormal": true,
+    "completedAt": "2026-09-21T14:03:20.000Z",
+    "normalRange": "Negative"
+   }
+  ],
+  "referrals": [
+   {
+    "id": "ref-seed-01",
+    "patientId": "p-gad-1001",
+    "patientName": "Sunita M. Devi",
+    "patientAge": 26,
+    "patientGender": "F",
+    "fromFacilityId": "sc-kothi",
+    "fromFacilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1",
+    "fromFacilityType": "SC",
+    "toFacilityId": "chc-etapalli",
+    "toFacilityName": "Community Health Centre — Block A",
+    "toFacilityType": "CHC",
+    "reason": "Severe gestational hypertension (BP 160/102 at 32 weeks) with headache and blurred vision — CEmONC evaluation",
+    "priority": "EMERGENCY",
+    "status": "ACCEPTED",
+    "referredBy": "Sunita Hichami",
+    "referredByUserId": "u-anm-kothi",
+    "referredAt": "2026-09-21T13:23:20.000Z",
+    "updatedAt": "2026-09-21T13:34:20.000Z",
+    "lastUpdatedAt": "2026-09-21T13:33:20.000Z",
+    "transportMode": "AMBULANCE_102",
+    "clinicalSummary": "Primigravida 32 weeks. Pedal oedema ++, brisk reflexes. Labetalol 100 mg given per MO teleconsult.",
+    "vitalsAtReferral": {
+     "spo2": 94,
+     "heartRate": 104,
+     "bloodPressure": {
+      "systolic": 160,
+      "diastolic": 102
+     },
+     "temperature": 99.2,
+     "respiratoryRate": 22,
+     "bloodGlucose": 110,
+     "weight": 54,
+     "consciousness": "ALERT",
+     "isPregnant": true,
+     "gestationalWeeks": 32,
+     "injuryType": "High-risk Antenatal: Severe gestational hypertension with severe frontal headache and visual blurring"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-01:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T13:23:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "note": "EMERGENCY referral to Community Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-01:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T13:23:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-01:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T13:26:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "note": "Seen by Community Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-01:2:acknowledge",
+      "action": "ACKNOWLEDGE",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACKNOWLEDGED",
+      "at": "2026-09-21T13:27:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      }
+     },
+     {
+      "id": "ref-seed-01:3:accept",
+      "action": "ACCEPT",
+      "fromStatus": "ACKNOWLEDGED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T13:29:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "note": "Maternity ward bed — held 4 h"
+     },
+     {
+      "id": "ref-seed-01:5:dispatch",
+      "action": "DISPATCH",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T13:33:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "note": "Vehicle AMB-T-0102 · ETA 35 min"
+     }
+    ],
+    "comments": [
+     {
+      "id": "ref-seed-01:4:comment",
+      "at": "2026-09-21T13:30:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "text": "Maternity bed 4 held. OT and eclampsia tray being readied."
+     },
+     {
+      "id": "ref-seed-01:6:comment",
+      "at": "2026-09-21T13:34:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "text": "Left with 102. BP 158/100 at departure, patient alert."
+     }
+    ],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T13:26:20.000Z",
+    "acknowledgedAt": "2026-09-21T13:27:20.000Z",
+    "acceptedAt": "2026-09-21T13:29:20.000Z",
+    "reservation": {
+     "facilityId": "chc-etapalli",
+     "ward": "MATERNITY",
+     "label": "Maternity ward bed",
+     "reservedAt": "2026-09-21T13:29:20.000Z",
+     "expiresAt": "2026-09-21T17:29:20.000Z",
+     "state": "HELD",
+     "handoverInstructions": "Labour room, ground floor. Bring ANC card and referral slip; call +91-7133-264100 on departure."
+    },
+    "inTransitAt": "2026-09-21T13:33:20.000Z",
+    "ambulanceVehicleNo": "AMB-T-0102",
+    "etaMinutes": 35
+   },
+   {
+    "id": "ref-seed-02",
+    "patientId": "p-gad-1003",
+    "patientName": "Baby Aarav (s/o Meena)",
+    "patientAge": 1.5,
+    "patientGender": "M",
+    "fromFacilityId": "phc-perimili",
+    "fromFacilityName": "Primary Health Centre — Block B",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "dh-district",
+    "toFacilityName": "District Hospital",
+    "toFacilityType": "DH",
+    "reason": "Severe acute malnutrition with respiratory distress (SpO2 91%, RR 48/min) — SNCU/NRC care",
+    "priority": "EMERGENCY",
+    "status": "ADMITTED",
+    "referredBy": "Dr. Anjali Borkar",
+    "referredByUserId": "u-mo-perimili",
+    "referredAt": "2026-09-21T11:13:20.000Z",
+    "updatedAt": "2026-09-21T13:23:20.000Z",
+    "lastUpdatedAt": "2026-09-21T13:23:20.000Z",
+    "transportMode": "AMBULANCE_108",
+    "clinicalSummary": "Chest indrawing, fever 102.4 F. Oxygen by nasal cannula at 2 L/min started.",
+    "vitalsAtReferral": {
+     "spo2": 91,
+     "heartRate": 138,
+     "bloodPressure": {
+      "systolic": 85,
+      "diastolic": 55
+     },
+     "temperature": 102.4,
+     "respiratoryRate": 48,
+     "weight": 7.1,
+     "consciousness": "ALERT",
+     "childAgeMonths": 18,
+     "injuryType": "Severe Acute Malnutrition (SAM) with Fast Breathing & High Fever (Pneumonia suspect)"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-02:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T11:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "EMERGENCY referral to District Hospital"
+     },
+     {
+      "id": "ref-seed-02:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T11:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-02:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T11:17:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Seen by District Hospital"
+     },
+     {
+      "id": "ref-seed-02:2:acknowledge",
+      "action": "ACKNOWLEDGE",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACKNOWLEDGED",
+      "at": "2026-09-21T11:18:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      }
+     },
+     {
+      "id": "ref-seed-02:3:accept",
+      "action": "ACCEPT",
+      "fromStatus": "ACKNOWLEDGED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T11:21:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Paediatric ward bed — held 4 h"
+     },
+     {
+      "id": "ref-seed-02:4:dispatch",
+      "action": "DISPATCH",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T11:25:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "Vehicle AMB-E-1081 · ETA 90 min"
+     },
+     {
+      "id": "ref-seed-02:5:mark_arrived",
+      "action": "MARK_ARRIVED",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "PATIENT_ARRIVED",
+      "at": "2026-09-21T12:53:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      }
+     },
+     {
+      "id": "ref-seed-02:6:admit",
+      "action": "ADMIT",
+      "fromStatus": "PATIENT_ARRIVED",
+      "toStatus": "ADMITTED",
+      "at": "2026-09-21T13:01:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Paediatric ward (reserved bed)"
+     },
+     {
+      "id": "ref-seed-02:7:treatment_note",
+      "action": "TREATMENT_NOTE",
+      "fromStatus": "ADMITTED",
+      "toStatus": "ADMITTED",
+      "at": "2026-09-21T13:23:20.000Z",
+      "actor": {
+       "userId": "u-sp-dh",
+       "name": "Dr. Pramod Khandate",
+       "role": "SPECIALIST",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Started on F-75 feeds and IV antibiotics per SAM protocol. SpO2 95% on 1 L oxygen."
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T11:17:20.000Z",
+    "acknowledgedAt": "2026-09-21T11:18:20.000Z",
+    "acceptedAt": "2026-09-21T11:21:20.000Z",
+    "reservation": {
+     "facilityId": "dh-district",
+     "ward": "PEDIATRIC",
+     "label": "Paediatric ward bed",
+     "reservedAt": "2026-09-21T11:21:20.000Z",
+     "expiresAt": "2026-09-21T15:21:20.000Z",
+     "state": "OCCUPIED",
+     "handoverInstructions": "Paediatric emergency, block B. Keep oxygen running in transit."
+    },
+    "inTransitAt": "2026-09-21T11:25:20.000Z",
+    "ambulanceVehicleNo": "AMB-E-1081",
+    "etaMinutes": 90,
+    "arrivedAt": "2026-09-21T12:53:20.000Z",
+    "admittedAt": "2026-09-21T13:01:20.000Z",
+    "admittedWard": "PEDIATRIC",
+    "treatmentNotes": [
+     {
+      "id": "ref-seed-02:7:treatment_note",
+      "at": "2026-09-21T13:23:20.000Z",
+      "actor": {
+       "userId": "u-sp-dh",
+       "name": "Dr. Pramod Khandate",
+       "role": "SPECIALIST",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "text": "Started on F-75 feeds and IV antibiotics per SAM protocol. SpO2 95% on 1 L oxygen."
+     }
+    ]
+   },
+   {
+    "id": "ref-seed-03",
+    "patientId": "p-gad-1002",
+    "patientName": "Ramesh Pandu Patil",
+    "patientAge": 54,
+    "patientGender": "M",
+    "fromFacilityId": "phc-bhamragad",
+    "fromFacilityName": "Primary Health Centre — Block A",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "chc-etapalli",
+    "toFacilityName": "Community Health Centre — Block A",
+    "toFacilityType": "CHC",
+    "reason": "Uncontrolled diabetes with grade-2 plantar ulcer needing surgical debridement and X-ray",
+    "priority": "URGENT",
+    "status": "DELIVERED",
+    "referredBy": "Dr. Suresh Atram",
+    "referredByUserId": "u-mo-bhamragad",
+    "referredAt": "2026-09-21T12:58:20.000Z",
+    "updatedAt": "2026-09-21T13:43:20.000Z",
+    "lastUpdatedAt": "2026-09-21T13:43:20.000Z",
+    "transportMode": "SELF",
+    "clinicalSummary": "Random glucose 284 mg/dL. Ulcer 3×2 cm with slough. Dressing done, amoxiclav started.",
+    "vitalsAtReferral": {
+     "spo2": 97,
+     "heartRate": 88,
+     "bloodPressure": {
+      "systolic": 154,
+      "diastolic": 96
+     },
+     "temperature": 98.6,
+     "respiratoryRate": 18,
+     "bloodGlucose": 284,
+     "weight": 68,
+     "consciousness": "ALERT",
+     "injuryType": "Uncontrolled Type-2 Diabetes with non-healing ulcer on right plantar foot (grade 2) for 3 weeks"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-03:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T12:58:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "URGENT referral to Community Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-03:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T12:58:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-03:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T13:43:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "note": "Seen by Community Health Centre — Block A"
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T13:43:20.000Z"
+   },
+   {
+    "id": "ref-seed-04",
+    "patientId": "p-gad-1004",
+    "patientName": "Lata B. Meshram",
+    "patientAge": 42,
+    "patientGender": "F",
+    "fromFacilityId": "phc-bhamragad",
+    "fromFacilityName": "Primary Health Centre — Block A",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "dh-district",
+    "toFacilityName": "District Hospital",
+    "toFacilityType": "DH",
+    "reason": "Follow-up sputum CBNAAT test for pulmonary TB, month 3",
+    "priority": "ROUTINE",
+    "status": "ACCEPTED",
+    "referredBy": "Dr. Suresh Atram",
+    "referredByUserId": "u-mo-bhamragad",
+    "referredAt": "2026-09-20T12:13:20.000Z",
+    "updatedAt": "2026-09-20T13:18:20.000Z",
+    "lastUpdatedAt": "2026-09-20T13:18:20.000Z",
+    "transportMode": "PUBLIC_TRANSPORT",
+    "vitalsAtReferral": {
+     "spo2": 96,
+     "heartRate": 78,
+     "bloodPressure": {
+      "systolic": 118,
+      "diastolic": 76
+     },
+     "temperature": 99,
+     "respiratoryRate": 16,
+     "weight": 48,
+     "consciousness": "ALERT",
+     "injuryType": "Pulmonary Tuberculosis Month-3 Follow-up: Chronic cough reduced, sputum check needed"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-04:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-20T12:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "ROUTINE referral to District Hospital"
+     },
+     {
+      "id": "ref-seed-04:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-20T12:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-04:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-20T13:13:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Seen by District Hospital"
+     },
+     {
+      "id": "ref-seed-04:2:accept",
+      "action": "ACCEPT",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-20T13:18:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Outpatient referral — no bed required"
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-20T13:13:20.000Z",
+    "acceptedAt": "2026-09-20T13:18:20.000Z"
+   },
+   {
+    "id": "ref-seed-05",
+    "patientId": "p-gad-1006",
+    "patientName": "Mangesh Pendam",
+    "patientAge": 38,
+    "patientGender": "M",
+    "fromFacilityId": "sc-govindpur",
+    "fromFacilityName": "Sub-Centre — Village 2",
+    "fromFacilityType": "SC",
+    "toFacilityId": "phc-bhamragad",
+    "toFacilityName": "Primary Health Centre — Block A",
+    "toFacilityType": "PHC",
+    "reason": "Snake bite (suspected krait) 40 min ago — early ptosis, abdominal pain. Needs ASV and airway watch.",
+    "priority": "EMERGENCY",
+    "status": "SENT",
+    "referredBy": "Kavita Madavi",
+    "referredByUserId": "u-anm-govindpur",
+    "referredAt": "2026-09-21T14:01:20.000Z",
+    "updatedAt": "2026-09-21T14:01:20.000Z",
+    "lastUpdatedAt": "2026-09-21T14:01:20.000Z",
+    "transportMode": "AMBULANCE_108",
+    "clinicalSummary": "Bitten while asleep on the floor. Limb immobilised. No tourniquet.",
+    "vitalsAtReferral": {
+     "spo2": 95,
+     "heartRate": 112,
+     "bloodPressure": {
+      "systolic": 132,
+      "diastolic": 86
+     },
+     "respiratoryRate": 22,
+     "consciousness": "ALERT",
+     "injuryType": "Snake bite (suspected krait) 40 min ago while asleep on floor; early ptosis, abdominal pain"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-05:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T14:01:20.000Z",
+      "actor": {
+       "userId": "u-anm-govindpur",
+       "name": "Kavita Madavi",
+       "role": "ANM",
+       "facilityId": "sc-govindpur",
+       "facilityName": "Sub-Centre — Village 2"
+      },
+      "note": "EMERGENCY referral to Primary Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-05:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T14:01:20.000Z",
+      "actor": {
+       "userId": "u-anm-govindpur",
+       "name": "Kavita Madavi",
+       "role": "ANM",
+       "facilityId": "sc-govindpur",
+       "facilityName": "Sub-Centre — Village 2"
+      },
+      "note": "Accepted by the mesh relay"
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY"
+   },
+   {
+    "id": "ref-seed-06",
+    "patientId": "p-gad-1007",
+    "patientName": "Rukhmini Atram",
+    "patientAge": 65,
+    "patientGender": "F",
+    "fromFacilityId": "sc-kothi",
+    "fromFacilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1",
+    "fromFacilityType": "SC",
+    "toFacilityId": "phc-bhamragad",
+    "toFacilityName": "Primary Health Centre — Block A",
+    "toFacilityType": "PHC",
+    "reason": "Falciparum malaria (RDT positive), fever 5 days, repeated vomiting — cannot retain oral ACT",
+    "priority": "URGENT",
+    "status": "ACKNOWLEDGED",
+    "referredBy": "Sunita Hichami",
+    "referredByUserId": "u-anm-kothi",
+    "referredAt": "2026-09-21T13:33:20.000Z",
+    "updatedAt": "2026-09-21T13:50:20.000Z",
+    "lastUpdatedAt": "2026-09-21T13:49:20.000Z",
+    "transportMode": "SELF",
+    "vitalsAtReferral": {
+     "spo2": 96,
+     "heartRate": 104,
+     "bloodPressure": {
+      "systolic": 104,
+      "diastolic": 68
+     },
+     "temperature": 102.6,
+     "consciousness": "ALERT",
+     "injuryType": "Fever 5 days, RDT malaria positive (Pf), repeated vomiting — cannot retain oral ACT"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-06:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T13:33:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "note": "URGENT referral to Primary Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-06:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T13:33:20.000Z",
+      "actor": {
+       "userId": "u-anm-kothi",
+       "name": "Sunita Hichami",
+       "role": "ANM",
+       "facilityId": "sc-kothi",
+       "facilityName": "Sub-Centre / Ayushman Arogya Mandir — Village 1"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-06:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T13:48:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Seen by Primary Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-06:2:acknowledge",
+      "action": "ACKNOWLEDGE",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACKNOWLEDGED",
+      "at": "2026-09-21T13:49:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      }
+     }
+    ],
+    "comments": [
+     {
+      "id": "ref-seed-06:3:comment",
+      "at": "2026-09-21T13:50:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "text": "Checking a general bed — will confirm in 10 minutes."
+     }
+    ],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T13:48:20.000Z",
+    "acknowledgedAt": "2026-09-21T13:49:20.000Z"
+   },
+   {
+    "id": "ref-seed-07",
+    "patientId": "p-gad-1008",
+    "patientName": "Sanjay Wadde",
+    "patientAge": 22,
+    "patientGender": "M",
+    "fromFacilityId": "phc-perimili",
+    "fromFacilityName": "Primary Health Centre — Block B",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "chc-etapalli",
+    "toFacilityName": "Community Health Centre — Block A",
+    "toFacilityType": "CHC",
+    "reason": "Road traffic accident — closed fracture right tibia with deformity; needs X-ray and orthopaedic care",
+    "priority": "EMERGENCY",
+    "status": "REJECTED",
+    "referredBy": "Dr. Anjali Borkar",
+    "referredByUserId": "u-mo-perimili",
+    "referredAt": "2026-09-21T11:53:20.000Z",
+    "updatedAt": "2026-09-21T11:58:20.000Z",
+    "lastUpdatedAt": "2026-09-21T11:58:20.000Z",
+    "transportMode": "AMBULANCE_108",
+    "vitalsAtReferral": {
+     "spo2": 97,
+     "heartRate": 118,
+     "bloodPressure": {
+      "systolic": 112,
+      "diastolic": 70
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Road traffic accident — closed fracture right tibia, deformity and swelling, distal pulse present"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-07:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T11:53:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "EMERGENCY referral to Community Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-07:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T11:53:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-07:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T11:56:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "note": "Seen by Community Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-07:2:reject",
+      "action": "REJECT",
+      "fromStatus": "DELIVERED",
+      "toStatus": "REJECTED",
+      "at": "2026-09-21T11:58:20.000Z",
+      "actor": {
+       "userId": "u-ha-chc",
+       "name": "Rajesh Kodape",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "chc-etapalli",
+       "facilityName": "Community Health Centre — Block A"
+      },
+      "note": "Equipment under maintenance — X-ray out of order until repair; no orthopaedic surgeon on duty"
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T11:56:20.000Z",
+    "rejectedAt": "2026-09-21T11:58:20.000Z",
+    "rejection": {
+     "code": "EQUIPMENT_MAINTENANCE",
+     "detail": "X-ray out of order until repair; no orthopaedic surgeon on duty",
+     "at": "2026-09-21T11:58:20.000Z",
+     "byName": "Rajesh Kodape",
+     "facilityId": "chc-etapalli",
+     "facilityName": "Community Health Centre — Block A"
+    }
+   },
+   {
+    "id": "ref-seed-08",
+    "patientId": "p-gad-1009",
+    "patientName": "Pooja Netam",
+    "patientAge": 24,
+    "patientGender": "F",
+    "fromFacilityId": "sc-govindpur",
+    "fromFacilityName": "Sub-Centre — Village 2",
+    "fromFacilityType": "SC",
+    "toFacilityId": "phc-bhamragad",
+    "toFacilityName": "Primary Health Centre — Block A",
+    "toFacilityType": "PHC",
+    "reason": "Acute gastroenteritis with moderate dehydration — IV fluids",
+    "priority": "URGENT",
+    "status": "DISCHARGED",
+    "referredBy": "Kavita Madavi",
+    "referredByUserId": "u-anm-govindpur",
+    "referredAt": "2026-09-19T14:13:20.000Z",
+    "updatedAt": "2026-09-20T14:13:20.000Z",
+    "lastUpdatedAt": "2026-09-20T14:13:20.000Z",
+    "transportMode": "SELF",
+    "vitalsAtReferral": {
+     "spo2": 98,
+     "heartRate": 108,
+     "bloodPressure": {
+      "systolic": 96,
+      "diastolic": 62
+     },
+     "temperature": 99.1,
+     "consciousness": "ALERT",
+     "injuryType": "Acute gastroenteritis with moderate dehydration — 9 loose stools since morning"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-08:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-19T14:13:20.000Z",
+      "actor": {
+       "userId": "u-anm-govindpur",
+       "name": "Kavita Madavi",
+       "role": "ANM",
+       "facilityId": "sc-govindpur",
+       "facilityName": "Sub-Centre — Village 2"
+      },
+      "note": "URGENT referral to Primary Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-08:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-19T14:13:20.000Z",
+      "actor": {
+       "userId": "u-anm-govindpur",
+       "name": "Kavita Madavi",
+       "role": "ANM",
+       "facilityId": "sc-govindpur",
+       "facilityName": "Sub-Centre — Village 2"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-08:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-19T14:17:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Seen by Primary Health Centre — Block A"
+     },
+     {
+      "id": "ref-seed-08:2:acknowledge",
+      "action": "ACKNOWLEDGE",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACKNOWLEDGED",
+      "at": "2026-09-19T14:18:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      }
+     },
+     {
+      "id": "ref-seed-08:3:accept",
+      "action": "ACCEPT",
+      "fromStatus": "ACKNOWLEDGED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-19T14:19:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "General ward bed — held 4 h"
+     },
+     {
+      "id": "ref-seed-08:4:dispatch",
+      "action": "DISPATCH",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-19T14:20:20.000Z",
+      "actor": {
+       "userId": "u-anm-govindpur",
+       "name": "Kavita Madavi",
+       "role": "ANM",
+       "facilityId": "sc-govindpur",
+       "facilityName": "Sub-Centre — Village 2"
+      },
+      "note": "Own transport · ETA 40 min"
+     },
+     {
+      "id": "ref-seed-08:5:mark_arrived",
+      "action": "MARK_ARRIVED",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "PATIENT_ARRIVED",
+      "at": "2026-09-19T15:03:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      }
+     },
+     {
+      "id": "ref-seed-08:6:admit",
+      "action": "ADMIT",
+      "fromStatus": "PATIENT_ARRIVED",
+      "toStatus": "ADMITTED",
+      "at": "2026-09-19T15:08:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "General ward (reserved bed)"
+     },
+     {
+      "id": "ref-seed-08:7:treatment_note",
+      "action": "TREATMENT_NOTE",
+      "fromStatus": "ADMITTED",
+      "toStatus": "ADMITTED",
+      "at": "2026-09-19T15:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "2 L Ringer lactate, ORS. Tolerating orally by evening."
+     },
+     {
+      "id": "ref-seed-08:8:discharge",
+      "action": "DISCHARGE",
+      "fromStatus": "ADMITTED",
+      "toStatus": "DISCHARGED",
+      "at": "2026-09-20T14:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Hydrated, stools settled. ANM follow-up in 2 days."
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-19T14:17:20.000Z",
+    "acknowledgedAt": "2026-09-19T14:18:20.000Z",
+    "acceptedAt": "2026-09-19T14:19:20.000Z",
+    "reservation": {
+     "facilityId": "phc-bhamragad",
+     "ward": "GENERAL",
+     "label": "General ward bed",
+     "reservedAt": "2026-09-19T14:19:20.000Z",
+     "expiresAt": "2026-09-19T18:19:20.000Z",
+     "state": "RELEASED",
+     "handoverInstructions": "PHC ward, bed 2.",
+     "releasedAt": "2026-09-20T14:13:20.000Z",
+     "releaseReason": "DISCHARGED"
+    },
+    "inTransitAt": "2026-09-19T14:20:20.000Z",
+    "etaMinutes": 40,
+    "arrivedAt": "2026-09-19T15:03:20.000Z",
+    "admittedAt": "2026-09-19T15:08:20.000Z",
+    "admittedWard": "GENERAL",
+    "treatmentNotes": [
+     {
+      "id": "ref-seed-08:7:treatment_note",
+      "at": "2026-09-19T15:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "text": "2 L Ringer lactate, ORS. Tolerating orally by evening."
+     }
+    ],
+    "dischargedAt": "2026-09-20T14:13:20.000Z",
+    "completedAt": "2026-09-20T14:13:20.000Z"
+   },
+   {
+    "id": "ref-seed-09",
+    "patientId": "p-gad-1010",
+    "patientName": "Vitthal Kowase",
+    "patientAge": 58,
+    "patientGender": "M",
+    "fromFacilityId": "phc-bhamragad",
+    "fromFacilityName": "Primary Health Centre — Block A",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "dh-district",
+    "toFacilityName": "District Hospital",
+    "toFacilityType": "DH",
+    "reason": "Suspected acute myocardial infarction — central chest pain 2 h, ST elevation V2–V4",
+    "priority": "EMERGENCY",
+    "status": "PATIENT_ARRIVED",
+    "referredBy": "Dr. Suresh Atram",
+    "referredByUserId": "u-mo-bhamragad",
+    "referredAt": "2026-09-21T11:43:20.000Z",
+    "updatedAt": "2026-09-21T14:03:20.000Z",
+    "lastUpdatedAt": "2026-09-21T14:03:20.000Z",
+    "transportMode": "AMBULANCE_108",
+    "clinicalSummary": "Aspirin 325 mg chewed. SpO2 93% on air.",
+    "vitalsAtReferral": {
+     "spo2": 93,
+     "heartRate": 96,
+     "bloodPressure": {
+      "systolic": 150,
+      "diastolic": 94
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Central chest pain 2 hours, sweating; ECG shows ST elevation in V2–V4 (cardiac event suspected)"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-09:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T11:43:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "EMERGENCY referral to District Hospital"
+     },
+     {
+      "id": "ref-seed-09:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T11:43:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-09:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T11:46:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "Seen by District Hospital"
+     },
+     {
+      "id": "ref-seed-09:2:acknowledge",
+      "action": "ACKNOWLEDGE",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACKNOWLEDGED",
+      "at": "2026-09-21T11:47:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      }
+     },
+     {
+      "id": "ref-seed-09:3:accept",
+      "action": "ACCEPT",
+      "fromStatus": "ACKNOWLEDGED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T11:48:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      },
+      "note": "ICU ward bed — held 4 h"
+     },
+     {
+      "id": "ref-seed-09:4:dispatch",
+      "action": "DISPATCH",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T11:53:20.000Z",
+      "actor": {
+       "userId": "u-mo-bhamragad",
+       "name": "Dr. Suresh Atram",
+       "role": "MO",
+       "facilityId": "phc-bhamragad",
+       "facilityName": "Primary Health Centre — Block A"
+      },
+      "note": "Vehicle AMB-E-1084 · ETA 120 min"
+     },
+     {
+      "id": "ref-seed-09:5:mark_arrived",
+      "action": "MARK_ARRIVED",
+      "fromStatus": "ACCEPTED",
+      "toStatus": "PATIENT_ARRIVED",
+      "at": "2026-09-21T14:03:20.000Z",
+      "actor": {
+       "userId": "u-ha-dh",
+       "name": "Meera Wanjari",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "dh-district",
+       "facilityName": "District Hospital"
+      }
+     }
+    ],
+    "comments": [],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T11:46:20.000Z",
+    "acknowledgedAt": "2026-09-21T11:47:20.000Z",
+    "acceptedAt": "2026-09-21T11:48:20.000Z",
+    "reservation": {
+     "facilityId": "dh-district",
+     "ward": "ICU",
+     "label": "ICU ward bed",
+     "reservedAt": "2026-09-21T11:48:20.000Z",
+     "expiresAt": "2026-09-21T15:48:20.000Z",
+     "state": "HELD",
+     "handoverInstructions": "ICU, first floor. Cardiology on call informed."
+    },
+    "inTransitAt": "2026-09-21T11:53:20.000Z",
+    "ambulanceVehicleNo": "AMB-E-1084",
+    "etaMinutes": 120,
+    "arrivedAt": "2026-09-21T14:03:20.000Z"
+   },
+   {
+    "id": "ref-seed-10",
+    "patientId": "p-gad-1011",
+    "patientName": "Kamla Usendi",
+    "patientAge": 70,
+    "patientGender": "F",
+    "fromFacilityId": "phc-perimili",
+    "fromFacilityName": "Primary Health Centre — Block B",
+    "fromFacilityType": "PHC",
+    "toFacilityId": "sdh-aheri",
+    "toFacilityName": "Sub-District Hospital",
+    "toFacilityType": "SDH",
+    "reason": "Severe anaemia (Hb 5.8 g/dL) with breathlessness — transfusion",
+    "priority": "URGENT",
+    "status": "ACCEPTED",
+    "referredBy": "Dr. Anjali Borkar",
+    "referredByUserId": "u-mo-perimili",
+    "referredAt": "2026-09-21T10:13:20.000Z",
+    "updatedAt": "2026-09-21T10:33:20.000Z",
+    "lastUpdatedAt": "2026-09-21T10:21:20.000Z",
+    "transportMode": "SELF",
+    "vitalsAtReferral": {
+     "spo2": 94,
+     "heartRate": 116,
+     "bloodPressure": {
+      "systolic": 100,
+      "diastolic": 60
+     },
+     "consciousness": "ALERT",
+     "injuryType": "Severe anaemia (Hb 5.8 g/dL) with breathlessness on walking — needs transfusion"
+    },
+    "timeline": [
+     {
+      "id": "ref-seed-10:create",
+      "action": "CREATE",
+      "fromStatus": null,
+      "toStatus": "CREATED",
+      "at": "2026-09-21T10:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "URGENT referral to Sub-District Hospital"
+     },
+     {
+      "id": "ref-seed-10:0:send",
+      "action": "SEND",
+      "fromStatus": "CREATED",
+      "toStatus": "SENT",
+      "at": "2026-09-21T10:13:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "note": "Accepted by the mesh relay"
+     },
+     {
+      "id": "ref-seed-10:1:open",
+      "action": "OPEN",
+      "fromStatus": "SENT",
+      "toStatus": "DELIVERED",
+      "at": "2026-09-21T10:17:20.000Z",
+      "actor": {
+       "userId": "u-ha-sdh",
+       "name": "Nanda Gedam",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "sdh-aheri",
+       "facilityName": "Sub-District Hospital"
+      },
+      "note": "Seen by Sub-District Hospital"
+     },
+     {
+      "id": "ref-seed-10:2:accept",
+      "action": "ACCEPT",
+      "fromStatus": "DELIVERED",
+      "toStatus": "ACCEPTED",
+      "at": "2026-09-21T10:21:20.000Z",
+      "actor": {
+       "userId": "u-ha-sdh",
+       "name": "Nanda Gedam",
+       "role": "HOSPITAL_ADMIN",
+       "facilityId": "sdh-aheri",
+       "facilityName": "Sub-District Hospital"
+      },
+      "note": "General ward bed — held 4 h"
+     }
+    ],
+    "comments": [
+     {
+      "id": "ref-seed-10:3:comment",
+      "at": "2026-09-21T10:33:20.000Z",
+      "actor": {
+       "userId": "u-mo-perimili",
+       "name": "Dr. Anjali Borkar",
+       "role": "MO",
+       "facilityId": "phc-perimili",
+       "facilityName": "Primary Health Centre — Block B"
+      },
+      "text": "Family arranging a vehicle — will confirm departure."
+     }
+    ],
+    "sentVia": "RELAY",
+    "deliveredAt": "2026-09-21T10:17:20.000Z",
+    "acceptedAt": "2026-09-21T10:21:20.000Z",
+    "reservation": {
+     "facilityId": "sdh-aheri",
+     "ward": "GENERAL",
+     "label": "General ward bed",
+     "reservedAt": "2026-09-21T10:21:20.000Z",
+     "expiresAt": "2026-09-21T14:21:20.000Z",
+     "state": "HELD",
+     "handoverInstructions": "Female ward, SDH. Blood grouped on arrival."
+    }
+   }
+  ],
+  "notifications": [
+   {
+    "id": "ref-seed-01:0:send:REFERRAL_RECEIVED:u-ha-chc",
+    "recipient_user_id": "u-ha-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "REFERRAL_RECEIVED",
+    "message": "EMERGENCY referral from Sub-Centre / Ayushman Arogya Mandir — Village 1: Sunita M. Devi — Severe gestational hypertension (BP 160/102 at 32 weeks) with headache and blurred vision…",
+    "is_read": true,
+    "created_at": "2026-09-21T13:23:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:1:open:REFERRAL_SEEN:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-01",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Community Health Centre — Block A at 06:56 pm — Sunita M. Devi",
+    "is_read": true,
+    "created_at": "2026-09-21T13:26:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:2:acknowledge:REFERRAL_ACKNOWLEDGED:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-01",
+    "type": "REFERRAL_ACKNOWLEDGED",
+    "message": "Community Health Centre — Block A acknowledged the referral for Sunita M. Devi",
+    "is_read": true,
+    "created_at": "2026-09-21T13:27:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:3:accept:REFERRAL_ACCEPTED:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-01",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Community Health Centre — Block A accepted Sunita M. Devi. Maternity ward bed, held until 10:59 pm. Handover: Labour room, ground floor. Bring ANC card and referral slip; call +91-7133-264100 on departure.",
+    "is_read": true,
+    "created_at": "2026-09-21T13:29:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:3:accept:REFERRAL_ACCEPTED:u-sp-chc",
+    "recipient_user_id": "u-sp-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Accepted patient coming from Sub-Centre / Ayushman Arogya Mandir — Village 1: Sunita M. Devi — Severe gestational hypertension (BP 160/102 at 32 weeks) wi…",
+    "is_read": true,
+    "created_at": "2026-09-21T13:29:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:4:comment:COMMENT:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-01",
+    "type": "COMMENT",
+    "message": "Rajesh Kodape (Community Health Centre — Block A) on Sunita M. Devi: Maternity bed 4 held. OT and eclampsia tray being readied.",
+    "is_read": true,
+    "created_at": "2026-09-21T13:30:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:5:dispatch:PATIENT_DISPATCHED:u-ha-chc",
+    "recipient_user_id": "u-ha-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Sunita M. Devi dispatched from Sub-Centre / Ayushman Arogya Mandir — Village 1 (AMB-T-0102), ETA 35 min",
+    "is_read": true,
+    "created_at": "2026-09-21T13:33:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:5:dispatch:PATIENT_DISPATCHED:u-sp-chc",
+    "recipient_user_id": "u-sp-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Sunita M. Devi dispatched from Sub-Centre / Ayushman Arogya Mandir — Village 1 (AMB-T-0102), ETA 35 min",
+    "is_read": true,
+    "created_at": "2026-09-21T13:33:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:6:comment:COMMENT:u-ha-chc",
+    "recipient_user_id": "u-ha-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "COMMENT",
+    "message": "Sunita Hichami (Sub-Centre / Ayushman Arogya Mandir — Village 1) on Sunita M. Devi: Left with 102. BP 158/100 at departure, patient alert.",
+    "is_read": true,
+    "created_at": "2026-09-21T13:34:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-01:6:comment:COMMENT:u-sp-chc",
+    "recipient_user_id": "u-sp-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-01",
+    "type": "COMMENT",
+    "message": "Sunita Hichami (Sub-Centre / Ayushman Arogya Mandir — Village 1) on Sunita M. Devi: Left with 102. BP 158/100 at departure, patient alert.",
+    "is_read": true,
+    "created_at": "2026-09-21T13:34:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:0:send:REFERRAL_RECEIVED:u-ha-dh",
+    "recipient_user_id": "u-ha-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-02",
+    "type": "REFERRAL_RECEIVED",
+    "message": "EMERGENCY referral from Primary Health Centre — Block B: Baby Aarav (s/o Meena) — Severe acute malnutrition with respiratory distress (SpO2 91%, RR 48/min) — SNCU/NRC care",
+    "is_read": true,
+    "created_at": "2026-09-21T11:13:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:1:open:REFERRAL_SEEN:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-02",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by District Hospital at 04:47 pm — Baby Aarav (s/o Meena)",
+    "is_read": true,
+    "created_at": "2026-09-21T11:17:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:2:acknowledge:REFERRAL_ACKNOWLEDGED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-02",
+    "type": "REFERRAL_ACKNOWLEDGED",
+    "message": "District Hospital acknowledged the referral for Baby Aarav (s/o Meena)",
+    "is_read": true,
+    "created_at": "2026-09-21T11:18:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:3:accept:REFERRAL_ACCEPTED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-02",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "District Hospital accepted Baby Aarav (s/o Meena). Paediatric ward bed, held until 08:51 pm. Handover: Paediatric emergency, block B. Keep oxygen running in transit.",
+    "is_read": true,
+    "created_at": "2026-09-21T11:21:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:3:accept:REFERRAL_ACCEPTED:u-sp-dh",
+    "recipient_user_id": "u-sp-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-02",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Accepted patient coming from Primary Health Centre — Block B: Baby Aarav (s/o Meena) — Severe acute malnutrition with respiratory distress (SpO2 9…",
+    "is_read": true,
+    "created_at": "2026-09-21T11:21:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:4:dispatch:PATIENT_DISPATCHED:u-ha-dh",
+    "recipient_user_id": "u-ha-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-02",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Baby Aarav (s/o Meena) dispatched from Primary Health Centre — Block B (AMB-E-1081), ETA 90 min",
+    "is_read": true,
+    "created_at": "2026-09-21T11:25:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:4:dispatch:PATIENT_DISPATCHED:u-sp-dh",
+    "recipient_user_id": "u-sp-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-02",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Baby Aarav (s/o Meena) dispatched from Primary Health Centre — Block B (AMB-E-1081), ETA 90 min",
+    "is_read": true,
+    "created_at": "2026-09-21T11:25:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:5:mark_arrived:PATIENT_ARRIVED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-02",
+    "type": "PATIENT_ARRIVED",
+    "message": "Baby Aarav (s/o Meena) arrived at District Hospital at 06:23 pm",
+    "is_read": true,
+    "created_at": "2026-09-21T12:53:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-02:6:admit:PATIENT_ADMITTED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-02",
+    "type": "PATIENT_ADMITTED",
+    "message": "Baby Aarav (s/o Meena) admitted to the Paediatric ward at District Hospital",
+    "is_read": true,
+    "created_at": "2026-09-21T13:01:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-03:0:send:REFERRAL_RECEIVED:u-ha-chc",
+    "recipient_user_id": "u-ha-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-03",
+    "type": "REFERRAL_RECEIVED",
+    "message": "URGENT referral from Primary Health Centre — Block A: Ramesh Pandu Patil — Uncontrolled diabetes with grade-2 plantar ulcer needing surgical debridement and X-ray",
+    "is_read": true,
+    "created_at": "2026-09-21T12:58:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-03:1:open:REFERRAL_SEEN:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-03",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Community Health Centre — Block A at 07:13 pm — Ramesh Pandu Patil",
+    "is_read": true,
+    "created_at": "2026-09-21T13:43:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-04:0:send:REFERRAL_RECEIVED:u-ha-dh",
+    "recipient_user_id": "u-ha-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-04",
+    "type": "REFERRAL_RECEIVED",
+    "message": "ROUTINE referral from Primary Health Centre — Block A: Lata B. Meshram — Follow-up sputum CBNAAT test for pulmonary TB, month 3",
+    "is_read": true,
+    "created_at": "2026-09-20T12:13:20.000Z",
+    "priority": "ROUTINE"
+   },
+   {
+    "id": "ref-seed-04:1:open:REFERRAL_SEEN:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-04",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by District Hospital at 06:43 pm — Lata B. Meshram",
+    "is_read": true,
+    "created_at": "2026-09-20T13:13:20.000Z",
+    "priority": "ROUTINE"
+   },
+   {
+    "id": "ref-seed-04:2:accept:REFERRAL_ACCEPTED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-04",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "District Hospital accepted Lata B. Meshram. No bed required.",
+    "is_read": true,
+    "created_at": "2026-09-20T13:18:20.000Z",
+    "priority": "ROUTINE"
+   },
+   {
+    "id": "ref-seed-04:2:accept:REFERRAL_ACCEPTED:u-sp-dh",
+    "recipient_user_id": "u-sp-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-04",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Accepted patient coming from Primary Health Centre — Block A: Lata B. Meshram — Follow-up sputum CBNAAT test for pulmonary TB, month 3",
+    "is_read": true,
+    "created_at": "2026-09-20T13:18:20.000Z",
+    "priority": "ROUTINE"
+   },
+   {
+    "id": "ref-seed-05:0:send:REFERRAL_RECEIVED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-05",
+    "type": "REFERRAL_RECEIVED",
+    "message": "EMERGENCY referral from Sub-Centre — Village 2: Mangesh Pendam — Snake bite (suspected krait) 40 min ago — early ptosis, abdominal pain. Needs ASV and air…",
+    "is_read": false,
+    "created_at": "2026-09-21T14:01:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-06:0:send:REFERRAL_RECEIVED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-06",
+    "type": "REFERRAL_RECEIVED",
+    "message": "URGENT referral from Sub-Centre / Ayushman Arogya Mandir — Village 1: Rukhmini Atram — Falciparum malaria (RDT positive), fever 5 days, repeated vomiting — cannot retain oral A…",
+    "is_read": true,
+    "created_at": "2026-09-21T13:33:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-06:1:open:REFERRAL_SEEN:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-06",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Primary Health Centre — Block A at 07:18 pm — Rukhmini Atram",
+    "is_read": true,
+    "created_at": "2026-09-21T13:48:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-06:2:acknowledge:REFERRAL_ACKNOWLEDGED:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-06",
+    "type": "REFERRAL_ACKNOWLEDGED",
+    "message": "Primary Health Centre — Block A acknowledged the referral for Rukhmini Atram",
+    "is_read": true,
+    "created_at": "2026-09-21T13:49:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-06:3:comment:COMMENT:u-anm-kothi",
+    "recipient_user_id": "u-anm-kothi",
+    "facility_id": "sc-kothi",
+    "referral_id": "ref-seed-06",
+    "type": "COMMENT",
+    "message": "Dr. Suresh Atram (Primary Health Centre — Block A) on Rukhmini Atram: Checking a general bed — will confirm in 10 minutes.",
+    "is_read": true,
+    "created_at": "2026-09-21T13:50:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-07:0:send:REFERRAL_RECEIVED:u-ha-chc",
+    "recipient_user_id": "u-ha-chc",
+    "facility_id": "chc-etapalli",
+    "referral_id": "ref-seed-07",
+    "type": "REFERRAL_RECEIVED",
+    "message": "EMERGENCY referral from Primary Health Centre — Block B: Sanjay Wadde — Road traffic accident — closed fracture right tibia with deformity; needs X-ray and ortho…",
+    "is_read": true,
+    "created_at": "2026-09-21T11:53:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-07:1:open:REFERRAL_SEEN:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-07",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Community Health Centre — Block A at 05:26 pm — Sanjay Wadde",
+    "is_read": true,
+    "created_at": "2026-09-21T11:56:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-07:2:reject:REFERRAL_REJECTED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-07",
+    "type": "REFERRAL_REJECTED",
+    "message": "Community Health Centre — Block A rejected the referral for Sanjay Wadde: Equipment under maintenance — X-ray out of order until repair; no orthopaedic surgeon on duty. Re-route to another facility.",
+    "is_read": true,
+    "created_at": "2026-09-21T11:58:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-08:0:send:REFERRAL_RECEIVED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-08",
+    "type": "REFERRAL_RECEIVED",
+    "message": "URGENT referral from Sub-Centre — Village 2: Pooja Netam — Acute gastroenteritis with moderate dehydration — IV fluids",
+    "is_read": true,
+    "created_at": "2026-09-19T14:13:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:1:open:REFERRAL_SEEN:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Primary Health Centre — Block A at 07:47 pm — Pooja Netam",
+    "is_read": true,
+    "created_at": "2026-09-19T14:17:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:2:acknowledge:REFERRAL_ACKNOWLEDGED:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "REFERRAL_ACKNOWLEDGED",
+    "message": "Primary Health Centre — Block A acknowledged the referral for Pooja Netam",
+    "is_read": true,
+    "created_at": "2026-09-19T14:18:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:3:accept:REFERRAL_ACCEPTED:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Primary Health Centre — Block A accepted Pooja Netam. General ward bed, held until 11:49 pm. Handover: PHC ward, bed 2.",
+    "is_read": true,
+    "created_at": "2026-09-19T14:19:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:4:dispatch:PATIENT_DISPATCHED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-08",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Pooja Netam dispatched from Sub-Centre — Village 2, ETA 40 min",
+    "is_read": true,
+    "created_at": "2026-09-19T14:20:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:5:mark_arrived:PATIENT_ARRIVED:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "PATIENT_ARRIVED",
+    "message": "Pooja Netam arrived at Primary Health Centre — Block A at 08:33 pm",
+    "is_read": true,
+    "created_at": "2026-09-19T15:03:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:6:admit:PATIENT_ADMITTED:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "PATIENT_ADMITTED",
+    "message": "Pooja Netam admitted to the General ward at Primary Health Centre — Block A",
+    "is_read": true,
+    "created_at": "2026-09-19T15:08:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-08:8:discharge:PATIENT_DISCHARGED:u-anm-govindpur",
+    "recipient_user_id": "u-anm-govindpur",
+    "facility_id": "sc-govindpur",
+    "referral_id": "ref-seed-08",
+    "type": "PATIENT_DISCHARGED",
+    "message": "Pooja Netam discharged from Primary Health Centre — Block A",
+    "is_read": true,
+    "created_at": "2026-09-20T14:13:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-09:0:send:REFERRAL_RECEIVED:u-ha-dh",
+    "recipient_user_id": "u-ha-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-09",
+    "type": "REFERRAL_RECEIVED",
+    "message": "EMERGENCY referral from Primary Health Centre — Block A: Vitthal Kowase — Suspected acute myocardial infarction — central chest pain 2 h, ST elevation V2–V4",
+    "is_read": true,
+    "created_at": "2026-09-21T11:43:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:1:open:REFERRAL_SEEN:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-09",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by District Hospital at 05:16 pm — Vitthal Kowase",
+    "is_read": true,
+    "created_at": "2026-09-21T11:46:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:2:acknowledge:REFERRAL_ACKNOWLEDGED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-09",
+    "type": "REFERRAL_ACKNOWLEDGED",
+    "message": "District Hospital acknowledged the referral for Vitthal Kowase",
+    "is_read": true,
+    "created_at": "2026-09-21T11:47:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:3:accept:REFERRAL_ACCEPTED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-09",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "District Hospital accepted Vitthal Kowase. ICU ward bed, held until 09:18 pm. Handover: ICU, first floor. Cardiology on call informed.",
+    "is_read": true,
+    "created_at": "2026-09-21T11:48:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:3:accept:REFERRAL_ACCEPTED:u-sp-dh",
+    "recipient_user_id": "u-sp-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-09",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Accepted patient coming from Primary Health Centre — Block A: Vitthal Kowase — Suspected acute myocardial infarction — central chest pain …",
+    "is_read": true,
+    "created_at": "2026-09-21T11:48:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:4:dispatch:PATIENT_DISPATCHED:u-ha-dh",
+    "recipient_user_id": "u-ha-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-09",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Vitthal Kowase dispatched from Primary Health Centre — Block A (AMB-E-1084), ETA 120 min",
+    "is_read": true,
+    "created_at": "2026-09-21T11:53:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:4:dispatch:PATIENT_DISPATCHED:u-sp-dh",
+    "recipient_user_id": "u-sp-dh",
+    "facility_id": "dh-district",
+    "referral_id": "ref-seed-09",
+    "type": "PATIENT_DISPATCHED",
+    "message": "Vitthal Kowase dispatched from Primary Health Centre — Block A (AMB-E-1084), ETA 120 min",
+    "is_read": true,
+    "created_at": "2026-09-21T11:53:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-09:5:mark_arrived:PATIENT_ARRIVED:u-mo-bhamragad",
+    "recipient_user_id": "u-mo-bhamragad",
+    "facility_id": "phc-bhamragad",
+    "referral_id": "ref-seed-09",
+    "type": "PATIENT_ARRIVED",
+    "message": "Vitthal Kowase arrived at District Hospital at 07:33 pm",
+    "is_read": false,
+    "created_at": "2026-09-21T14:03:20.000Z",
+    "priority": "EMERGENCY"
+   },
+   {
+    "id": "ref-seed-10:0:send:REFERRAL_RECEIVED:u-ha-sdh",
+    "recipient_user_id": "u-ha-sdh",
+    "facility_id": "sdh-aheri",
+    "referral_id": "ref-seed-10",
+    "type": "REFERRAL_RECEIVED",
+    "message": "URGENT referral from Primary Health Centre — Block B: Kamla Usendi — Severe anaemia (Hb 5.8 g/dL) with breathlessness — transfusion",
+    "is_read": true,
+    "created_at": "2026-09-21T10:13:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-10:1:open:REFERRAL_SEEN:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-10",
+    "type": "REFERRAL_SEEN",
+    "message": "Seen by Sub-District Hospital at 03:47 pm — Kamla Usendi",
+    "is_read": true,
+    "created_at": "2026-09-21T10:17:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-10:2:accept:REFERRAL_ACCEPTED:u-mo-perimili",
+    "recipient_user_id": "u-mo-perimili",
+    "facility_id": "phc-perimili",
+    "referral_id": "ref-seed-10",
+    "type": "REFERRAL_ACCEPTED",
+    "message": "Sub-District Hospital accepted Kamla Usendi. General ward bed, held until 07:51 pm. Handover: Female ward, SDH. Blood grouped on arrival.",
+    "is_read": true,
+    "created_at": "2026-09-21T10:21:20.000Z",
+    "priority": "URGENT"
+   },
+   {
+    "id": "ref-seed-10:3:comment:COMMENT:u-ha-sdh",
+    "recipient_user_id": "u-ha-sdh",
+    "facility_id": "sdh-aheri",
+    "referral_id": "ref-seed-10",
+    "type": "COMMENT",
+    "message": "Dr. Anjali Borkar (Primary Health Centre — Block B) on Kamla Usendi: Family arranging a vehicle — will confirm departure.",
+    "is_read": true,
+    "created_at": "2026-09-21T10:33:20.000Z",
+    "priority": "URGENT"
+   }
+  ],
+  "facilityResources": [
+   {
+    "facilityId": "dh-district",
+    "wards": [
+     {
+      "ward": "GENERAL",
+      "total": 170,
+      "occupied": 130
+     },
+     {
+      "ward": "ICU",
+      "total": 20,
+      "occupied": 16
+     },
+     {
+      "ward": "MATERNITY",
+      "total": 60,
+      "occupied": 52
+     },
+     {
+      "ward": "PEDIATRIC",
+      "total": 25,
+      "occupied": 19
+     },
+     {
+      "ward": "EMERGENCY",
+      "total": 25,
+      "occupied": 18
+     }
+    ],
+    "equipment": [
+     {
+      "kind": "VENTILATOR",
+      "units": 12
+     },
+     {
+      "kind": "OXYGEN",
+      "units": 1
+     },
+     {
+      "kind": "XRAY",
+      "units": 2
+     },
+     {
+      "kind": "ULTRASOUND",
+      "units": 2
+     },
+     {
+      "kind": "BLOOD_BANK",
+      "units": 1
+     },
+     {
+      "kind": "DIALYSIS",
+      "units": 4
+     }
+    ],
+    "shift": "EVENING",
+    "staffOnDuty": [
+     {
+      "specialty": "GENERAL_MEDICINE",
+      "count": 3
+     },
+     {
+      "specialty": "OBSTETRICS",
+      "count": 2
+     },
+     {
+      "specialty": "PAEDIATRICS",
+      "count": 2
+     },
+     {
+      "specialty": "GENERAL_SURGERY",
+      "count": 2
+     },
+     {
+      "specialty": "ANAESTHESIA",
+      "count": 1
+     },
+     {
+      "specialty": "ORTHOPAEDICS",
+      "count": 1
+     },
+     {
+      "specialty": "RADIOLOGY",
+      "count": 1
+     },
+     {
+      "specialty": "NEPHROLOGY",
+      "count": 1
+     }
+    ],
+    "updatedAt": "2026-09-21T13:38:20.000Z",
+    "updatedBy": "Meera Wanjari"
+   },
+   {
+    "facilityId": "sdh-aheri",
+    "wards": [
+     {
+      "ward": "GENERAL",
+      "total": 40,
+      "occupied": 28
+     },
+     {
+      "ward": "ICU",
+      "total": 6,
+      "occupied": 4
+     },
+     {
+      "ward": "MATERNITY",
+      "total": 30,
+      "occupied": 24
+     },
+     {
+      "ward": "PEDIATRIC",
+      "total": 14,
+      "occupied": 11
+     },
+     {
+      "ward": "EMERGENCY",
+      "total": 10,
+      "occupied": 7
+     }
+    ],
+    "equipment": [
+     {
+      "kind": "VENTILATOR",
+      "units": 2
+     },
+     {
+      "kind": "OXYGEN",
+      "units": 1
+     },
+     {
+      "kind": "XRAY",
+      "units": 1
+     },
+     {
+      "kind": "ULTRASOUND",
+      "units": 1
+     },
+     {
+      "kind": "BLOOD_BANK",
+      "units": 1
+     }
+    ],
+    "shift": "EVENING",
+    "staffOnDuty": [
+     {
+      "specialty": "GENERAL_MEDICINE",
+      "count": 2
+     },
+     {
+      "specialty": "OBSTETRICS",
+      "count": 1
+     },
+     {
+      "specialty": "PAEDIATRICS",
+      "count": 1
+     },
+     {
+      "specialty": "GENERAL_SURGERY",
+      "count": 1
+     },
+     {
+      "specialty": "ANAESTHESIA",
+      "count": 1
+     },
+     {
+      "specialty": "ORTHOPAEDICS",
+      "count": 1
+     }
+    ],
+    "updatedAt": "2026-09-21T12:53:20.000Z",
+    "updatedBy": "Nanda Gedam"
+   },
+   {
+    "facilityId": "chc-etapalli",
+    "wards": [
+     {
+      "ward": "GENERAL",
+      "total": 14,
+      "occupied": 10
+     },
+     {
+      "ward": "MATERNITY",
+      "total": 12,
+      "occupied": 9
+     },
+     {
+      "ward": "EMERGENCY",
+      "total": 4,
+      "occupied": 2
+     }
+    ],
+    "equipment": [
+     {
+      "kind": "OXYGEN",
+      "units": 1
+     },
+     {
+      "kind": "XRAY",
+      "units": 1
+     },
+     {
+      "kind": "ULTRASOUND",
+      "units": 1
+     },
+     {
+      "kind": "BLOOD_BANK",
+      "units": 1
+     }
+    ],
+    "shift": "EVENING",
+    "staffOnDuty": [
+     {
+      "specialty": "GENERAL_MEDICINE",
+      "count": 1
+     },
+     {
+      "specialty": "OBSTETRICS",
+      "count": 1
+     },
+     {
+      "specialty": "GENERAL_SURGERY",
+      "count": 1
+     },
+     {
+      "specialty": "ANAESTHESIA",
+      "count": 1
+     }
+    ],
+    "updatedAt": "2026-09-21T13:53:20.000Z",
+    "updatedBy": "Rajesh Kodape"
+   },
+   {
+    "facilityId": "phc-bhamragad",
+    "wards": [
+     {
+      "ward": "GENERAL",
+      "total": 6,
+      "occupied": 3
+     },
+     {
+      "ward": "MATERNITY",
+      "total": 4,
+      "occupied": 3
+     }
+    ],
+    "equipment": [
+     {
+      "kind": "OXYGEN",
+      "units": 1
+     }
+    ],
+    "shift": "EVENING",
+    "staffOnDuty": [
+     {
+      "specialty": "GENERAL_MEDICINE",
+      "count": 2
+     }
+    ],
+    "updatedAt": "2026-09-21T13:13:20.000Z",
+    "updatedBy": "Dr. Suresh Atram"
+   },
+   {
+    "facilityId": "phc-perimili",
+    "wards": [
+     {
+      "ward": "GENERAL",
+      "total": 4,
+      "occupied": 2
+     },
+     {
+      "ward": "MATERNITY",
+      "total": 2,
+      "occupied": 1
+     }
+    ],
+    "equipment": [
+     {
+      "kind": "OXYGEN",
+      "units": 1
+     }
+    ],
+    "shift": "EVENING",
+    "staffOnDuty": [
+     {
+      "specialty": "GENERAL_MEDICINE",
+      "count": 1
+     }
+    ],
+    "updatedAt": "2026-09-21T12:43:20.000Z",
+    "updatedBy": "Dr. Anjali Borkar"
+   }
+  ],
+  "maintenanceLog": [
+   {
+    "id": "mt-001",
+    "facilityId": "chc-etapalli",
+    "target": {
+     "kind": "EQUIPMENT",
+     "equipment": "XRAY"
+    },
+    "units": 1,
+    "severity": "OUT_OF_ORDER",
+    "description": "X-ray tube failure — exposures come out blank",
+    "status": "ASSIGNED",
+    "reportedAt": "2026-09-19T14:13:20.000Z",
+    "reportedBy": "Rajesh Kodape",
+    "assignedTo": "District Biomedical Engineer",
+    "assignedAt": "2026-09-19T15:43:20.000Z",
+    "expectedRepairDate": "2026-09-24"
+   },
+   {
+    "id": "mt-002",
+    "facilityId": "dh-district",
+    "target": {
+     "kind": "EQUIPMENT",
+     "equipment": "VENTILATOR"
+    },
+    "units": 2,
+    "severity": "UNDER_MAINTENANCE",
+    "description": "Preventive maintenance — flow sensor calibration",
+    "status": "OPEN",
+    "reportedAt": "2026-09-21T09:13:20.000Z",
+    "reportedBy": "Meera Wanjari",
+    "expectedRepairDate": "2026-09-22"
+   },
+   {
+    "id": "mt-003",
+    "facilityId": "dh-district",
+    "target": {
+     "kind": "EQUIPMENT",
+     "equipment": "DIALYSIS"
+    },
+    "units": 1,
+    "severity": "OUT_OF_ORDER",
+    "description": "RO water plant fault on dialysis station 3",
+    "status": "ASSIGNED",
+    "reportedAt": "2026-09-20T12:13:20.000Z",
+    "reportedBy": "Meera Wanjari",
+    "assignedTo": "Vendor service engineer",
+    "assignedAt": "2026-09-20T14:13:20.000Z",
+    "expectedRepairDate": "2026-09-26"
+   },
+   {
+    "id": "mt-004",
+    "facilityId": "dh-district",
+    "target": {
+     "kind": "BEDS",
+     "ward": "ICU"
+    },
+    "units": 1,
+    "severity": "UNDER_MAINTENANCE",
+    "description": "ICU bed 7 — motor fault, cannot tilt",
+    "status": "OPEN",
+    "reportedAt": "2026-09-21T11:13:20.000Z",
+    "reportedBy": "Meera Wanjari"
+   },
+   {
+    "id": "mt-005",
+    "facilityId": "sdh-aheri",
+    "target": {
+     "kind": "EQUIPMENT",
+     "equipment": "ULTRASOUND"
+    },
+    "units": 1,
+    "severity": "UNDER_MAINTENANCE",
+    "description": "Convex probe cracked",
+    "status": "RESOLVED",
+    "reportedAt": "2026-09-18T14:13:20.000Z",
+    "reportedBy": "Nanda Gedam",
+    "assignedTo": "Vendor service engineer",
+    "assignedAt": "2026-09-18T15:13:20.000Z",
+    "resolvedAt": "2026-09-20T14:13:20.000Z",
+    "resolvedBy": "Nanda Gedam",
+    "resolutionNote": "Probe replaced under warranty"
+   }
+  ]
+ }
+}
