@@ -11,13 +11,15 @@
  *                     production on a file store; API docs hidden
  *   1. SUPER ADMIN    signs in with the bootstrap PIN; creates an ANM, an MO
  *                     and a DHO
- *   2. ANM            signs in by Staff ID on a new device; registers a RED
- *                     patient: token, decision-support notice, emergency
- *                     referral to the PHC above
+ *   2. ANM            signs in by Staff ID on a new device; records the
+ *                     data notice and consent; registers a RED patient:
+ *                     token, decision-support notice, emergency referral to
+ *                     the PHC above; records their own triage beside the tool's
  *   3. RECEIVING MO   the patient on the Pre-Arrival Board (district service)
  *                     and the referral on Referrals (relay)
  *   4. DHO            the access log names the upload and the read; the Data
- *                     Inspector reads the district store
+ *                     Inspector reads the district store, with the consent;
+ *                     the pilot panel counts the worker's triage review
  *   5. REVOCATION     a deactivated MO cannot sign in, and their open session
  *                     is refused by the district service
  *   6. RESTART        a restarted relay still knows every account (store
@@ -244,6 +246,8 @@ try {
     await p.getByLabel('Diastolic').fill('96');
     await p.getByLabel(/Respiratory Rate/).fill('26');
     await p.getByRole('radiogroup', { name: /Consciousness/ }).getByRole('radio', { name: 'Alert' }).click();
+    // The data notice (DPDP Act): read to the patient, who consents.
+    await p.locator('input[name="opd-consent-basis"][value="CONSENT"]').check();
     await p.getByRole('button', { name: /Run AI Triage/ }).click();
     await p.getByText(/EMG-\d+/).first().waitFor({ timeout: 60000 }).catch(() => {});
     const slip = await p.locator('body').innerText();
@@ -252,6 +256,11 @@ try {
     await until(async () => toasts.some(t => t.startsWith('anm: RED: emergency referral')), 'the referral toast', 15000).catch(() => {});
     check('the RED patient is referred at once to the PHC above',
         toasts.some(t => /^anm: RED: emergency referral \S+ raised to .*Dhandarphal/.test(t)), toasts.filter(t => t.startsWith('anm')).join(' | '));
+    // The pilot's reference standard: the examining worker's own triage, beside the tool's.
+    await p.getByRole('group', { name: /Your triage/ }).getByRole('button', { name: 'RED', exact: true }).click().catch(() => {});
+    await until(async () => toasts.includes('anm: Your triage is recorded'), 'the clinician review', 10000).catch(() => {});
+    check('the worker\'s own triage is recorded beside the tool\'s', toasts.includes('anm: Your triage is recorded'), toasts.filter(t => t.startsWith('anm')).join(' | '));
+    await noViolations(p, 'OPD triage slip with the worker\'s triage');
 
     console.log('\n3. RECEIVING MO');
     const mo = await device('mo');
@@ -287,6 +296,20 @@ try {
     await dho.page.getByRole('button', { name: /Patient records\s*patient_records/ }).click({ timeout: 20000 }).catch(() => {});
     await dho.page.waitForTimeout(1000);
     check('the Data Inspector reads the district store', (await dho.page.locator('body').innerText()).includes('Test Patient Pemgiri'));
+    const stored = (await dho.page.locator('body').textContent()) ?? '';
+    check('…and the record there carries the patient\'s data notice and consent', stored.includes('dataConsent') && stored.includes('ANM-KOT-0001'), stored.slice(0, 200));
+    // The tile label is styled uppercase, and innerText reads text as displayed.
+    let reviewed = false;
+    for (let i = 0; i < 15 && !reviewed; i++) {
+        reviewed = /Clinician reviews\s*1\s/i.test(await dho.page.locator('body').innerText());
+        if (!reviewed) await dho.page.waitForTimeout(1500);
+    }
+    const dhoHolds = reviewed ? '' : JSON.stringify(await dho.page.evaluate(async () => {
+        const db = await new Promise((resolve, reject) => { const r = indexedDB.open('nalammesh-rural-db'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
+        const rows = await new Promise(resolve => { const r = db.transaction('patients').objectStore('patients').getAll(); r.onsuccess = () => resolve(r.result); });
+        return rows.map(x => ({ name: x.name, reviews: (x.triageReviews ?? []).length, updatedAt: x.updatedAt }));
+    }));
+    check('the DHO\'s pilot panel counts that review — an edit made after registration, carried by the relay', reviewed, `DHO device holds ${dhoHolds}`);
 
     console.log('\n5. REVOCATION');
     await admin.page.goto(`${APP}/admin`);
@@ -331,6 +354,7 @@ try {
     await anm.page.getByLabel('Diastolic').fill('76');
     await anm.page.getByLabel(/Respiratory Rate/).fill('16');
     await anm.page.getByRole('radiogroup', { name: /Consciousness/ }).getByRole('radio', { name: 'Alert' }).click();
+    await anm.page.locator('input[name="opd-consent-basis"][value="CONSENT"]').check();
     await anm.page.getByRole('button', { name: /Run AI Triage/ }).click();
     await anm.page.getByText(/GEN-\d+/).first().waitFor({ timeout: 60000 }).catch(() => {});
     await until(async () => (await patientsOn(anm.page)).waiting === 0, 'the upload to the district service', 30000).catch(() => {});

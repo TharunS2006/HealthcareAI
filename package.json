@@ -52,6 +52,8 @@
     "verify:qr": "tsx scripts/verify-qr.mts",
     "verify:production-mode": "tsx scripts/verify-production-mode.mts",
     "verify:followup": "tsx scripts/verify-followup.mts",
+    "verify:consent": "tsx scripts/verify-consent.mts",
+    "verify:pilot-metrics": "tsx scripts/verify-pilot-metrics.mts",
     "verify:abha": "tsx scripts/verify-abha.mts",
     "verify:bhashini": "tsx scripts/verify-bhashini.mts",
     "verify:official-data": "tsx scripts/verify-official-data.mts",

@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import { useSession } from '@/lib/auth/session';
 import { isDistrictWide, ROLE_HOME } from '@/lib/auth/permissions';
 import { useReferralStore } from '@/stores/referralStore';
+import PatientConsentPanel from '@/components/shared/PatientConsentPanel';
 
 export default function PatientDetailClient() {
     const params = useParams();
@@ -238,6 +239,10 @@ export default function PatientDetailClient() {
                         <span className={`px-4 py-2 rounded-full text-sm font-bold ${colors.badge}`}>
                             {patient.triageStatus} PRIORITY
                         </span>
+                    </div>
+
+                    <div className="mb-6">
+                        <PatientConsentPanel patient={patient} session={session} onSaved={setPatient} />
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-6">

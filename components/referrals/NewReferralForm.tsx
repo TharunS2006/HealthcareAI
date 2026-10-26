@@ -21,11 +21,15 @@ import { defaultReferralTarget, referralTargets } from '@/lib/capacity/availabil
 import { useAvailability } from '@/lib/capacity/useAvailability';
 import FacilityAvailabilityList from '@/components/capacity/FacilityAvailabilityList';
 import type { Patient, ReferralRecord, TriagePriority, Vitals } from '@/types/patient';
+import DataConsentFields from '@/components/shared/DataConsentFields';
+import { buildConsent, consentProblems, EMPTY_CONSENT, type ConsentDraft } from '@/lib/consent/dataConsent';
 
 
 export interface ReferralFormPrefill {
     patientId?: string;
     newPatient?: { name: string; age: string; gender: 'M' | 'F' | 'O'; village: string };
+    /** The data notice and consent for a new patient (lib/consent/dataConsent.ts). */
+    consent?: Partial<ConsentDraft>;
     spo2?: string;
     pulse?: string;
     systolic?: string;
@@ -83,6 +87,7 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
     const [age, setAge] = useState(prefill?.newPatient?.age ?? '');
     const [gender, setGender] = useState<'M' | 'F' | 'O'>(prefill?.newPatient?.gender ?? 'F');
     const [village, setVillage] = useState(prefill?.newPatient?.village ?? '');
+    const [consentDraft, setConsentDraft] = useState<ConsentDraft>({ ...EMPTY_CONSENT, language: 'en', ...prefill?.consent });
     const [spo2, setSpo2] = useState(prefill?.spo2 ?? '');
     const [pulse, setPulse] = useState(prefill?.pulse ?? '');
     const [systolic, setSystolic] = useState(prefill?.systolic ?? '');
@@ -171,6 +176,8 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
                 const n = Number(age);
                 if (name.trim().length < 2) throw new Error('Enter the patient\'s name');
                 if (!Number.isFinite(n) || n < 0 || n > 120) throw new Error('Enter an age between 0 and 120');
+                const consentGaps = consentProblems(consentDraft, n);
+                if (consentGaps.length > 0) throw new Error(consentGaps.join('; '));
                 patient = {
                     id: `p-${session.facilityId}-${Date.now().toString(36)}`,
                     name: name.trim(),
@@ -188,6 +195,7 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
                     chw_id: session.staffId,
                     chw_name: session.name,
                     registeredAtFacilityId: origin.id,
+                    dataConsent: buildConsent(consentDraft, { staffId: session.staffId, name: session.name }),
                 };
                 await addPatient(patient);
             } else {
@@ -276,6 +284,9 @@ export default function NewReferralForm({ session, onCreated, onCancel, prefill,
                                 </select>
                             </label>
                             <label className="col-span-2 sm:col-span-4"><span className={label}>Village</span><input value={village} onChange={e => setVillage(e.target.value)} className={field} /></label>
+                            <div className="col-span-2 sm:col-span-4">
+                                <DataConsentFields idPrefix="nr" value={consentDraft} onChange={setConsentDraft} lang="en" />
+                            </div>
                         </div>
                     )}
                 </fieldset>

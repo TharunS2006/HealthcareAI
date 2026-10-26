@@ -14,6 +14,8 @@ import type {
     EmergencyEscalation,
 } from './referral';
 import type { WardType } from './resources';
+import type { DataConsent } from '../lib/consent/dataConsent';
+import type { TriageReview } from '../lib/pilot/triageReview';
 
 export type TriageStatus = 'RED' | 'YELLOW' | 'GREEN';
 export type TriagePriority = 'EMERGENCY' | 'URGENT' | 'SEMI_URGENT' | 'ROUTINE';
@@ -163,6 +165,8 @@ export interface Patient {
     vitals: Vitals;
     triageStatus: TriageStatus;
     triagePriority?: TriagePriority;
+    /** The clinician's own acuity beside the tool's, one per triage reviewed (lib/pilot/triageReview.ts). */
+    triageReviews?: TriageReview[];
     transportStatus?: 'PENDING' | 'IN_TRANSIT' | 'COMPLETED';
 
     // Longitudinal History
@@ -173,11 +177,16 @@ export interface Patient {
     // Sync & Audit
     gps: GPSLocation;
     isSynced: boolean;
+    /** When the patient was registered. Screens read it that way; edits never move it. */
     timestamp: Date | string;
+    /** When the record last changed on any device (lib/sync/patientVersion.ts). Absent on records from older builds. */
+    updatedAt?: string;
     chw_id?: string;         // ASHA / ANM Worker ID
     chw_name?: string;
     /** The facility whose worker registered this patient — the basis of facility scoping. */
     registeredAtFacilityId?: string;
+    /** The data notice given and the basis for processing (lib/consent/dataConsent.ts). Absent on records made before this step. */
+    dataConsent?: DataConsent;
     notes?: string;
     arScanUrl?: string;
 }

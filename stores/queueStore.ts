@@ -20,6 +20,8 @@ interface QueueStore {
     addQueueEntry: (entry: QueueEntry) => Promise<void>;
     callNext: (doctorName?: string) => Promise<void>;
     prioritizeEntry: (id: string) => Promise<void>;
+    /** Raise a waiting token to `priority` (a clinician rated the patient more urgent); never lowers it. Returns whether it changed. */
+    raiseEntryPriority: (id: string, priority: QueueEntry['priority']) => Promise<boolean>;
     updateEntryStatus: (id: string, status: QueueEntry['status']) => Promise<void>;
 }
 
@@ -138,6 +140,22 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
             console.error('Failed to apply priority override:', error);
             set({ queue: previous });
             toast.error(`Could not override priority for Token ${entry.tokenNumber}`);
+        }
+    },
+
+    raiseEntryPriority: async (id: string, priority: QueueEntry['priority']) => {
+        const rank: Record<QueueEntry['priority'], number> = { ROUTINE: 0, SEMI_URGENT: 1, URGENT: 2, EMERGENCY: 3 };
+        const previous = get().queue;
+        const entry = previous.find(q => q.id === id);
+        if (!entry || rank[priority] <= rank[entry.priority]) return false;
+        set(state => ({ queue: state.queue.map(q => (q.id === id ? { ...q, priority } : q)) }));
+        try {
+            await saveQueueEntry({ ...entry, priority });
+            return true;
+        } catch (error) {
+            console.error('Failed to raise queue priority:', error);
+            set({ queue: previous });
+            return false;
         }
     },
 

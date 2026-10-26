@@ -30,7 +30,7 @@ const PAGES = {
     'District Health Officer': ['/dashboard', '/audit', '/data'],
     'Medical Officer': ['/referrals', '/incoming', '/opd', '/queue', '/medicine', '/diagnostics', '/appointments',
         '/followup', '/facility-resources'],
-    'ANM / Nurse': ['/my-dashboard', '/teleconsult'],
+    'ANM / Nurse': ['/my-dashboard', '/teleconsult', '/record?id=p-gad-1001'],
     'Super Admin': ['/admin'],
 };
 

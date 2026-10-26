@@ -189,6 +189,7 @@ export default function SimulationPage() {
             setRightView({ mode: 'board' });
             const prefill: ReferralFormPrefill = {
                 newPatient: { name: 'Gangubai Wakchaure', age: '61', gender: 'F', village: 'Pemgiri' },
+                consent: { basis: 'CONSENT', language: 'mr' },
                 spo2: '96', pulse: '118', systolic: '88', diastolic: '58', temperature: '99.0', respiratoryRate: '22',
                 reason: 'Acute gastroenteritis — 12 watery stools since last night, unable to keep fluids down, BP 88/58. Severe dehydration: needs IV fluids and observation.',
                 priority: 'EMERGENCY',

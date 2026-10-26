@@ -17,6 +17,8 @@ The district record service holds identified patient records, so it runs only on
 > **Before any real patient:** read [`docs/PRODUCTION_READINESS.md`](./docs/PRODUCTION_READINESS.md) — what the software already enforces, how to configure a production deployment, and the approvals (licence, clinical validation, CDSCO, CERT-In audit, hosting, ABDM) that only the department and the team can obtain.
 >
 > Everything changed to get here — safety, privacy, reliability, tests — is listed, with the commit for each item, in [`docs/CHANGES.md`](./docs/CHANGES.md).
+>
+> **The next step is a supervised pilot on one referral chain**, not a district-wide rollout: the proposal, the validation protocol, the request to a department sponsor with the budget lines, and a draft licence for the team to sign are in [`docs/pilot/`](./docs/pilot/).
 
 ## Stack
 
@@ -159,6 +161,12 @@ claim worth checking rather than believing.
 - **Above both**: on this device / waiting to upload / in the district cloud /
   in both databases. The last tile is computed from ids actually present on
   both sides, not from two totals that happen to match.
+- **Below**: the supervised pilot's measures (`lib/pilot/metrics.ts`) — how
+  often the tool's triage was less urgent than the examining clinician's
+  (under-triage), more urgent (over-triage), how many of the clinician's RED
+  patients it also rated RED, and median minutes from referral to
+  acknowledgement and to arrival, with a de-identified CSV for the study team
+  (`docs/pilot/VALIDATION_PROTOCOL.md`).
 
 A four-step walkthrough is printed at the bottom of the page: turn the network
 off and register a patient, turn it back on, open the row on each side, then
@@ -314,7 +322,7 @@ npm run lint           # ESLint over app, server and scripts, zero warnings
 npm run typecheck      # TypeScript over app, server and verify scripts
 npm run verify         # every verify:* suite below, with a summary
 npm run build          # static export to out/, then stamps the service worker
-npm run check:a11y     # axe-core WCAG 2.1 A/AA on 28 pages, signed in per role (after a build)
+npm run check:a11y     # axe-core WCAG 2.1 A/AA on 29 pages, signed in per role (after a build)
 npm run check:offline  # install, stop the server, open the ANM's screens from cache (after a build)
 npm run check:production # production build + relay + district service: the first day's flow in a browser
 ```
@@ -360,6 +368,8 @@ npm run verify:intake          # OPD intake: required vitals, no invented readin
 npm run verify:queue-tokens    # OPD tokens run in order per facility per day
 npm run verify:production-mode # a production device starts with no demonstration data
 npm run verify:followup        # follow-up tasks come from patients' records; visits are saved
+npm run verify:consent         # DPDP notice and consent: under-18s need a guardian, emergencies never wait, notice in 3 languages
+npm run verify:pilot-metrics   # clinician vs tool triage (raise only), under-triage, referral times, de-identified export
 npm run verify:chat-redaction  # phone, Aadhaar and ABHA numbers are removed before a question leaves the device
 npm run verify:chat-guard      # the service redacts again, rate-limits, and applies the sign-in policy
 npm run verify:session-lock    # idle screens lock behind the PIN; queue figures come from real timestamps

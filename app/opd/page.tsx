@@ -34,6 +34,10 @@ import { downloadFHIRRecord } from '@/lib/fhir';
 import { v4 as uuidv4 } from 'uuid';
 import toast from 'react-hot-toast';
 import { minutesWaiting } from '@/lib/queue/stats';
+import DataConsentFields, { ConsentOnRecord } from '@/components/shared/DataConsentFields';
+import { buildConsent, consentProblems, consentStatus, EMPTY_CONSENT, type ConsentDraft, type NoticeLanguage } from '@/lib/consent/dataConsent';
+import { applyReview, type TriageReview } from '@/lib/pilot/triageReview';
+import type { TriageStatus } from '@/types/patient';
 
 /** Minutes from registration to being called, or to now for a token still waiting; null without a time. */
 function waitedMinutes(entry: Pick<QueueEntry, 'registeredAt' | 'calledAt'>): number | null {
@@ -42,8 +46,8 @@ function waitedMinutes(entry: Pick<QueueEntry, 'registeredAt' | 'calledAt'>): nu
 
 export default function OPDPage() {
     const { language } = useLanguageStore();
-    const { patients, addPatient } = usePatientStore();
-    const { queue, addQueueEntry } = useQueueStore();
+    const { patients, addPatient, updatePatient } = usePatientStore();
+    const { queue, addQueueEntry, raiseEntryPriority } = useQueueStore();
     const createReferral = useReferralStore(s => s.create);
     // The patient is registered at — and any referral raised from — the
     // signed-in worker's own facility, never a hardcoded one.
@@ -53,6 +57,8 @@ export default function OPDPage() {
 
     const isEn = language === 'en';
     const isHi = language === 'hi';
+    const noticeLang: NoticeLanguage = isEn ? 'en' : isHi ? 'hi' : 'mr';
+    const [consentDraft, setConsentDraft] = useState<ConsentDraft>({ ...EMPTY_CONSENT, language: noticeLang });
 
     // Patient Demographics State
     const [searchQuery, setSearchQuery] = useState('');
@@ -92,12 +98,19 @@ export default function OPDPage() {
     const [createdPatient, setCreatedPatient] = useState<Patient | null>(null);
     const [showQR, setShowQR] = useState(false);
     const [formProblems, setFormProblems] = useState<string[]>([]);
+    // The clinician's own acuity for this triage (lib/pilot/triageReview.ts).
+    const [review, setReview] = useState<TriageReview | null>(null);
+    const [savingReview, setSavingReview] = useState(false);
+    // A returning patient keeps the consent already recorded; only an emergency
+    // registration's pending consent, or none, is asked for again.
+    const existingPatient = patientId ? patients.find(p => p.id === patientId) : undefined;
+    const consentOnFile = existingPatient && consentStatus(existingPatient) === 'RECORDED' ? existingPatient.dataConsent : undefined;
 
     /** Clear everything for the next patient, so the last one cannot be saved twice. */
     const resetForNextPatient = () => {
         setPatientId(''); setName(''); setAgeText(''); setGender(''); setPhone(''); setVillage('');
-        setAbhaId(''); setAadhaarLast4(''); setSearchQuery(''); setDraft(EMPTY_INTAKE);
-        setTriageResult(null); setGeneratedToken(null); setCreatedPatient(null); setShowQR(false); setFormProblems([]);
+        setAbhaId(''); setAadhaarLast4(''); setSearchQuery(''); setDraft(EMPTY_INTAKE); setConsentDraft({ ...EMPTY_CONSENT, language: noticeLang });
+        setTriageResult(null); setGeneratedToken(null); setCreatedPatient(null); setShowQR(false); setFormProblems([]); setReview(null);
     };
 
     // Evaluation build only: one click fills a fictional pregnant woman with
@@ -113,6 +126,7 @@ export default function OPDPage() {
             temperature: '98.8', avpu: 'VOICE', pregnant: true, gestationalWeeks: '34',
             complaint: '34 weeks pregnant. Severe headache and blurred vision since morning, swelling of face and feet, one fit (convulsion) at home an hour ago; drowsy since.',
         });
+        setConsentDraft({ ...EMPTY_CONSENT, basis: 'CONSENT', language: noticeLang });
         toast.success(isEn ? 'Demo patient filled — press Run AI Triage' : isHi ? 'डेमो मरीज भरा गया — एआई ट्राइएज दबाएं' : 'डेमो रुग्ण भरला — एआई ट्राइएज दाबा');
     };
 
@@ -242,6 +256,7 @@ export default function OPDPage() {
             setAbhaId(found.abhaId || '');
             setAadhaarLast4(found.aadhaarLast4 || '');
             setDraft({ ...EMPTY_INTAKE, pregnant: Boolean(found.vitals?.isPregnant) });
+            setConsentDraft({ ...EMPTY_CONSENT, language: noticeLang });
             toast.success(isEn ? `Found record: ${found.name}` : `रेकॉर्ड सापडला: ${found.name}`);
         } else {
             toast.error(isEn ? 'Patient record not found locally' : 'स्थानिक डेटाबेसमध्ये रुग्ण सापडला नाही');
@@ -263,6 +278,8 @@ export default function OPDPage() {
         if (!village.trim()) missing.push(isEn ? 'Village — not entered' : 'गाव — भरलेले नाही');
         const intake = readIntake(draft);
         missing.push(...intake.problems.map(p => p.message));
+        // The data notice: once per patient, recorded with the registration.
+        if (!consentOnFile) missing.push(...consentProblems(consentDraft, Number.isInteger(age) ? age : undefined, true, noticeLang));
         if (missing.length > 0 || !intake.vitals || !facility || !gender) {
             setFormProblems(missing);
             toast.error(isEn ? `Complete the record first (${missing.length} item${missing.length === 1 ? '' : 's'})` : `आधी नोंद पूर्ण करा (${missing.length})`);
@@ -271,6 +288,7 @@ export default function OPDPage() {
         setFormProblems([]);
         const vitals = intake.vitals;
         const patientGender = gender;
+        const dataConsent = consentOnFile ?? (session ? buildConsent(consentDraft, { staffId: session.staffId, name: session.name }, new Date(), existingPatient?.dataConsent) : undefined);
         setIsAnalyzing(true);
 
         setTimeout(async () => {
@@ -307,6 +325,7 @@ export default function OPDPage() {
                 isSynced: false,
                 registeredAtFacilityId: facility.id,
                 ...(session ? { chw_id: session.staffId, chw_name: session.name } : {}),
+                ...(dataConsent ? { dataConsent } : {}),
                 highRiskFlags: vitals.isPregnant
                     ? [
                           {
@@ -385,6 +404,43 @@ export default function OPDPage() {
 
             setIsAnalyzing(false);
         }, 350);
+    };
+
+    const recordReview = async (clinician: TriageStatus) => {
+        if (!session || !facility || !triageResult || !createdPatient) return;
+        const current = usePatientStore.getState().patients.find(p => p.id === createdPatient.id) ?? createdPatient;
+        const entry: TriageReview = {
+            at: new Date().toISOString(),
+            facilityId: facility.id,
+            tool: triageResult.status,
+            decisionSource: triageResult.decisionSource,
+            clinician,
+            reviewerId: session.staffId,
+            reviewerRole: session.role,
+            reviewerName: session.name,
+        };
+        const updated = applyReview(current, entry);
+        setSavingReview(true);
+        try {
+            await updatePatient(updated);
+        } catch {
+            toast.error(isEn ? 'Your triage could not be saved on this device — try again' : isHi ? 'आपका ट्राइएज सहेजा नहीं जा सका — फिर कोशिश करें' : 'तुमचे ट्राइएज जतन झाले नाही — पुन्हा प्रयत्न करा');
+            setSavingReview(false);
+            return;
+        }
+        setSavingReview(false);
+        setCreatedPatient(updated);
+        setReview(entry);
+        // Raised: the waiting token moves up with it.
+        if (updated.triagePriority && updated.triagePriority !== current.triagePriority) {
+            const token = useQueueStore.getState().queue.find(q => q.patientId === updated.id && q.facilityId === facility.id && q.status === 'WAITING');
+            if (token) await raiseEntryPriority(token.id, updated.triagePriority);
+        }
+        if (clinician === 'RED' && triageResult.status !== 'RED') {
+            toast.error(isEn ? 'You rated this patient RED — raise an emergency referral from the Referrals screen now' : isHi ? 'आपने इस मरीज़ को RED आँका — अभी रेफ़रल स्क्रीन से आपातकालीन रेफ़रल भेजें' : 'तुम्ही या रुग्णाला RED ठरवले — आत्ताच संदर्भ स्क्रीनवरून आपत्कालीन संदर्भ पाठवा', { duration: 9000 });
+        } else {
+            toast.success(isEn ? 'Your triage is recorded' : isHi ? 'आपका ट्राइएज दर्ज हुआ' : 'तुमचे ट्राइएज नोंदवले');
+        }
     };
 
     return (
@@ -582,6 +638,12 @@ export default function OPDPage() {
                                                     className="w-16 px-2 py-1 bg-white border border-amber-200 rounded font-mono" />
                                             </label>
                                         )}
+                                    </div>
+
+                                    <div className="pt-2 border-t border-slate-200">
+                                        {consentOnFile
+                                            ? <ConsentOnRecord consent={consentOnFile} lang={noticeLang} />
+                                            : <DataConsentFields idPrefix="opd" value={consentDraft} onChange={setConsentDraft} lang={noticeLang} />}
                                     </div>
                                 </div>
                             </div>
@@ -818,6 +880,43 @@ export default function OPDPage() {
                                             </p>
                                             <p className="text-[10px] font-semibold text-slate-700 border-t border-slate-200 pt-1">{L.advisory}</p>
                                         </div>
+
+                                        {/* The clinician's own acuity, recorded beside the tool's for the pilot */}
+                                        <section aria-labelledby="opd-review-title" className="p-2 bg-white border border-slate-300 rounded text-[11px] text-slate-800 space-y-1.5">
+                                            <h4 id="opd-review-title" className="text-[10px] uppercase tracking-wide font-bold text-slate-700">
+                                                {isEn ? 'Your triage (pilot study)' : isHi ? 'आपका ट्राइएज (पायलट अध्ययन)' : 'तुमचे ट्राइएज (पायलट अभ्यास)'}
+                                            </h4>
+                                            {review ? (
+                                                <p className="font-bold">
+                                                    {isEn ? 'Recorded' : isHi ? 'दर्ज' : 'नोंदवले'}: {isEn ? 'you' : isHi ? 'आप' : 'तुम्ही'} {review.clinician} · NalamMesh {review.tool}
+                                                </p>
+                                            ) : (
+                                                <>
+                                                    <p className="leading-snug">
+                                                        {isEn
+                                                            ? 'After examining the patient, what is your triage? It is recorded beside NalamMesh’s for the pilot; a more urgent rating raises the patient’s priority, a less urgent one never lowers it.'
+                                                            : isHi
+                                                            ? 'मरीज़ की जाँच के बाद आपका ट्राइएज क्या है? पायलट के लिए यह NalamMesh के परिणाम के साथ दर्ज होगा; अधिक गंभीर रेटिंग से प्राथमिकता बढ़ती है, कम गंभीर रेटिंग से कभी घटती नहीं।'
+                                                            : 'रुग्णाची तपासणी केल्यानंतर तुमचे ट्राइएज काय आहे? पायलटसाठी ते NalamMesh च्या निकालासोबत नोंदवले जाईल; अधिक गंभीर निवडल्यास प्राधान्य वाढते, कमी गंभीर निवडल्यास कधीही कमी होत नाही.'}
+                                                    </p>
+                                                    <div className="flex gap-1.5" role="group" aria-labelledby="opd-review-title">
+                                                        {(['RED', 'YELLOW', 'GREEN'] as const).map(level => (
+                                                            <button
+                                                                key={level}
+                                                                type="button"
+                                                                disabled={savingReview}
+                                                                onClick={() => recordReview(level)}
+                                                                className={`flex-1 py-1.5 rounded text-xs font-black border disabled:opacity-60 ${
+                                                                    level === 'RED' ? 'bg-red-700 text-white border-red-800' : level === 'YELLOW' ? 'bg-amber-400 text-slate-950 border-amber-500' : 'bg-emerald-700 text-white border-emerald-800'
+                                                                }`}
+                                                            >
+                                                                {level}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </section>
 
                                         <div className="flex gap-2 pt-1">
                                             <button

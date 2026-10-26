@@ -4,6 +4,28 @@ This lists everything changed on branch `claude/exciting-goodall-3vpqgq`, compar
 
 **Where this leaves the project.** The software side is done and tested end to end in production mode, but NalamMesh is **not yet cleared for real patients**. That needs approvals only the team and the health department can obtain: a licence, clinical validation, CDSCO, a CERT-In audit, government hosting and ABDM certification. See [`PRODUCTION_READINESS.md`](./PRODUCTION_READINESS.md). The licence file was **not** changed. It still reserves all rights, and changing it is the team's decision.
 
+## Update, 26 October 2026 — what the trial found
+
+A structured review put the proposal *"NalamMesh should be adopted by Maharashtra's health department for a district-wide rollout next year"* on trial. It came back **guilty, 3 to 0**: the proposal skips the pilot the project's own readiness document requires, the triage is untested on real patients, and nobody owns it. These changes act on its conditions. Unlike the sections below, they are not split by commit.
+
+**In the software**
+
+- **Data notice and consent at registration (DPDP Act 2023).** OPD, a new patient on the referral form, and the Emergency screen now record the basis for processing each patient's data: the patient's consent; a parent's or guardian's for a child under 18 (named, with the relationship); or a medical emergency, recorded as pending so care never waits. The worker reads a five-point notice in Marathi, Hindi or English. The record stores the basis, notice language, notice version, worker and time, and travels with the patient record to the district service. A pending or missing consent is completed from the patient's record. A patient who declines is not registered in the app, and the screen says to treat them and record the visit on paper. The notice text is a draft for the department's legal adviser and language cell. Code: `lib/consent/dataConsent.ts`, `components/shared/DataConsentFields.tsx`, `components/shared/PatientConsentPanel.tsx`.
+- **The clinician's own triage, beside the tool's.** On the OPD slip, the worker or Medical Officer who examined the patient records their RED / YELLOW / GREEN. A more urgent rating raises the patient's priority and their queue token. A less urgent one is kept for the study but never lowers anything, the same rule as the danger signs. Code: `lib/pilot/triageReview.ts`.
+- **Pilot measures for the DHO.** The Data Inspector shows clinician reviews, under-triage, over-triage, RED caught, and median minutes from referral to acknowledgement and to arrival. Every figure comes from recorded data, or reads "not recorded". It also downloads a de-identified CSV (no name, ID, phone, ABHA number, village or exact age) for the study team. Code: `lib/pilot/metrics.ts`, `components/dashboard/PilotStudyPanel.tsx`.
+- **Fixed: edits never reached other devices.** Devices and the relay compared copies of a patient record by its registration time, so any later change was ignored by every other device: a follow-up visit, and now a consent or a clinician's triage. Records now carry `updatedAt`, a last-changed time. Devices keep the newer copy, and the relay ignores an older copy from an offline phone and does not pass it on. The relay also stamps patients with its own clock for catch-up, as it already did for referrals. Code: `lib/sync/patientVersion.ts`, `stores/patientStore.ts`, `server/relay/app.ts`.
+- **Security updates.** `body-parser` 1.20.8 → 1.20.9 (used by the relay through Express) and `zod` 4.3.6 → 4.6.7, for two new high-severity advisories that would have failed CI's audit. Only these two lockfile entries changed. The earlier critical Next.js advisory was already fixed on this branch by the upgrade to 15.5.28.
+- **Tests.** New suites: `verify:consent` and `verify:pilot-metrics`. `verify:relay` now checks that an edit reaches a device catching up, and that an older copy neither replaces the newer one nor is passed on. `check:production` now records consent and the worker's triage, checks that both reach the district service and the DHO's device, and runs axe-core on the triage slip. `check:a11y` adds the patient record page, making 29 pages.
+
+**Documents** — new folder [`docs/pilot/`](./pilot/)
+
+- `PILOT_PROPOSAL.md`: one supervised chain instead of a district-wide rollout. It sets out the gates before the first patient, the phases, what would justify going further (set before measurement starts), who owns what, and the stopping rules.
+- `VALIDATION_PROTOCOL.md`: under-triage and sensitivity for RED as primary measures, with the clinician's triage as the reference standard and its anchoring bias stated. The sample size is 139 clinician-RED patients for ±5 points. It covers the de-identified data, the analysis, safety monitoring, and every danger-sign rule listed for the clinical committee.
+- `SPONSOR_AND_BUDGET_REQUEST.md`: a letter to a department sponsor and the budget lines for one chain. Amounts are left for department rates, not guessed.
+- `LICENCE_GRANT_DRAFT.md`: a **draft** pilot licence from the six copyright holders to the department. It is **not in force**, and `LICENSE` is unchanged.
+
+**Still not possible in code:** a named sponsor and budget, signatures on the licence, clinical committee and ethics approval, CDSCO's view, the CERT-In audit, government hosting, and the department's confirmation of the legal basis and notice text.
+
 ## At a glance
 
 | | Before | After |
@@ -232,7 +254,7 @@ District service (`backend/.env.example`):
   - CDSCO's view on whether triage is a medical device;
   - a CERT-In-empanelled security audit;
   - State Data Centre or MeitY-empanelled hosting;
-  - DPDP Act decisions (the app does not yet record consent per patient);
+  - DPDP Act decisions (the app records per-patient notice and consent since the 26 October update; the department confirms the legal basis and notice text);
   - ABDM certification (ABHA works only in the sandbox);
   - translation of the English-only staff screens;
   - device management for lost phones;

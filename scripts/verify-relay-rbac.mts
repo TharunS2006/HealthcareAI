@@ -406,8 +406,26 @@ console.log('\n7b. PATIENT RECORDS');
     });
     check('a PHC device whose cursor is past the registration still gets the record of a patient referred to it since',
         late.patients.some(p => p.id === pid), JSON.stringify(late.patients.map(p => p.id)));
-    const update = await postAs('/api/sync/patient', { ...record, timestamp: new Date().toISOString() }, 'u-mo-bhamragad');
+    const updated = { ...record, timestamp: new Date().toISOString() };
+    const update = await postAs('/api/sync/patient', updated, 'u-mo-bhamragad');
     check('…and, being the receiving facility, may update it', update.status === 202, String(update.status));
+
+    // An edit keeps the registration time and moves updatedAt (lib/sync/patientVersion.ts).
+    const editCursor = Date.now();
+    await new Promise(r => setTimeout(r, 20));
+    const edited = { ...updated, updatedAt: new Date(Date.now() + 1000).toISOString(), notes: 'consent recorded' };
+    check('an edit that keeps the registration time is accepted', (await postAs('/api/sync/patient', edited, 'u-anm-kothi')).status === 202);
+    const afterEdit = await new Promise<{ patients: Array<{ id: string; notes?: string }> }>(resolve => {
+        socks.kothi.once('sync:batch', resolve);
+        socks.kothi.emit('sync:request', { since: editCursor });
+    });
+    check('…and reaches a device whose catch-up cursor is past the registration', afterEdit.patients.some(p => p.id === pid && p.notes === 'consent recorded'), JSON.stringify(afterEdit.patients));
+    const heardBefore = heard.dho.length;
+    const stale = await postAs('/api/sync/patient', { ...updated, notes: 'older copy from an offline phone' }, 'u-anm-kothi');
+    await settle();
+    const kept = ((await (await fetch(`${BASE}/api/sync/since/0`, { headers: headersAs('u-dho') })).json()) as { records: Array<{ id: string; notes?: string }> }).records.find(r => r.id === pid);
+    check('an older copy sent later is accepted but does not replace the newer one', stale.status === 202 && kept?.notes === 'consent recorded', `${stale.status} ${kept?.notes}`);
+    check('…and is not passed on to other devices', heard.dho.length === heardBefore, `${heardBefore} → ${heard.dho.length}`);
     const signedOut = await open(null);
     const nothing = await new Promise<{ patients: unknown[]; serverTime?: number }>(resolve => {
         signedOut.once('sync:batch', resolve);

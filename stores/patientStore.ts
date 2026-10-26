@@ -7,6 +7,7 @@ import { Patient } from '@/types/patient';
 import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
 import { PRODUCTION } from '@/lib/config/mode';
 import { queuePatient } from '@/lib/sync/outbox';
+import { isNewerPatient, stampChange } from '@/lib/sync/patientVersion';
 import { useAuthStore } from '@/stores/authStore';
 import toast from 'react-hot-toast';
 
@@ -86,7 +87,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
                 for (const patient of incoming) {
                     const existing = get().patients.find(p => p.id === patient.id);
                     // Same last-write-wins guard the live path uses.
-                    if (existing && new Date(existing.timestamp) >= new Date(patient.timestamp)) continue;
+                    if (!isNewerPatient(patient, existing)) continue;
                     try {
                         await savePatient(patient);
                         applied++;
@@ -114,7 +115,7 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             socket.on('patient:sync', (patient: Patient) => {
                 set(state => {
                     const exists = state.patients.find(p => p.id === patient.id);
-                    if (exists && new Date(exists.timestamp) >= new Date(patient.timestamp)) {
+                    if (!isNewerPatient(patient, exists)) {
                         return state;
                     }
                     const others = state.patients.filter(p => p.id !== patient.id);
@@ -164,7 +165,10 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
         }
     },
 
-    addPatient: async (patient: Patient) => {
+    addPatient: async (incoming: Patient) => {
+        // Also used to save an edit (a follow-up visit, say): either way this
+        // is a change made here now, and other devices must see it as newer.
+        const patient = stampChange(incoming);
         const previous = get().patients;
         set(state => ({
             patients: [patient, ...state.patients.filter(p => p.id !== patient.id)],
@@ -220,7 +224,8 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
         }
     },
 
-    updatePatient: async (updatedPatient: Patient) => {
+    updatePatient: async (changed: Patient) => {
+        const updatedPatient = stampChange(changed);
         const previous = get().patients;
         set(state => ({
             patients: state.patients.map(p =>

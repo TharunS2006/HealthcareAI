@@ -22,6 +22,7 @@ import {
     verifyPublishedReferral,
 } from '../../lib/referrals/workflow';
 import { can, isDistrictWide, type StaffRole } from '../../lib/auth/permissions';
+import { patientVersion } from '../../lib/sync/patientVersion';
 import { SEED_USERS, type StaffUser } from '../../lib/auth/users';
 import { hashPin, verifyPin } from '../../lib/auth/pin';
 import { SEED_REFERRALS } from '../../lib/data/referralSeed';
@@ -377,8 +378,8 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         return patient.registeredAtFacilityId === who.facilityId || Boolean(facilities?.has(who.facilityId));
     }
 
-    async function publishPatient(patient: unknown, who: Identity | null): Promise<Result<{ id: string }>> {
-        const p = patient as (PatientLike & { timestamp?: string }) | undefined;
+    async function publishPatient(patient: unknown, who: Identity | null): Promise<Result<{ id: string; stale: boolean }>> {
+        const p = patient as (PatientLike & { timestamp?: string; updatedAt?: string }) | undefined;
         if (!who) return refuse(who, 'Sign in to share patient records');
         if (!can(who.role, 'patient:register')) return refuse(who, `${who.role} may not register patients`);
         if (typeof p?.id !== 'string') return { ok: false, status: 400, reason: 'body must be a patient record with an id' };
@@ -386,13 +387,21 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         // already has, so a record cannot be moved to another facility by re-sending
         // it with a different one. A record that names no facility (an older build)
         // and is new here is taken as sent.
-        const known = (await store.listPatients()).find(e => e.patient.id === p.id)?.patient as PatientLike | undefined;
+        const known = (await store.listPatients()).find(e => e.patient.id === p.id)?.patient as (PatientLike & { timestamp?: string; updatedAt?: string }) | undefined;
         const subject = known ?? p;
         if (subject.registeredAtFacilityId !== undefined && !mayHoldPatient(who, subject, (await referralFacilities()).get(p.id))) {
             return refuse(who, 'This patient is registered at another facility, with no referral to yours');
         }
-        await store.putPatient({ patient: p as { id: string }, ts: Date.parse(p.timestamp ?? '') || Date.now() });
-        return { ok: true, value: { id: p.id } };
+        // Keep the newer copy: a device that was offline must not replace a
+        // record changed elsewhere since with its older one. Accepted, not an
+        // error — the sender's outbox has nothing to retry.
+        const version = (r: { timestamp?: string; updatedAt?: string }) => patientVersion({ timestamp: r.timestamp ?? '', updatedAt: r.updatedAt });
+        if (known && version(known) > version(p)) return { ok: true, value: { id: p.id, stale: true } };
+        // `ts` is when the relay received this change, on the relay's clock like
+        // the referral cache and the catch-up cursor, so a device catching up
+        // after an edit gets the edit, not only records registered since.
+        await store.putPatient({ patient: p as { id: string }, ts: Date.now() });
+        return { ok: true, value: { id: p.id, stale: false } };
     }
 
     /**
@@ -544,7 +553,8 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
 
     app.post('/api/sync/patient', route(async (req, res) => {
         const result = await publishPatient(req.body, await fromRequest(req));
-        if (result.ok) await emitPatient(req.body as PatientLike);
+        // A stale copy is kept from no one but passed on to no one either.
+        if (result.ok && !result.value.stale) await emitPatient(req.body as PatientLike);
         send(res, result, v => ({ accepted: true, id: v.id }));
     }));
 
@@ -734,7 +744,7 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
             socket.on('patient:sync', safely(async (patient: unknown) => {
                 const result = await publishPatient(patient, await who());
                 if (!result.ok) return log('patient:sync refused', { reason: result.reason });
-                await emitPatient(patient as PatientLike, socket.id);
+                if (!result.value.stale) await emitPatient(patient as PatientLike, socket.id);
             }));
 
             socket.on('sync:request', safely(async (data: { since?: number } | null) => {

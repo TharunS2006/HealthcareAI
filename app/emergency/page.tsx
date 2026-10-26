@@ -30,6 +30,7 @@ import { travelMinutes } from '@/lib/analytics/facilityMetrics';
 import { flushOutbox, uploadStatusOf, type UploadStatus } from '@/lib/sync/outbox';
 import { Patient, ReferralRecord, Vitals } from '@/types/patient';
 import { v4 as uuidv4 } from 'uuid';
+import { emergencyConsent } from '@/lib/consent/dataConsent';
 import toast from 'react-hot-toast';
 
 type EmergencyKind = '108_TRAUMA' | '102_MATERNAL' | 'PEDIATRIC_EMERGENCY';
@@ -147,6 +148,9 @@ export default function EmergencyPage() {
                       registeredAtFacilityId: origin.id,
                       chw_id: session.staffId,
                       chw_name: session.name,
+                      // Recorded as an emergency, consent pending: care is never
+                      // held up for the notice (lib/consent/dataConsent.ts).
+                      dataConsent: emergencyConsent({ staffId: session.staffId, name: session.name }),
                   };
             try {
                 await addPatient(patient);

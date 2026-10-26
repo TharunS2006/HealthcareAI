@@ -1,6 +1,6 @@
 # NalamMesh — production readiness and government handover
 
-*Status as of 10 October 2026. Read this before NalamMesh is used for any real patient.*
+*Status as of 26 October 2026. Read this before NalamMesh is used for any real patient.*
 
 ## 1. Where it stands
 
@@ -13,6 +13,11 @@ remains are approvals and operational arrangements that no code change can
 supply: a licence from the team, clinical validation of the triage engine, the
 regulator's view of it, an empanelled security audit, government hosting, and
 ABDM certification. Section 3 lists each one, with who owns it.
+
+**The next step is a supervised pilot on one referral chain, not a wider
+rollout.** The proposal, the validation protocol that measures triage safety
+and referral times, a request to a department sponsor with the budget lines,
+and a draft licence for the team to sign are in [`docs/pilot/`](./pilot/).
 
 ## 2. What the software enforces now
 
@@ -33,8 +38,11 @@ unless marked otherwise.
 | On the device | Idle screens lock behind the PIN (15 minutes); on Android no screenshots or recent-apps thumbnail, and app data is excluded from cloud backup and device transfer | `verify:session-lock`; Android flags by inspection |
 | No invented figures | Every number on a screen comes from a record or says "not recorded" — vitals, stock, queue waits, follow-ups, scorecards | `verify:intake`, `verify:stock`, `verify:queue-tokens`, `verify:followup`, `verify:metrics` |
 | Triage safety | Danger-sign rules can only raise urgency, never lower it; with the model unavailable the rules alone decide, and give every test case the same acuity; the result slip says it is decision support and the health worker or MO decides | `verify:triage` (20 cases, all three decision paths) |
+| Data notice and consent | Every new registration records the basis for processing — the patient's consent, a parent's or guardian's for a child under 18, or a medical emergency (care never waits; consent is completed later from the patient's record) — with the notice language (Marathi, Hindi, English), notice version, worker and time; it travels with the record to the district service | `verify:consent`, `check:production` (browser) |
+| Measuring the triage | The examining worker or MO records their own acuity beside the tool's on the triage slip (a more urgent rating raises priority, a less urgent one never lowers it); the DHO's Data Inspector shows under-triage, over-triage, RED caught and median referral times, and exports a de-identified CSV for the pilot | `verify:pilot-metrics`, `check:production` (browser) |
+| Edits reach every device | A record changed after registration (consent, a clinician's triage, a follow-up visit) reaches every device that holds it; an older copy from an offline phone never replaces a newer one | `verify:relay`, `verify:consent`, `check:production` |
 | Assistant | Phone, Aadhaar and ABHA numbers removed before a question leaves the device, and again on the server; rate limits; answers only NalamMesh and rural public health; a self-hosted model keeps questions in-house | `verify:chat-redaction`, `verify:chat-guard`, `verify:chat-scope`, `verify:chat-safety` |
-| Accessibility floor | No axe-core WCAG 2.1 A/AA violation on 28 pages, signed in per role | `check:a11y` (browser) |
+| Accessibility floor | No axe-core WCAG 2.1 A/AA violation on 29 pages, signed in per role, and on the triage slip, Pre-Arrival Board, Audit screen and restore offer with real data | `check:a11y`, `check:production` (browser) |
 | Dependencies | No known vulnerability in production npm dependencies or the Python services | `npm audit`, `pip-audit` |
 | Wristbands | QR codes decode to the patient's id | `verify:qr` |
 
@@ -46,7 +54,10 @@ Numbered in the order they block. None of these can be closed by changing code.
    department cannot lawfully deploy, host or modify the software today. The
    team must grant a written licence to the department, or release it under an
    open-source licence (the Government of India's policy on adopting open-source
-   software prefers this for e-governance).
+   software prefers this for e-governance). A draft pilot licence for the team
+   to amend and sign is in
+   [`docs/pilot/LICENCE_GRANT_DRAFT.md`](./pilot/LICENCE_GRANT_DRAFT.md); it
+   changes nothing until signed.
 2. **Clinical validation of triage (department, with clinicians).** The
    on-device model is trained on a *synthetic* dataset, and the danger-sign
    thresholds come from IPHS and protocol documents but have not been reviewed
@@ -55,7 +66,10 @@ Numbered in the order they block. None of these can be closed by changing code.
    then a study comparing the tool's triage with clinicians' on real
    presentations (with ethics committee approval), with sensitivity for RED
    cases as the primary measure. Until then, triage is a prompt a clinician
-   confirms, and the slip says so.
+   confirms, and the slip says so. A draft protocol, with the danger-sign rules
+   listed for the committee, is in
+   [`docs/pilot/VALIDATION_PROTOCOL.md`](./pilot/VALIDATION_PROTOCOL.md); the
+   app records the clinician's own triage and exports what the study needs.
 3. **Regulatory status (department).** Software that ranks a patient's urgency
    may be a medical device under the Medical Devices Rules, 2017. Ask CDSCO
    for its classification of the triage engine, and for a licence if it is
@@ -74,9 +88,12 @@ Numbered in the order they block. None of these can be closed by changing code.
    emergency); give notice in the patient's language at registration; set a
    retention schedule; handle access, correction and erasure requests; name the
    officer responsible; and report incidents (CERT-In expects cyber incidents
-   within 6 hours). The app shows citizens a privacy notice and keeps an access
-   log, but **does not yet record per-patient notice or consent** — the
-   department must say which it needs before that is built.
+   within 6 hours). The app shows citizens a privacy notice, keeps an access
+   log, and records each patient's notice and the basis for processing at
+   registration (`lib/consent/dataConsent.ts`). The department must still
+   **confirm the legal basis and approve the notice text** — a draft written
+   for its legal adviser and language cell — and decide how withdrawal of
+   consent, access, correction and erasure requests are handled.
 7. **ABDM (department).** ABHA verification works against the ABDM *sandbox*
    only, and FHIR R4 bundles are generated for download but not exchanged.
    Production needs ABDM integration certification (milestones M1–M3), the
@@ -109,7 +126,10 @@ Numbered in the order they block. None of these can be closed by changing code.
     upgrade of a live database.
 13. **A supervised pilot.** One chain (a Sub-Centre, its PHC, CHC and the
     District Hospital) for a fixed period, with outcomes measured, before any
-    wider rollout.
+    wider rollout. Proposal, gates, phases and ownership:
+    [`docs/pilot/PILOT_PROPOSAL.md`](./pilot/PILOT_PROPOSAL.md); the request to
+    a sponsor and the budget lines:
+    [`docs/pilot/SPONSOR_AND_BUDGET_REQUEST.md`](./pilot/SPONSOR_AND_BUDGET_REQUEST.md).
 
 ## 4. Known limitations of the software
 

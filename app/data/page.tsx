@@ -30,6 +30,7 @@ import { inspectStores, type StoreSnapshot } from '@/lib/db';
 import { getOutboxDepth } from '@/lib/sync/outbox';
 import { fetchStore, type StoreDump } from '@/lib/sync/cloudRecords';
 import { reportingBaseUrl } from '@/lib/cloudEndpoint';
+import PilotStudyPanel from '@/components/dashboard/PilotStudyPanel';
 
 /** How often both sides are re-read, so an upload appears without a click. */
 const POLL_MS = 15_000;
@@ -262,6 +263,8 @@ export default function DataInspectorPage() {
                             )}
                         </section>
                     </div>
+
+                    <PilotStudyPanel />
 
                     <WhatThisShows />
                 </div>
