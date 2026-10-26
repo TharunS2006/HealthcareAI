@@ -177,7 +177,13 @@ export interface Patient {
     // Sync & Audit
     gps: GPSLocation;
     isSynced: boolean;
-    /** When the patient was registered. Screens read it that way; edits never move it. */
+    /**
+     * When the patient was registered, or last registered again: OPD, the
+     * referral form and the Emergency screen reset it when a returning patient
+     * is seen for a new episode. Other edits (consent, a clinician's triage, a
+     * follow-up visit) leave it alone. Which copy is newer is decided by
+     * `updatedAt`, never by this.
+     */
     timestamp: Date | string;
     /** When the record last changed on any device (lib/sync/patientVersion.ts). Absent on records from older builds. */
     updatedAt?: string;

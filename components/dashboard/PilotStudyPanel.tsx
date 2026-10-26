@@ -2,14 +2,32 @@
 
 /**
  * Pilot measures for the district (lib/pilot/metrics.ts): how the tool's triage
- * compares with the clinician's, and how long referrals take — from the records
- * on this device, with a de-identified export for the study team.
+ * compares with the clinician's, and how long referrals take, with a
+ * de-identified export for the study team. Computed from every record the
+ * district service holds, merged with this device's own; when the service
+ * cannot be reached, from this device alone, and the panel says so.
  */
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePatientStore } from '@/stores/patientStore';
 import { useReferralStore } from '@/stores/referralStore';
-import { pilotCsv, pilotSummary } from '@/lib/pilot/metrics';
+import { mergeRecords, pilotCsv, pilotSummary } from '@/lib/pilot/metrics';
+import { fetchAllStoreRecords } from '@/lib/sync/cloudRecords';
+import type { Patient, ReferralRecord } from '@/types/patient';
+
+type Source =
+    | { kind: 'loading' }
+    | { kind: 'district'; patients: Patient[]; referrals: ReferralRecord[] }
+    | { kind: 'device'; reason: string };
+
+const REASON: Record<string, string> = {
+    offline: 'this device is offline',
+    unreachable: 'the district service could not be reached',
+    timeout: 'the district service did not answer in time',
+    forbidden: 'this account may not read the district store',
+    'no-session': 'sign in again to read the district store',
+    error: 'the district service sent an answer this screen could not read',
+};
 
 const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : 'not recorded');
 const minutes = (m: number | null) => (m === null ? 'not recorded' : `${m} min`);
@@ -28,10 +46,29 @@ export default function PilotStudyPanel() {
         if (!referralsLoaded) void loadReferrals();
     }, [referralsLoaded, loadReferrals]);
 
-    const s = useMemo(() => pilotSummary(patients, referrals), [patients, referrals]);
+    const [source, setSource] = useState<Source>({ kind: 'loading' });
+    const loadDistrict = useCallback(async () => {
+        setSource({ kind: 'loading' });
+        const [p, r] = await Promise.all([
+            fetchAllStoreRecords<Patient>('patient_records'),
+            fetchAllStoreRecords<ReferralRecord>('care_referrals'),
+        ]);
+        if (!p.ok) return setSource({ kind: 'device', reason: REASON[p.reason] ?? p.reason });
+        if (!r.ok) return setSource({ kind: 'device', reason: REASON[r.reason] ?? r.reason });
+        setSource({ kind: 'district', patients: p.records, referrals: r.records });
+    }, []);
+    useEffect(() => {
+        void loadDistrict();
+    }, [loadDistrict]);
+
+    const data = useMemo(
+        () => (source.kind === 'district' ? mergeRecords({ patients, referrals }, source) : { patients, referrals }),
+        [source, patients, referrals]
+    );
+    const s = useMemo(() => pilotSummary(data.patients, data.referrals), [data]);
 
     const download = () => {
-        const blob = new Blob([pilotCsv(patients, referrals)], { type: 'text/csv;charset=utf-8' });
+        const blob = new Blob([pilotCsv(data.patients, data.referrals)], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -46,7 +83,7 @@ export default function PilotStudyPanel() {
         { label: 'Over-triage', value: pct(s.over, s.reviews), note: `${s.over} rated more urgent by the tool` },
         { label: 'RED caught', value: pct(s.toolRedOfClinicianRed, s.clinicianRed), note: `${s.toolRedOfClinicianRed} of ${s.clinicianRed} the clinician rated RED` },
         { label: 'Referral → acknowledged', value: minutes(s.medianMinutesToAcknowledge), note: `median of ${s.acknowledged} of ${s.referrals} referrals` },
-        { label: 'Referral → arrival', value: minutes(s.medianMinutesToArrival), note: `median of ${s.arrived} of ${s.referrals} referrals` },
+        { label: 'Referral → arrival', value: minutes(s.medianMinutesToArrival), note: `median of ${s.arrived} of ${s.referrals} referrals${s.clockErrors ? `; ${s.clockErrors} time${s.clockErrors === 1 ? '' : 's'} left out (recorded before the referral)` : ''}` },
     ];
 
     return (
@@ -56,18 +93,33 @@ export default function PilotStudyPanel() {
                     <p className="text-[0.625rem] font-bold uppercase tracking-wider text-gov-navy">Supervised pilot</p>
                     <h2 id="pilot-heading" className="text-sm font-extrabold text-emerald-deep">Triage agreement and referral times</h2>
                     <p className="text-[0.6875rem] text-txt-secondary mt-0.5 max-w-3xl">
-                        From the records on this device. The measures in docs/pilot/VALIDATION_PROTOCOL.md: the clinician&apos;s
-                        own triage is the reference; under-triage is the safety measure.
+                        The measures in docs/pilot/VALIDATION_PROTOCOL.md: the clinician&apos;s own triage is the reference;
+                        under-triage is the safety measure.
+                    </p>
+                    <p role="status" className="text-[0.6875rem] font-bold text-gov-navy mt-1">
+                        {source.kind === 'loading' && 'Reading the district service…'}
+                        {source.kind === 'district' && `From the district service (${source.patients.length} patient records, ${source.referrals.length} referrals) and this device.`}
+                        {source.kind === 'device' && `From this device only — ${source.reason}. Records this device has not received are missing; refresh before exporting.`}
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={download}
-                    disabled={s.reviews === 0}
-                    className="border border-gov-navy bg-gov-navy px-3 py-2 text-xs font-bold text-white hover:bg-gov-navy-hover disabled:opacity-60"
-                >
-                    Download de-identified CSV
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={() => void loadDistrict()}
+                        disabled={source.kind === 'loading'}
+                        className="border border-gov-navy bg-white px-3 py-2 text-xs font-bold text-gov-navy disabled:opacity-60"
+                    >
+                        Refresh
+                    </button>
+                    <button
+                        type="button"
+                        onClick={download}
+                        disabled={s.reviews === 0 || source.kind === 'loading'}
+                        className="border border-gov-navy bg-gov-navy px-3 py-2 text-xs font-bold text-white hover:bg-gov-navy-hover disabled:opacity-60"
+                    >
+                        Download de-identified CSV
+                    </button>
+                </div>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 p-4">
                 {tiles.map(t => (

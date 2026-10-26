@@ -8,7 +8,7 @@ exactly what a caller should send.
 
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -300,6 +300,20 @@ class AccessLogEntry(BaseModel):
 class AccessLogPage(BaseModel):
     count: int
     entries: List[AccessLogEntry]
+
+
+class StoreRecordsPage(BaseModel):
+    """
+    One page of every stored patient record or care referral, as the devices
+    sent them — what the pilot measures are computed from, so they cover the
+    whole district store rather than what one device happened to receive.
+    """
+
+    table: Literal["patient_records", "care_referrals"]
+    total: int
+    offset: int
+    count: int
+    records: List[dict]
 
 
 class FacilityPatients(BaseModel):

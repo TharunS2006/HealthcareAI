@@ -45,6 +45,7 @@ export:permissions`), so the two cannot drift.
 | GET | `/api/v1/records/incoming?facility_id=` | MO, Hospital Admin — own facility; DHO, Super Admin — any | Patients en route to a facility, most urgent first |
 | GET | `/api/v1/records/patients?facility_id=` | a facility's own staff; DHO, Super Admin — any | The records filed under a facility, paged, ids first (`ids_only`) — how a replacement phone restores its facility's history |
 | GET | `/api/v1/store` | DHO, Super Admin | Everything the record store holds, newest first (Data Inspector) |
+| GET | `/api/v1/store/records?table=patient_records\|care_referrals` | DHO, Super Admin | Every stored record in one table, paged by id — what the pilot measures on the Data Inspector are computed from |
 | GET | `/api/v1/access-log` | DHO, Super Admin | Who read or uploaded identified records, refused attempts included |
 | POST | `/api/v1/chat` | anyone, rate-limited (or signed-in staff only, with `CHAT_REQUIRE_SIGN_IN`) | Assistant Layer 2 |
 | POST | `/api/v1/facilities`, `/api/v1/encounters`, `/api/v1/referrals` | any signed-in staff | De-identified reporting (no name, ABHA id, vitals or complaint) |

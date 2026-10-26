@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { Patient } from '@/types/patient';
-import { savePatient, getAllPatients, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
+import { savePatient, getAllPatients, getPatient, getUnsyncedPatients, resetToDefaultSeed } from '@/lib/db';
 import { PRODUCTION } from '@/lib/config/mode';
 import { queuePatient } from '@/lib/sync/outbox';
 import { isNewerPatient, stampChange } from '@/lib/sync/patientVersion';
@@ -85,7 +85,8 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
 
                 let applied = 0;
                 for (const patient of incoming) {
-                    const existing = get().patients.find(p => p.id === patient.id);
+                    // Against the stored copy too: the screen may not have loaded it yet.
+                    const existing = get().patients.find(p => p.id === patient.id) ?? (await getPatient(patient.id).catch(() => undefined));
                     // Same last-write-wins guard the live path uses.
                     if (!isNewerPatient(patient, existing)) continue;
                     try {
@@ -112,17 +113,19 @@ export const usePatientStore = create<PatientStore>((set, get) => ({
             });
 
             socket.off('patient:sync');
-            socket.on('patient:sync', (patient: Patient) => {
-                set(state => {
-                    const exists = state.patients.find(p => p.id === patient.id);
-                    if (!isNewerPatient(patient, exists)) {
-                        return state;
-                    }
-                    const others = state.patients.filter(p => p.id !== patient.id);
-                    toast.success(`Sync: Patient record #${patient.id.slice(-4)} updated`);
-                    return { patients: [patient, ...others] };
-                });
-                savePatient(patient).catch(console.error);
+            socket.on('patient:sync', async (patient: Patient) => {
+                // Only a newer copy is kept — on screen and on disk alike, so a
+                // reload cannot bring back an older copy the screen refused.
+                const held = get().patients.find(p => p.id === patient.id) ?? (await getPatient(patient.id).catch(() => undefined));
+                if (!isNewerPatient(patient, held)) return;
+                try {
+                    await savePatient(patient);
+                } catch (err) {
+                    console.error('Live sync: failed to persist', patient.id, err);
+                    return;
+                }
+                set(state => ({ patients: [patient, ...state.patients.filter(p => p.id !== patient.id)] }));
+                toast.success(`Sync: Patient record #${patient.id.slice(-4)} updated`);
             });
 
             socket.off('data:reset');

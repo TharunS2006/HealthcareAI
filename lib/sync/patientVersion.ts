@@ -1,10 +1,11 @@
 /**
  * Which copy of a patient record is newer.
  *
- * `timestamp` is when the patient was registered, and screens read it that way
- * ("registered today"), so it must not move when the record is edited. Every
- * change made on a device stamps `updatedAt` instead, and devices and the relay
- * keep the copy with the later version. A record from an older build has no
+ * `timestamp` is when the patient was registered (or registered again for a new
+ * episode), and screens read it that way ("registered today"); edits such as a
+ * consent, a clinician's triage or a follow-up visit do not move it. Every
+ * change made on a device stamps `updatedAt`, and devices and the relay keep the
+ * copy with the later version. A record from an older build has no
  * `updatedAt`; its version is its registration time, as before.
  */
 

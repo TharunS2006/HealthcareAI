@@ -18,6 +18,7 @@
 
 import type { Patient, ReferralRecord, TriageStatus } from '@/types/patient';
 import { agreement, type TriageReview } from '@/lib/pilot/triageReview';
+import { patientVersion } from '@/lib/sync/patientVersion';
 
 export interface PilotScope {
     /** Facilities in the pilot chain; all when absent. */
@@ -42,9 +43,12 @@ export interface PilotSummary {
     escalated: number;
     medianMinutesToAcknowledge: number | null;
     medianMinutesToArrival: number | null;
+    /** Referral times left out because one was recorded before the referral itself (a device clock error). */
+    clockErrors: number;
 }
 
 const STATUSES: TriageStatus[] = ['RED', 'YELLOW', 'GREEN'];
+const isStatus = (v: unknown): v is TriageStatus => typeof v === 'string' && (STATUSES as string[]).includes(v);
 const MINUTE = 60_000;
 /** A referral is linked to a review when raised within this long of it (OPD raises it at triage). */
 const LINK_WINDOW = 24 * 60 * MINUTE;
@@ -74,10 +78,42 @@ export function median(values: number[]): number | null {
 
 interface ReviewRow { patient: Patient; review: TriageReview }
 
+/**
+ * Reviews in scope. Records arrive from other devices and the relay stores any
+ * JSON with an id, so a review that is not well formed is left out rather than
+ * allowed to break the screen.
+ */
 function reviewsIn(patients: Patient[], scope: PilotScope): ReviewRow[] {
-    return patients.flatMap(patient => (patient.triageReviews ?? [])
+    return patients.flatMap(patient => (Array.isArray(patient.triageReviews) ? patient.triageReviews : [])
+        .filter(review => review && isStatus(review.tool) && isStatus(review.clinician) && typeof review.at === 'string' && typeof review.facilityId === 'string')
         .filter(review => inScope(review.at, review.facilityId, scope))
         .map(review => ({ patient, review })));
+}
+
+/**
+ * This device's records and the district service's, one copy of each: the
+ * newer patient record (lib/sync/patientVersion.ts) and the referral changed
+ * last. The district store holds every record any device uploaded; the device
+ * may hold changes not uploaded yet.
+ */
+export function mergeRecords(local: { patients: Patient[]; referrals: ReferralRecord[] }, district: { patients: Patient[]; referrals: ReferralRecord[] }): { patients: Patient[]; referrals: ReferralRecord[] } {
+    const patients = new Map<string, Patient>();
+    for (const p of [...district.patients, ...local.patients]) {
+        if (!p || typeof p.id !== 'string') continue;
+        const held = patients.get(p.id);
+        if (!held || patientVersion(p) >= patientVersion(held)) patients.set(p.id, p);
+    }
+    const changed = (r: ReferralRecord) => {
+        const t = Date.parse(r.updatedAt ?? String(r.referredAt));
+        return Number.isFinite(t) ? t : 0;
+    };
+    const referrals = new Map<string, ReferralRecord>();
+    for (const r of [...district.referrals, ...local.referrals]) {
+        if (!r || typeof r.id !== 'string') continue;
+        const held = referrals.get(r.id);
+        if (!held || changed(r) >= changed(held)) referrals.set(r.id, r);
+    }
+    return { patients: [...patients.values()], referrals: [...referrals.values()] };
 }
 
 function referralsIn(referrals: ReferralRecord[], scope: PilotScope): ReferralRecord[] {
@@ -100,6 +136,8 @@ export function pilotSummary(patients: Patient[], referrals: ReferralRecord[], s
     const refs = referralsIn(referrals, scope);
     const toAck = refs.map(r => minutesBetween(r.referredAt, r.acknowledgedAt)).filter((m): m is number => m !== null);
     const toArrival = refs.map(r => minutesBetween(r.referredAt, r.arrivedAt)).filter((m): m is number => m !== null);
+    const reversed = (end: string | undefined, start: string | Date) => Boolean(end) && Date.parse(String(end)) < new Date(start).getTime();
+    const clockErrors = refs.reduce((n, r) => n + (reversed(r.acknowledgedAt, r.referredAt) ? 1 : 0) + (reversed(r.arrivedAt, r.referredAt) ? 1 : 0), 0);
     return {
         reviews: rows.length, agree, under, over, clinicianRed, toolRedOfClinicianRed, matrix,
         referrals: refs.length,
@@ -108,6 +146,7 @@ export function pilotSummary(patients: Patient[], referrals: ReferralRecord[], s
         escalated: refs.filter(r => r.escalation).length,
         medianMinutesToAcknowledge: median(toAck),
         medianMinutesToArrival: median(toArrival),
+        clockErrors,
     };
 }
 
@@ -140,10 +179,21 @@ export const PILOT_CSV_COLUMNS = [
     'referred', 'referral_priority', 'minutes_to_acknowledge', 'minutes_to_arrival', 'admitted', 'escalated',
 ] as const;
 
+/**
+ * One CSV cell. A value that a spreadsheet would run as a formula (starting
+ * with = + - @, tab or carriage return) is prefixed with an apostrophe:
+ * synced values come from other devices and are not trusted.
+ */
 const cell = (v: string | number | null | undefined) => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = v === null || v === undefined ? '' : String(v);
+    if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
+
+/** The calendar date in India (IST), where the review happened — not the UTC date. */
+export function istDate(at: string): string {
+    return new Date(at).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+}
 
 /** One de-identified row per clinician review, with the outcome of the referral raised for it, if any. */
 export function pilotCsv(patients: Patient[], referrals: ReferralRecord[], scope: PilotScope = {}): string {
@@ -154,7 +204,7 @@ export function pilotCsv(patients: Patient[], referrals: ReferralRecord[], scope
         const ref = linkedReferral(row, referrals);
         lines.push([
             i + 1,
-            review.at.slice(0, 10),
+            istDate(review.at),
             review.facilityId,
             ageBand(patient.age),
             patient.gender,

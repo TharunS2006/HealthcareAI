@@ -47,6 +47,7 @@ const cases: Array<{ name: string; expect: 'RED' | 'YELLOW' | 'GREEN'; vitals: V
     { name: 'CONSCIOUSNESS AVPU=PAIN',   expect: 'RED',    vitals: { ...healthy, consciousness: 'PAIN' } },
     { name: 'HIGH_RISK_MATERNAL 158/98 +hdc', expect: 'RED',    vitals: { ...healthy, isPregnant: true, bloodPressure: { systolic: 158, diastolic: 98 }, injuryType: 'severe headache' } },
     { name: 'HIGH_RISK_PEDIATRIC 18mo rr 46', expect: 'RED',    vitals: { ...healthy, childAgeMonths: 18, respiratoryRate: 46 } },
+    { name: 'HIGH_RISK_PEDIATRIC newborn 0mo spo2 91', expect: 'RED', vitals: { ...healthy, childAgeMonths: 0, spo2: 91 } },
     { name: 'SPO2_LOW spo2 93',     expect: 'YELLOW', vitals: { ...healthy, spo2: 93 } },
     { name: 'TACHYCARDIA hr 118',      expect: 'YELLOW', vitals: { ...healthy, heartRate: 118 } },
     { name: 'HYPERTENSION 146/92',      expect: 'YELLOW', vitals: { ...healthy, bloodPressure: { systolic: 146, diastolic: 92 } } },

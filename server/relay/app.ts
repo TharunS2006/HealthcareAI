@@ -383,6 +383,12 @@ export function createRelay({ store, secret, io, abdm = null, bhashini = null, l
         if (!who) return refuse(who, 'Sign in to share patient records');
         if (!can(who.role, 'patient:register')) return refuse(who, `${who.role} may not register patients`);
         if (typeof p?.id !== 'string') return { ok: false, status: 400, reason: 'body must be a patient record with an id' };
+        // Locked per patient, like referrals: two copies arriving together on the
+        // hosted relay must not both pass the version check and race to be written.
+        return store.withLock(`patient:${p.id}`, () => publishPatientLocked(p as PatientLike & { id: string; timestamp?: string; updatedAt?: string }, who));
+    }
+
+    async function publishPatientLocked(p: PatientLike & { id: string; timestamp?: string; updatedAt?: string }, who: Identity): Promise<Result<{ id: string; stale: boolean }>> {
         // A record is changed by those who may hold it: judged on the copy the relay
         // already has, so a record cannot be moved to another facility by re-sending
         // it with a different one. A record that names no facility (an older build)

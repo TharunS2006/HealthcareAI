@@ -424,8 +424,8 @@ E.append(callout(
 
 E.append(Paragraph("How it is guarded", H2))
 E.append(Paragraph(
-    "<font face='Courier' size='8'>npm run verify:triage</font> runs 20 clinical cases "
-    "through all three decision paths, the rules alone included. It must stay at 20/20. Add a case whenever you add a "
+    "<font face='Courier' size='8'>npm run verify:triage</font> runs 21 clinical cases "
+    "through all three decision paths, the rules alone included. It must stay at 21/21. Add a case whenever you add a "
     "rule. These cases guard against regressions; they are not clinical validation. The "
     "model is trained on a synthetic dataset, and before real use the rules need a "
     "clinical review and the tool a validation study (docs/PRODUCTION_READINESS.md). The "

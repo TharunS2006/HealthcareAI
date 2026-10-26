@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from '@/components/shared/Sidebar';
 import RestoreRecords from '@/components/shared/RestoreRecords';
 import MobileMenu from '@/components/shared/MobileMenu';
@@ -101,6 +101,8 @@ export default function OPDPage() {
     // The clinician's own acuity for this triage (lib/pilot/triageReview.ts).
     const [review, setReview] = useState<TriageReview | null>(null);
     const [savingReview, setSavingReview] = useState(false);
+    // Where focus goes once the review buttons are replaced by the result.
+    const reviewStatusRef = useRef<HTMLParagraphElement>(null);
     // A returning patient keeps the consent already recorded; only an emergency
     // registration's pending consent, or none, is asked for again.
     const existingPatient = patientId ? patients.find(p => p.id === patientId) : undefined;
@@ -286,6 +288,8 @@ export default function OPDPage() {
             return;
         }
         setFormProblems([]);
+        // A fresh triage gets a fresh review: the last one belonged to the last result.
+        setReview(null);
         const vitals = intake.vitals;
         const patientGender = gender;
         const dataConsent = consentOnFile ?? (session ? buildConsent(consentDraft, { staffId: session.staffId, name: session.name }, new Date(), existingPatient?.dataConsent) : undefined);
@@ -302,7 +306,14 @@ export default function OPDPage() {
 
             // Save Patient Record into Zustand & IndexedDB
             const newPatId = patientId || `PAT-${uuidv4().substring(0, 8).toUpperCase()}`;
+            // A returning patient keeps their history (visits, high-risk flags,
+            // earlier triage reviews, consent) with today's details on top. Only
+            // an earlier episode's transport state is dropped.
+            const history: Partial<Patient> = existingPatient ? { ...existingPatient } : {};
+            delete history.transportStatus;
+            const earlierFlags = existingPatient?.highRiskFlags ?? [];
             const newPatient: Patient = {
+                ...history,
                 id: newPatId,
                 name: name.trim(),
                 age,
@@ -326,8 +337,9 @@ export default function OPDPage() {
                 registeredAtFacilityId: facility.id,
                 ...(session ? { chw_id: session.staffId, chw_name: session.name } : {}),
                 ...(dataConsent ? { dataConsent } : {}),
-                highRiskFlags: vitals.isPregnant
+                highRiskFlags: vitals.isPregnant && !earlierFlags.some(f => f.type === 'MATERNAL')
                     ? [
+                          ...earlierFlags,
                           {
                               type: 'MATERNAL',
                               severity: 'HIGH',
@@ -336,7 +348,7 @@ export default function OPDPage() {
                               notes: 'High-risk maternal ANC follow-up',
                           },
                       ]
-                    : [],
+                    : earlierFlags,
             };
 
             try {
@@ -431,6 +443,7 @@ export default function OPDPage() {
         setSavingReview(false);
         setCreatedPatient(updated);
         setReview(entry);
+        requestAnimationFrame(() => reviewStatusRef.current?.focus());
         // Raised: the waiting token moves up with it.
         if (updated.triagePriority && updated.triagePriority !== current.triagePriority) {
             const token = useQueueStore.getState().queue.find(q => q.patientId === updated.id && q.facilityId === facility.id && q.status === 'WAITING');
@@ -886,11 +899,11 @@ export default function OPDPage() {
                                             <h4 id="opd-review-title" className="text-[10px] uppercase tracking-wide font-bold text-slate-700">
                                                 {isEn ? 'Your triage (pilot study)' : isHi ? 'आपका ट्राइएज (पायलट अध्ययन)' : 'तुमचे ट्राइएज (पायलट अभ्यास)'}
                                             </h4>
-                                            {review ? (
-                                                <p className="font-bold">
-                                                    {isEn ? 'Recorded' : isHi ? 'दर्ज' : 'नोंदवले'}: {isEn ? 'you' : isHi ? 'आप' : 'तुम्ही'} {review.clinician} · NalamMesh {review.tool}
-                                                </p>
-                                            ) : (
+                                            {/* Always present, so the result is announced when it appears. */}
+                                            <p ref={reviewStatusRef} tabIndex={-1} role="status" className="font-bold focus:outline-none">
+                                                {review && `${isEn ? 'Recorded' : isHi ? 'दर्ज' : 'नोंदवले'}: ${isEn ? 'you' : isHi ? 'आप' : 'तुम्ही'} ${review.clinician} · NalamMesh ${review.tool}`}
+                                            </p>
+                                            {!review && (
                                                 <>
                                                     <p className="leading-snug">
                                                         {isEn

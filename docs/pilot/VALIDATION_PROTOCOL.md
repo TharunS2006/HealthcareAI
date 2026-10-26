@@ -51,14 +51,14 @@ How many triages that takes depends on how many patients are RED, which nobody h
 ## 6. Data
 
 - **Collection:** in the app, as part of care: the triage, the clinician's rating, the referral's status times and the consent record. The study adds no extra forms, except the paper sub-sample in mitigation (a), if chosen.
-- **Extraction:** the District Health Officer's Data Inspector, *Download de-identified CSV*. One row per clinician review, with no name, ID, phone, ABHA number, village or exact age, and the referral raised for that triage linked by time (within 24 hours). Columns: `case_no, review_date, facility_id, age_band, sex, pregnant, tool_status, tool_decision_source, clinician_status, agreement, reviewer_role, referred, referral_priority, minutes_to_acknowledge, minutes_to_arrival, admitted, escalated`.
+- **Extraction:** the District Health Officer's Data Inspector, *Download de-identified CSV*. It is computed from every record the district service holds (`GET /api/v1/store/records`, DHO and Super Admin only, access-logged), merged with the DHO device's own, so it does not depend on which records one device received. The panel says when the service could not be reached and only the device's records were used; the study team exports only when it says the district service was read. One row per clinician review, with no name, ID, phone, ABHA number, village or exact age, and the referral raised for that triage linked by time (within 24 hours). Columns: `case_no, review_date, facility_id, age_band, sex, pregnant, tool_status, tool_decision_source, clinician_status, agreement, reviewer_role, referred, referral_priority, minutes_to_acknowledge, minutes_to_arrival, admitted, escalated`.
 - **Handling:** the export can still identify a patient in a small facility, so it is personal data. It is kept on department systems, shared only with the study team named in the ethics approval, and deleted at the end of the study according to the department's retention rules.
 - **Research use and consent:** the in-app notice covers using the data for care and for reports that do not name the patient. Whether research use needs separate consent or a waiver is for the ethics committee to decide. This protocol does not assume either.
 
 ## 7. Analysis
 
 - Proportions (under-triage, over-triage, sensitivity, specificity) with Wilson 95% confidence intervals; weighted kappa with its 95% CI.
-- Referral times as medians with interquartile ranges. A time recorded before the referral itself (a device clock error) is excluded, and the number excluded is reported.
+- Referral times as medians with interquartile ranges. A time recorded before the referral itself (a device clock error) is excluded; the Data Inspector reports how many were excluded, and that number is reported.
 - Subgroup results as above, reported descriptively; the study is not powered for subgroup comparisons.
 - Missing data are reported, not imputed.
 
@@ -76,7 +76,7 @@ How many triages that takes depends on how many patients are RED, which nobody h
 
 ## Appendix — the danger-sign rules the committee reviews
 
-From `assessClinically()` in `lib/triage/model.ts`. RED-level flags make the result RED whatever the model says; caution flags inform the model. Units as recorded on the form.
+From `assessClinically()` in `lib/triage/model.ts`. Any RED-level flag makes the result RED whatever the model says. Any caution flag makes a GREEN result YELLOW (with the model, and with the rules alone); it never lowers a result. Units as recorded on the form.
 
 | Flag | Rule | Level |
 |---|---|---|

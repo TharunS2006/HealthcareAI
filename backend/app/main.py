@@ -30,7 +30,7 @@ import json
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -49,7 +49,7 @@ from .models import (AccessLog, CareReferral, Encounter, Facility, FacilityTier,
 from .schemas import (AccessLogEntry, AccessLogPage, CareReferralIn, ChatIn,
                       ChatOut, DistrictSummary, EncounterIn, FacilityIn,
                       FacilityPatients, FacilityScorecard, IncomingCase, IncomingList,
-                      IngestReceipt, PatientRecordIn, ReferralIn, StoreDump,
+                      IngestReceipt, PatientRecordIn, ReferralIn, StoreDump, StoreRecordsPage,
                       StoredPatient, StoredReferral, TierBreakdown,
                       TriageBreakdown)
 
@@ -491,6 +491,43 @@ def facility_patients(
         count=len(rows),
         ids=[r.id for r in rows],
         patients=[] if ids_only else [json.loads(r.payload) for r in rows],
+    )
+
+
+@app.get(
+    "/api/v1/store/records",
+    dependencies=[Depends(require("data:inspect"))],
+    response_model=StoreRecordsPage,
+    tags=["records"],
+    summary="Every stored patient record or referral, a page at a time (pilot measures)",
+)
+def store_records(
+    table: Literal["patient_records", "care_referrals"] = Query(..., description="Which table to page through"),
+    limit: int = Query(1000, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
+    session: Session = Depends(get_session),
+    request: Request = None,  # type: ignore[assignment]  # injected by FastAPI
+):
+    """
+    The device payloads in one table, ordered by id so pages hold still while
+    the District Health Officer's device walks them. The pilot measures on the
+    Data Inspector (lib/pilot/metrics.ts) are computed from every record here,
+    merged with the device's own, so they do not depend on which records one
+    device happened to receive through the relay.
+
+    Identified records: data:inspect only (the DHO and the Super Admin), and
+    every page is written to the access log.
+    """
+    model = PatientRecord if table == "patient_records" else CareReferral
+    total = session.exec(select(func.count()).select_from(model)).one()
+    rows = session.exec(select(model).order_by(model.id).offset(offset).limit(limit)).all()
+    _note(request, f"{len(rows)} {table} row(s) from offset {offset} (pilot measures)")
+    return StoreRecordsPage(
+        table=table,
+        total=total,
+        offset=offset,
+        count=len(rows),
+        records=[json.loads(r.payload) for r in rows],
     )
 
 

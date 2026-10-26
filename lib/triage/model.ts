@@ -310,7 +310,8 @@ function assessClinically(vitals: Vitals): ClinicalAssessment {
         vitals.isPregnant &&
         (sys >= 150 || dia >= 95 || notes.includes('headache') || notes.includes('bleeding') || notes.includes('eclampsia'))
     );
-    const isChild = !!(vitals.childAgeMonths && vitals.childAgeMonths <= 60);
+    // `!== undefined`, not truthiness: a newborn is entered as 0 months.
+    const isChild = vitals.childAgeMonths !== undefined && vitals.childAgeMonths >= 0 && vitals.childAgeMonths <= 60;
     const isHighRiskChild = !!(
         isChild &&
         (rr >= 40 || spo2 < 92 || temp > 102 || notes.includes('malnutrition') || notes.includes('unconscious'))

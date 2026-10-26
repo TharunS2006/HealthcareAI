@@ -198,6 +198,28 @@ with Session(engine) as s:
     check("no limit at all is a working default, not an error",
           client.get("/api/v1/store").status_code == 200)
 
+    # ── 5. Every record, a page at a time (the pilot measures) ──────────────
+    print("\nThe full store pages by id, for the pilot measures:")
+    first = client.get("/api/v1/store/records", params={"table": "patient_records", "limit": 2}).json()
+    check("the first page reports the true total and holds the first ids",
+          first.get("total") == 5 and first.get("count") == 2 and [r["id"] for r in first["records"]] == ["P-1", "P-2"],
+          f"got {first}")
+    rest = client.get("/api/v1/store/records", params={"table": "patient_records", "limit": 2, "offset": 4}).json()
+    check("the last page holds what is left", rest.get("count") == 1 and rest["records"][0]["id"] == "P-5", f"got {rest}")
+    beyond = client.get("/api/v1/store/records", params={"table": "patient_records", "offset": 50}).json()
+    check("a page past the end is empty, not an error", beyond.get("count") == 0 and beyond.get("total") == 5, f"got {beyond}")
+    paged = next(r for r in client.get("/api/v1/store/records", params={"table": "patient_records"}).json()["records"] if r["id"] == "P-5")
+    check("each record is the device payload, unchanged", paged == sent, f"got {paged}")
+    refs = client.get("/api/v1/store/records", params={"table": "care_referrals"}).json()
+    check("the referrals table pages the same way", refs.get("total") == 3 and refs.get("count") == 3, f"got {refs}")
+    check("an unknown table is refused",
+          client.get("/api/v1/store/records", params={"table": "access_log"}).status_code == 422)
+    check("the page size is bounded",
+          client.get("/api/v1/store/records", params={"table": "patient_records", "limit": 2001}).status_code == 422)
+    mo = TestClient(app, headers=bearer("u-mo-bhamragad", "MO", "phc-bhamragad"))
+    check("a Medical Officer may not read the whole district store",
+          mo.get("/api/v1/store/records", params={"table": "patient_records"}).status_code == 403)
+
 print("")
 if failures:
     print(f"{len(failures)} check(s) failed: {', '.join(failures)}\n")

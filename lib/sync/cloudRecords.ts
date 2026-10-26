@@ -444,3 +444,53 @@ export async function fetchFacilityPatients(
         clearTimeout(timer);
     }
 }
+
+export type StoreRecordsResult<T> =
+    | { ok: true; total: number; records: T[] }
+    | { ok: false; reason: 'offline' | 'unreachable' | 'timeout' | 'error' | 'forbidden' | 'no-session' };
+
+/** Pages walked at most, so a runaway total cannot keep a device fetching forever (200,000 records). */
+const MAX_STORE_PAGES = 100;
+const STORE_PAGE_SIZE = 2000;
+
+/**
+ * Every record the district service holds in one table, walked a page at a
+ * time — what the pilot measures are computed from (lib/pilot/metrics.ts).
+ * District Health Officer and Super Admin only; every page is access-logged.
+ * Fails as a whole, with a reason, rather than returning a partial table that
+ * would look complete.
+ */
+export async function fetchAllStoreRecords<T>(table: 'patient_records' | 'care_referrals'): Promise<StoreRecordsResult<T>> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return { ok: false, reason: 'offline' };
+    if (!hasCloudIdentity()) return { ok: false, reason: 'no-session' };
+
+    const records: T[] = [];
+    let total = 0;
+    for (let page = 0; page < MAX_STORE_PAGES; page++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        try {
+            const query = new URLSearchParams({ table, offset: String(page * STORE_PAGE_SIZE), limit: String(STORE_PAGE_SIZE) });
+            const response = await fetch(reachable(`${reportingBaseUrl()}/api/v1/store/records?${query}`), {
+                signal: controller.signal,
+                headers: identityProvider(),
+            });
+            if (response.status === 401 || response.status === 403) return { ok: false, reason: 'forbidden' };
+            if (!response.ok) return { ok: false, reason: 'error' };
+            const data = (await response.json()) as { total?: unknown; count?: unknown; records?: unknown };
+            if (typeof data.total !== 'number' || typeof data.count !== 'number' || !Array.isArray(data.records)) {
+                return { ok: false, reason: 'error' };
+            }
+            total = data.total;
+            records.push(...(data.records as T[]));
+            if (data.count < STORE_PAGE_SIZE || records.length >= total) return { ok: true, total, records };
+        } catch (err) {
+            if (err instanceof DOMException && err.name === 'AbortError') return { ok: false, reason: 'timeout' };
+            return { ok: false, reason: 'unreachable' };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+    // More than MAX_STORE_PAGES pages: say so rather than pretend this is all.
+    return { ok: false, reason: 'error' };
+}
